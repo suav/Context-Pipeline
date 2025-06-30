@@ -22,6 +22,12 @@ export function LibraryStage() {
     const [showImportModal, setShowImportModal] = useState(false);
     const [showArchiveManager, setShowArchiveManager] = useState(false);
     
+    // Filter states
+    const [searchQuery, setSearchQuery] = useState('');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [sourceFilter, setSourceFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
+    
     // Debug log to ensure component is updating
     console.log('LibraryStage rendered - clickable cards version');
 
@@ -542,6 +548,44 @@ export function LibraryStage() {
         }
     };
 
+    // Filter logic
+    const filteredItems = libraryItems.filter(item => {
+        if (!item || !item.id || !item.title || !item.source) return false;
+        
+        // Search query filter
+        if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
+            !item.preview?.toLowerCase().includes(searchQuery.toLowerCase())) {
+            return false;
+        }
+        
+        // Type filter
+        if (typeFilter !== 'all' && item.type !== typeFilter) {
+            return false;
+        }
+        
+        // Source filter
+        if (sourceFilter !== 'all' && item.source !== sourceFilter) {
+            return false;
+        }
+        
+        // Priority filter (check tags for priority)
+        if (priorityFilter !== 'all') {
+            const hasPriority = item.tags?.some(tag => tag.includes(priorityFilter));
+            if (!hasPriority) return false;
+        }
+        
+        return true;
+    });
+
+    // Get unique values for filter dropdowns
+    const uniqueSources = [...new Set(libraryItems.map(item => item.source).filter(Boolean))];
+    const uniqueTypes = [...new Set(libraryItems.map(item => item.type).filter(Boolean))];
+    const uniquePriorities = [...new Set(
+        libraryItems.flatMap(item => item.tags || [])
+            .filter(tag => tag.includes('priority'))
+            .map(tag => tag.replace('priority-', ''))
+    )];
+
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
@@ -709,31 +753,125 @@ export function LibraryStage() {
                 </div>
             )}
             
+            {/* Filters */}
+            {libraryItems.length > 0 && (
+                <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        {/* Search */}
+                        <div className="flex-1">
+                            <input
+                                type="text"
+                                placeholder="Search library items..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        
+                        {/* Source Filter */}
+                        <div>
+                            <select
+                                value={sourceFilter}
+                                onChange={(e) => setSourceFilter(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">All Sources</option>
+                                {uniqueSources.map(source => (
+                                    <option key={source} value={source}>{source}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        {/* Type Filter */}
+                        <div>
+                            <select
+                                value={typeFilter}
+                                onChange={(e) => setTypeFilter(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">All Types</option>
+                                {uniqueTypes.map(type => (
+                                    <option key={type} value={type}>{type}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        {/* Priority Filter */}
+                        <div>
+                            <select
+                                value={priorityFilter}
+                                onChange={(e) => setPriorityFilter(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">All Priorities</option>
+                                {uniquePriorities.map(priority => (
+                                    <option key={priority} value={priority}>{priority}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    {/* Filter Results Summary */}
+                    <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+                        <span>
+                            Showing {filteredItems.length} of {libraryItems.length} items
+                        </span>
+                        {(searchQuery || sourceFilter !== 'all' || typeFilter !== 'all' || priorityFilter !== 'all') && (
+                            <button
+                                onClick={() => {
+                                    setSearchQuery('');
+                                    setSourceFilter('all');
+                                    setTypeFilter('all');
+                                    setPriorityFilter('all');
+                                }}
+                                className="text-blue-600 hover:text-blue-800 text-xs"
+                            >
+                                Clear filters
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {loading ? (
                 <div className="text-center py-8 text-gray-500">Loading library...</div>
             ) : libraryItems.length > 0 ? (
                 <div>
-                    <div className="text-sm text-gray-600 mb-2">
-                        🔍 Debug: Rendering {libraryItems.length} items
+                    {/* Horizontal Scrollable Cards Container */}
+                    <div className="relative">
+                        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                            <div className="flex gap-4 pb-4" style={{ width: 'max-content' }}>
+                                {filteredItems.map((item, index) => {
+                                    console.log(`🔍 Rendering card ${index}:`, item.title, item.id);
+                                    return (
+                                        <div key={`${item.id}-${item.library_metadata?.clone_mode || 'default'}`} className="flex-shrink-0 w-64">
+                                            <LibraryCard
+                                                item={item}
+                                                isSelected={selectedItems.has(item.id)}
+                                                onSelect={toggleSelection}
+                                                onRemove={removeFromLibrary}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        
+                        {/* Scroll indicators */}
+                        {filteredItems.length > 3 && (
+                            <div className="absolute top-1/2 transform -translate-y-1/2 right-2 bg-black bg-opacity-20 text-white px-2 py-1 rounded text-xs pointer-events-none">
+                                Scroll →
+                            </div>
+                        )}
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {libraryItems
-                            .filter(item => item && item.id && item.title && item.source && 
-                                    String(item.id) !== 'undefined' && String(item.title) !== 'undefined' && 
-                                    String(item.source) !== 'undefined')
-                            .map((item, index) => {
-                                console.log(`🔍 Rendering card ${index}:`, item.title, item.id);
-                                return (
-                                    <LibraryCard
-                                        key={`${item.id}-${item.library_metadata?.clone_mode || 'default'}`}
-                                        item={item}
-                                        isSelected={selectedItems.has(item.id)}
-                                        onSelect={toggleSelection}
-                                        onRemove={removeFromLibrary}
-                                    />
-                                );
-                            })}
-                    </div>
+                    
+                    {filteredItems.length === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                            <div className="text-3xl mb-2">🔍</div>
+                            <p>No items match your filters</p>
+                            <p className="text-sm">Try adjusting your search criteria</p>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="text-center py-12 text-gray-500">

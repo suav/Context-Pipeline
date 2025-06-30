@@ -64,7 +64,7 @@ export function LibraryCard({ item, isSelected, onSelect, onRemove }: LibraryCar
     return (
         <div 
             onClick={handleCardClick}
-            className={`relative border rounded-lg p-3 bg-white transition-all hover:shadow-md cursor-pointer ${
+            className={`relative border rounded-lg p-3 bg-white transition-all hover:shadow-md cursor-pointer h-48 flex flex-col ${
                 isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'
             }`}
         >
@@ -86,7 +86,7 @@ export function LibraryCard({ item, isSelected, onSelect, onRemove }: LibraryCar
             </div>
 
             {/* Content */}
-            <div className="mt-3 mb-3">
+            <div className="mt-3 mb-3 flex-grow">
                 <h5 className="font-medium text-gray-900 text-sm mb-1 pr-4 line-clamp-2">
                     {item.title}
                 </h5>
@@ -140,7 +140,7 @@ export function LibraryCard({ item, isSelected, onSelect, onRemove }: LibraryCar
             </div>
             
             {/* Footer */}
-            <div className="text-xs text-gray-500 mt-2 truncate">
+            <div className="text-xs text-gray-500 mt-auto pt-2 truncate">
                 {item.source} • {new Date(item.library_metadata?.added_at || item.added_at).toLocaleDateString()}
             </div>
         </div>
