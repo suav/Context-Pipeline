@@ -1,0 +1,8 @@
+{
+  "ignore_dirs": [
+    "storage",
+    "src/storage",
+    ".next",
+    "node_modules"
+  ]
+}
