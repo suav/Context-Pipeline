@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, KeyboardEvent } from 'react';
+import { useState, useEffect, useRef, useCallback, KeyboardEvent } from 'react';
 import { CommandInjector } from '../CommandInjector';
 
 interface ConversationMessage {
@@ -40,6 +40,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   const [showCommandInjector, setShowCommandInjector] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini'>('claude');
+  const [agentLoaded, setAgentLoaded] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(agentName);
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -47,20 +48,45 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
 
   useEffect(() => {
     console.log('ChatInterface mounted/updated for agent:', agentId, 'workspace:', workspaceId);
-    if (agentId && workspaceId && !historyLoaded) {
-      console.log('Both IDs available and history not loaded yet, loading conversation history...');
+    if (agentId && workspaceId) {
+      console.log('Both IDs available, loading conversation history...');
       loadConversationHistory();
     } else {
-      console.log('Skipping history load:', { agentId, workspaceId, historyLoaded });
+      console.log('Skipping history load:', { agentId, workspaceId });
     }
-  }, [agentId, workspaceId, historyLoaded]); // Reload when agent, workspace changes, or history loaded state changes
+  }, [agentId, workspaceId]); // Reload when agent or workspace changes
 
-  // Reset history loaded state when agent changes
+  // Reset state when agent changes
   useEffect(() => {
+    console.log('Resetting state for new agent:', agentId);
     setHistoryLoaded(false);
+    setAgentLoaded(false);
     setMessages([]);
     setCommandHistory([]);
   }, [agentId, workspaceId]);
+
+  // Load agent state to get preferred model
+  useEffect(() => {
+    const loadAgentState = async () => {
+      if (!agentId || !workspaceId || agentLoaded) return;
+      
+      try {
+        const response = await fetch(`/api/workspaces/${workspaceId}/agents/${agentId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.agent.preferred_model) {
+            setSelectedModel(data.agent.preferred_model);
+          }
+        }
+      } catch (error) {
+        console.warn('Could not load agent preferences, using default:', error);
+      } finally {
+        setAgentLoaded(true);
+      }
+    };
+    
+    loadAgentState();
+  }, [agentId, workspaceId, agentLoaded]);
 
   useEffect(() => {
     scrollToBottom();
@@ -114,27 +140,41 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         const data = await response.json();
         console.log('Conversation data received:', data);
         
-        console.log('Raw messages from API:', data.messages);
-        setMessages(data.messages || []);
+        const messagesFromAPI = data.messages || [];
+        console.log('Raw messages from API:', messagesFromAPI);
+        console.log('Number of messages to display:', messagesFromAPI.length);
         
-        // Extract command history from messages
-        const commands = (data.messages || [])
+        // Ensure we have valid message objects
+        const validMessages = messagesFromAPI.filter((msg: any) => 
+          msg && msg.id && msg.role && msg.content !== undefined
+        );
+        
+        console.log('Valid messages after filtering:', validMessages.length);
+        
+        // Update state with valid messages
+        setMessages(validMessages);
+        
+        // Extract command history from user messages
+        const commands = validMessages
           .filter((msg: ConversationMessage) => msg.role === 'user')
           .map((msg: ConversationMessage) => msg.content);
         setCommandHistory(commands);
         
-        console.log('Set messages count:', data.messages?.length || 0);
+        console.log('Set messages count:', validMessages.length);
         console.log('Set command history count:', commands.length);
-        console.log('Messages state after setting:', data.messages || []);
         
         // Mark history as loaded
         setHistoryLoaded(true);
         
         // Force scroll to bottom after loading history
-        setTimeout(() => scrollToBottom(), 100);
+        setTimeout(() => {
+          console.log('Scrolling to bottom after history load');
+          scrollToBottom();
+        }, 200);
       } else {
         const errorText = await response.text();
         console.error('Failed to load conversation - status:', response.status, 'body:', errorText);
+        setHistoryLoaded(true);
       }
     } catch (error) {
       console.error('Failed to load conversation history (error):', error);
@@ -143,7 +183,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     }
   };
 
-  const sendCommandWithStreaming = async (command: string) => {
+  const sendCommandWithStreaming = useCallback(async (command: string) => {
     const userMessage: ConversationMessage = {
       id: generateMessageId(),
       timestamp: new Date().toISOString(),
@@ -197,7 +237,10 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         try {
           while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {
+              console.log('Stream ended normally');
+              break;
+            }
             
             const chunk = decoder.decode(value);
             const lines = chunk.split('\n');
@@ -226,19 +269,32 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                     });
                     scrollToBottom();
                   } else if (data.type === 'complete') {
-                    // Response completed
+                    // Response completed successfully
                     assistantMessageId = data.message_id;
+                    console.log('Response completed successfully');
+                    break; // Exit the loop on completion
                   } else if (data.type === 'error') {
                     throw new Error(data.error);
                   }
                 } catch (parseError) {
-                  console.warn('Failed to parse streaming data:', parseError);
+                  // Only warn for actual parse errors, not expected stream end
+                  if (line.trim() !== 'data: ') {
+                    console.warn('Failed to parse streaming data:', parseError);
+                  }
                 }
               }
             }
           }
+        } catch (streamError) {
+          // Handle stream reading errors gracefully
+          console.warn('Stream reading completed with minor error (expected):', streamError);
         } finally {
-          reader.releaseLock();
+          try {
+            reader.releaseLock();
+          } catch (releaseError) {
+            // Reader might already be released, ignore
+            console.warn('Reader release warning (expected):', releaseError);
+          }
         }
         
         // Final scroll to bottom
@@ -276,7 +332,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         inputRef.current.focus();
       }
     }
-  };
+  }, [workspaceId, agentId, selectedModel, setMessages, setCommandHistory, setHistoryIndex, setIsProcessing, scrollToBottom, messages.length]);
 
   const sendCommand = async () => {
     if (!inputValue.trim() || isProcessing) {
@@ -415,16 +471,28 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       if (command && typeof command === 'string') {
         console.log(`[${componentId.current}] Processing command for agent ${agentId}`);
         setInputValue(command);
-        // Optionally auto-send the command
+        
+        // Auto-send the command if requested
         if (event.detail?.autoSend) {
           console.log(`[${componentId.current}] Auto-sending command immediately`);
-          // Use the streaming helper function
-          sendCommandWithStreaming(command.trim());
           
-          // Clear input after a short delay to show the command was processed
-          setTimeout(() => {
-            setInputValue('');
-          }, 100);
+          // Wait for history to load before auto-sending
+          const tryAutoSend = () => {
+            if (historyLoaded) {
+              console.log(`[${componentId.current}] History loaded, sending command now`);
+              sendCommandWithStreaming(command.trim());
+              
+              // Clear input after a short delay
+              setTimeout(() => {
+                setInputValue('');
+              }, 100);
+            } else {
+              console.log(`[${componentId.current}] History not loaded yet, retrying in 100ms`);
+              setTimeout(tryAutoSend, 100);
+            }
+          };
+          
+          tryAutoSend();
         }
       }
     };
@@ -437,7 +505,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       window.removeEventListener(eventName as any, handleCommandInjection);
       window.removeEventListener(globalEventName as any, handleCommandInjection);
     };
-  }, [agentId, workspaceId]); // Add dependencies to ensure fresh values
+  }, [agentId, workspaceId, historyLoaded, sendCommandWithStreaming]); // Add dependencies to ensure fresh values
 
   return (
     <div className="flex flex-col flex-1 bg-black text-green-400 font-mono text-sm overflow-y-auto">
@@ -448,7 +516,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         onClick={() => inputRef.current?.focus()}
       >
         {/* Welcome Message */}
-        {messages.length === 0 && (
+        {messages.length === 0 && historyLoaded && (
           <div className="mb-4">
             <div className="text-green-500 mb-2">
               {`┌─────────────────────────────────────────────────┐`}
@@ -514,8 +582,15 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
           </div>
         )}
 
+        {/* Loading State */}
+        {!historyLoaded && (
+          <div className="flex items-center text-gray-400 mb-4">
+            <span className="animate-pulse">Loading conversation history...</span>
+          </div>
+        )}
+
         {/* Message History */}
-        {messages.map((message, index) => (
+        {messages.length > 0 && messages.map((message, index) => (
           <div key={message.id} className="mb-2">
             {message.role === 'user' ? (
               <div className="flex items-start">
@@ -561,23 +636,6 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
 
       {/* Fixed Input Area at Bottom */}
       <div className="flex-shrink-0 bg-black border-t border-gray-700">
-        {/* Model Selector */}
-        <div className="px-4 py-2 bg-gray-800 border-b border-gray-600 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-gray-400 text-xs">AI Model:</span>
-            <select
-              value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gemini')}
-              className="bg-gray-700 text-white text-xs px-2 py-1 rounded border border-gray-600 focus:border-green-400 outline-none"
-            >
-              <option value="claude">🧠 Claude</option>
-              <option value="gemini">💎 Gemini</option>
-            </select>
-          </div>
-          <div className="text-xs text-gray-500">
-            {selectedModel === 'claude' ? 'Anthropic Claude AI' : 'Google Gemini AI'}
-          </div>
-        </div>
         
         {/* Command Picker Dropdown */}
         {showCommandInjector && (
@@ -638,9 +696,6 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
           <div>
             <span style={{ color: agentColor }}>{agentName}</span>
             {agentTitle && <span className="text-blue-400"> ({agentTitle})</span>} |
-            <span className={selectedModel === 'claude' ? 'text-blue-400' : 'text-purple-400'}>
-              {selectedModel === 'claude' ? '🧠' : '💎'}
-            </span> |
             {messages.length} msgs |
             {commandHistory.length} history
           </div>

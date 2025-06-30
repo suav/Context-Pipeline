@@ -14,6 +14,17 @@ const execAsync = promisify(exec);
 // Use persistent storage for workspaces so changes persist
 const WORKSPACE_BASE_DIR = process.env.WORKSPACE_DIR || path.join(process.cwd(), 'storage', 'workspaces');
 
+// Helper function to get the correct context directory for a source type
+function getContextDirectory(sourceType: string): string {
+    if (sourceType === 'jira') {
+        return 'tickets';
+    } else if (sourceType === 'git') {
+        return 'data';
+    } else {
+        return 'files';
+    }
+}
+
 // Ensure workspace directory exists
 async function ensureWorkspaceDir() {
     try {
@@ -67,16 +78,7 @@ export async function POST(request: NextRequest) {
             // Add new context items to workspace
             for (const item of context_items) {
                 const fileName = `${item.source}-${item.id.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}.json`;
-                let contextDir = '';
-                
-                if (item.source === 'jira') {
-                    contextDir = 'tickets';
-                } else if (item.source === 'git') {
-                    contextDir = 'data';
-                } else {
-                    contextDir = 'files';
-                }
-                
+                const contextDir = getContextDirectory(item.source);
                 const itemPath = path.join(workspacePath, 'context', contextDir, fileName);
                 
                 // Add metadata about when this item was added
@@ -108,18 +110,23 @@ export async function POST(request: NextRequest) {
                 const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf-8'));
                 manifest.total_items += context_items.length;
                 manifest.last_updated = new Date().toISOString();
-                manifest.context_items.push(...context_items.map((item: any, index: number) => ({
-                    id: `ctx-${manifest.total_items + index + 1}`,
-                    type: item.source,
-                    title: item.title,
-                    description: item.preview || item.description,
-                    content_file: `context/${item.source}/${item.id}.json`,
-                    preview: item.preview,
-                    metadata: item.metadata || {},
-                    tags: item.tags || [],
-                    added_at: new Date().toISOString(),
-                    size_bytes: item.size_bytes || 0
-                })));
+                manifest.context_items.push(...context_items.map((item: any, index: number) => {
+                    const contextDir = getContextDirectory(item.source);
+                    const fileName = `${item.source}-${item.id.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}.json`;
+                    
+                    return {
+                        id: `ctx-${manifest.total_items + index + 1}`,
+                        type: item.source,
+                        title: item.title,
+                        description: item.preview || item.description,
+                        content_file: `context/${contextDir}/${fileName}`,
+                        preview: item.preview,
+                        metadata: item.metadata || {},
+                        tags: item.tags || [],
+                        added_at: new Date().toISOString(),
+                        size_bytes: item.size_bytes || 0
+                    };
+                }));
                 
                 await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
             } catch (error) {
@@ -167,18 +174,23 @@ export async function POST(request: NextRequest) {
                 created: new Date().toISOString(),
                 last_updated: new Date().toISOString(),
                 total_items: workspaceDraft.context_items.length,
-                context_items: workspaceDraft.context_items.map((item: any, index: number) => ({
-                    id: `ctx-${index + 1}`,
-                    type: item.source,
-                    title: item.title,
-                    description: item.preview || item.description,
-                    content_file: `context/${item.source}/${item.id}.json`,
-                    preview: item.preview,
-                    metadata: item.metadata || {},
-                    tags: item.tags || [],
-                    added_at: item.added_at || new Date().toISOString(),
-                    size_bytes: item.size_bytes || 0
-                })),
+                context_items: workspaceDraft.context_items.map((item: any, index: number) => {
+                    const contextDir = getContextDirectory(item.source);
+                    const fileName = `${item.source}-${index + 1}.json`;
+                    
+                    return {
+                        id: `ctx-${index + 1}`,
+                        type: item.source,
+                        title: item.title,
+                        description: item.preview || item.description,
+                        content_file: `context/${contextDir}/${fileName}`,
+                        preview: item.preview,
+                        metadata: item.metadata || {},
+                        tags: item.tags || [],
+                        added_at: item.added_at || new Date().toISOString(),
+                        size_bytes: item.size_bytes || 0
+                    };
+                }),
                 context_summary: `Workspace contains ${workspaceDraft.context_items.length} context items from ${workspaceDraft.name}`
             };
             
@@ -193,16 +205,7 @@ export async function POST(request: NextRequest) {
             for (const [index, item] of workspaceDraft.context_items.entries()) {
                 // Use simpler file names to avoid WSL path issues
                 const fileName = `${item.source}-${index + 1}.json`;
-                let contextDir = '';
-                
-                if (item.source === 'jira') {
-                    contextDir = 'tickets';
-                } else if (item.source === 'git') {
-                    contextDir = 'data';
-                } else {
-                    contextDir = 'files';
-                }
-                
+                const contextDir = getContextDirectory(item.source);
                 const itemPath = path.join(workspacePath, 'context', contextDir, fileName);
                 console.log(`💾 Writing file: ${itemPath}`);
                 

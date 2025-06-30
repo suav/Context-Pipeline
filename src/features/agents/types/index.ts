@@ -17,6 +17,7 @@ export interface Agent {
   
   // Agent configuration
   model: string;
+  preferred_model: 'claude' | 'gemini';
   model_config: {
     temperature?: number;
     max_tokens?: number;

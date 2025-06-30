@@ -158,26 +158,41 @@ export function WorkspaceCard({ workspace, onOpenIDE, onOpenFeedback }: Workspac
     };
     
     return (
-        <div className="relative border border-gray-200 rounded-lg p-6 bg-white hover:shadow-md transition-all">
+        <div 
+            className="relative border rounded-lg p-4 hover:shadow-md transition-all"
+            style={{
+                backgroundColor: 'var(--color-card-background)',
+                borderColor: 'var(--color-card-border)',
+            }}
+        >
             {/* Header */}
-            <div className="flex justify-between items-start mb-4">
-                <div>
-                    <h3 className="font-semibold text-lg text-gray-900 mb-1">{workspace.name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                            workspace.status === 'published' ? 'bg-green-100 text-green-700' :
-                            workspace.status === 'publishing' ? 'bg-blue-100 text-blue-700' :
-                            'bg-gray-100 text-gray-700'
-                        }`}>
+            <div className="flex justify-between items-start mb-3">
+                <div className="flex-1 min-w-0">
+                    <h3 
+                        className="font-semibold text-base mb-1 truncate"
+                        style={{ color: 'var(--color-text-primary)' }}
+                    >
+                        {workspace.name}
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs">
+                        <span 
+                            className={`px-2 py-1 rounded text-xs ${
+                                workspace.status === 'published' ? 'bg-green-100 text-green-700' :
+                                workspace.status === 'publishing' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                            }`}
+                        >
                             {workspace.status}
                         </span>
-                        <span>•</span>
-                        <span>{workspace.context_items.length} context items</span>
+                        <span style={{ color: 'var(--color-text-muted)' }}>•</span>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>
+                            {workspace.context_items.length} items
+                        </span>
                     </div>
                 </div>
                 
                 {/* Agent System */}
-                <div className="relative">
+                <div className="relative flex-shrink-0 ml-2">
                     <AgentStatusIndicator 
                         workspaceId={workspace.id}
                         onClick={() => setShowAgents(!showAgents)}
@@ -195,17 +210,28 @@ export function WorkspaceCard({ workspace, onOpenIDE, onOpenFeedback }: Workspac
             </div>
             
             {/* Context Items with Hover Details */}
-            <div className="mb-4">
-                <div className="text-sm font-medium text-gray-700 mb-2">Context Items:</div>
-                <div className="flex flex-wrap gap-2">
-                    {workspace.context_items.map((item, index) => (
+            <div className="mb-3">
+                <div 
+                    className="text-xs font-medium mb-2"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                >
+                    Context Items:
+                </div>
+                <div className="flex flex-wrap gap-1">
+                    {workspace.context_items.slice(0, 8).map((item, index) => (
                         <div 
                             key={`${item.id}-${index}`}
                             className="relative"
                             onMouseEnter={() => setHoveredContext(item.id)}
                             onMouseLeave={() => setHoveredContext(null)}
                         >
-                            <span className="inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-xs cursor-pointer transition-colors">
+                            <span 
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs cursor-pointer transition-colors"
+                                style={{
+                                    backgroundColor: 'var(--color-button-secondary)',
+                                    color: 'var(--color-text-secondary)',
+                                }}
+                            >
                                 <span>{getContextIcon(item)}</span>
                                 {getCloneModeIcon(item) && <span>{getCloneModeIcon(item)}</span>}
                             </span>
@@ -213,10 +239,30 @@ export function WorkspaceCard({ workspace, onOpenIDE, onOpenFeedback }: Workspac
                             {/* Context Hover Detail */}
                             {hoveredContext === item.id && (
                                 <div className="absolute bottom-full left-0 mb-2 z-20 pointer-events-none">
-                                    <div className="bg-gray-900 text-white p-3 rounded shadow-lg text-xs w-72 pointer-events-auto">
-                                        <div className="font-medium mb-1">{item.title}</div>
-                                        <div className="text-gray-300 mb-2 max-h-20 overflow-y-auto">{item.preview}</div>
-                                        <div className="text-gray-400 text-xs">
+                                    <div 
+                                        className="p-3 rounded shadow-lg text-xs w-64 pointer-events-auto"
+                                        style={{
+                                            backgroundColor: 'var(--color-surface-elevated)',
+                                            borderColor: 'var(--color-border)',
+                                            border: '1px solid',
+                                        }}
+                                    >
+                                        <div 
+                                            className="font-medium mb-1"
+                                            style={{ color: 'var(--color-text-primary)' }}
+                                        >
+                                            {item.title}
+                                        </div>
+                                        <div 
+                                            className="mb-2 max-h-16 overflow-y-auto"
+                                            style={{ color: 'var(--color-text-secondary)' }}
+                                        >
+                                            {item.preview}
+                                        </div>
+                                        <div 
+                                            className="text-xs"
+                                            style={{ color: 'var(--color-text-muted)' }}
+                                        >
                                             {item.source} • {item.library_metadata?.clone_mode || 'context-only'}
                                         </div>
                                     </div>
@@ -224,81 +270,131 @@ export function WorkspaceCard({ workspace, onOpenIDE, onOpenFeedback }: Workspac
                             )}
                         </div>
                     ))}
-                </div>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="flex gap-2 mb-2">
-                <button
-                    onClick={handleValidateWorkspace}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-                >
-                    <span>🔄</span>
-                    Validate Workspace
-                </button>
-            </div>
-            
-            <div className="flex gap-2">
-                <div className="flex-1 relative">
-                    <button
-                        onClick={handleIDEOpen}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-                    >
-                        <span>⚡</span>
-                        Open in {localStorage.getItem('preferred-ide') === 'cursor' ? 'Cursor' : 'VSCode'}
-                    </button>
-                    <button
-                        onClick={() => setShowIDESelector(!showIDESelector)}
-                        className="absolute right-0 top-0 h-full px-2 bg-green-700 hover:bg-green-800 text-white rounded-r-lg text-xs transition-colors"
-                    >
-                        ⚙️
-                    </button>
-                    
-                    {/* IDE Selector Dropdown */}
-                    {showIDESelector && (
-                        <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                            <button
-                                onClick={() => {
-                                    localStorage.setItem('preferred-ide', 'vscode');
-                                    setShowIDESelector(false);
-                                }}
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-t-lg"
-                            >
-                                📝 VSCode
-                            </button>
-                            <button
-                                onClick={() => {
-                                    localStorage.setItem('preferred-ide', 'cursor');
-                                    setShowIDESelector(false);
-                                }}
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-b-lg"
-                            >
-                                🎯 Cursor
-                            </button>
-                        </div>
+                    {workspace.context_items.length > 8 && (
+                        <span 
+                            className="inline-flex items-center px-2 py-1 rounded text-xs"
+                            style={{
+                                backgroundColor: 'var(--color-text-muted)',
+                                color: 'var(--color-text-inverse)',
+                            }}
+                        >
+                            +{workspace.context_items.length - 8}
+                        </span>
                     )}
                 </div>
+            </div>
+            
+            {/* Action Buttons - Prioritized by usefulness */}
+            <div className="space-y-2">
+                {/* Primary Actions Row */}
+                <div className="flex gap-2">
+                    <div className="flex-1 relative">
+                        <button
+                            onClick={handleIDEOpen}
+                            className="w-full py-2 px-3 rounded text-sm transition-colors flex items-center justify-center gap-1"
+                            style={{
+                                backgroundColor: 'var(--color-success)',
+                                color: 'var(--color-text-inverse)',
+                            }}
+                        >
+                            <span className="text-xs">⚡</span>
+                            <span className="font-medium">Open IDE</span>
+                        </button>
+                        <button
+                            onClick={() => setShowIDESelector(!showIDESelector)}
+                            className="absolute right-0 top-0 h-full px-2 transition-colors rounded-r text-xs"
+                            style={{
+                                backgroundColor: 'var(--color-success-hover)',
+                                color: 'var(--color-text-inverse)',
+                            }}
+                        >
+                            ⚙️
+                        </button>
+                        
+                        {/* IDE Selector Dropdown */}
+                        {showIDESelector && (
+                            <div 
+                                className="absolute top-full left-0 mt-1 w-full border rounded-lg shadow-lg z-10"
+                                style={{
+                                    backgroundColor: 'var(--color-surface)',
+                                    borderColor: 'var(--color-border)',
+                                }}
+                            >
+                                <button
+                                    onClick={() => {
+                                        localStorage.setItem('preferred-ide', 'vscode');
+                                        setShowIDESelector(false);
+                                    }}
+                                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-t-lg"
+                                    style={{ color: 'var(--color-text-primary)' }}
+                                >
+                                    📝 VSCode
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        localStorage.setItem('preferred-ide', 'cursor');
+                                        setShowIDESelector(false);
+                                    }}
+                                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 rounded-b-lg"
+                                    style={{ color: 'var(--color-text-primary)' }}
+                                >
+                                    🎯 Cursor
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <button
+                        onClick={handleValidateWorkspace}
+                        className="flex-1 py-2 px-3 rounded text-sm transition-colors flex items-center justify-center gap-1"
+                        style={{
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'var(--color-text-inverse)',
+                        }}
+                    >
+                        <span className="text-xs">🔄</span>
+                        <span className="font-medium">Validate</span>
+                    </button>
+                </div>
+                
+                {/* Secondary Action */}
                 <button
                     onClick={() => onOpenFeedback && onOpenFeedback(workspace.id)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-2 px-3 rounded text-sm transition-colors flex items-center justify-center gap-1"
+                    style={{
+                        backgroundColor: 'var(--color-button-secondary)',
+                        color: 'var(--color-text-secondary)',
+                        border: '1px solid var(--color-border)',
+                    }}
                 >
-                    <span>📊</span>
-                    View Feedback
+                    <span className="text-xs">📊</span>
+                    <span>Feedback</span>
                 </button>
             </div>
             
             {/* Status Bar */}
             {workspaceStatus && (
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                    <div className="flex items-center justify-between text-xs text-gray-600">
+                <div 
+                    className="mt-3 pt-3 border-t"
+                    style={{ borderColor: 'var(--color-border)' }}
+                >
+                    <div 
+                        className="flex items-center justify-between text-xs"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    >
                         <span>Status: {workspaceStatus.phase || 'Ready'}</span>
                         <span>Progress: {workspaceStatus.progress || 0}%</span>
                     </div>
                     {workspaceStatus.progress > 0 && (
-                        <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">
+                        <div 
+                            className="mt-1 w-full rounded-full h-1.5"
+                            style={{ backgroundColor: 'var(--color-button-secondary)' }}
+                        >
                             <div 
-                                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                                style={{ width: `${workspaceStatus.progress}%` }}
+                                className="h-1.5 rounded-full transition-all duration-300"
+                                style={{ 
+                                    width: `${workspaceStatus.progress}%`,
+                                    backgroundColor: 'var(--color-primary)',
+                                }}
                             ></div>
                         </div>
                     )}

@@ -28,6 +28,7 @@ interface AgentTab {
   status: 'active' | 'idle' | 'error' | 'loading';
   unreadCount: number;
   isCloseable: boolean;
+  model?: 'claude' | 'gemini';
 }
 
 export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }: TerminalModalProps) {
@@ -38,6 +39,7 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
   const [showCommandInjector, setShowCommandInjector] = useState(false);
   const [showAgentCreator, setShowAgentCreator] = useState(false);
   const [agentTitle, setAgentTitle] = useState('');
+  const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini'>('claude');
 
   useEffect(() => {
     if (isOpen && AGENTS_ENABLED) {
@@ -66,7 +68,8 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
           color: agent.color,
           status: agent.status,
           unreadCount: 0, // TODO: Implement unread message counting
-          isCloseable: true
+          isCloseable: true,
+          model: agent.preferred_model || 'claude'
         }));
         setAgentTabs(tabs);
         
@@ -104,6 +107,7 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
     
     // Show agent creator dialog
     setAgentTitle('');
+    setSelectedModel('claude');
     setShowAgentCreator(true);
   };
 
@@ -121,7 +125,8 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
         },
         body: JSON.stringify({
           name: agentName,
-          title: agentTitle.trim() || undefined
+          title: agentTitle.trim() || undefined,
+          preferredModel: selectedModel
         })
       });
 
@@ -245,37 +250,44 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
           {agentTabs.map((tab, index) => (
             <div
               key={tab.agentId}
-              className={`flex items-center gap-2 px-3 py-1 cursor-pointer transition-colors font-mono text-xs ${
+              className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors font-mono text-xs min-h-[48px] ${
                 activeTabId === tab.agentId
                   ? 'bg-gray-700 text-green-400 border border-gray-600'
                   : 'bg-gray-900 hover:bg-gray-700 text-gray-400 border border-gray-700'
               }`}
               onClick={() => handleTabSelect(tab.agentId)}
             >
-              <span>{index + 1}:</span>
-              <span className="max-w-[120px] truncate">
-                {tab.name}
-                {tab.title && <span className="text-blue-400 ml-1">({tab.title})</span>}
-              </span>
-              <div className={`w-1.5 h-1.5 rounded-full ${
-                tab.status === 'active' ? 'bg-green-400 animate-pulse' :
-                tab.status === 'error' ? 'bg-red-400' :
-                'bg-gray-600'
-              }`} />
-              {tab.unreadCount > 0 && (
-                <span className="text-yellow-400">({tab.unreadCount})</span>
-              )}
-              {tab.isCloseable && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleTabClose(tab.agentId);
-                  }}
-                  className="text-gray-500 hover:text-red-400 ml-1"
-                >
-                  x
-                </button>
-              )}
+              <span className="text-gray-500">{index + 1}:</span>
+              <div className="flex-1 min-w-0">
+                <div className="max-w-[120px] truncate font-medium">
+                  {tab.name}
+                  {tab.title && <span className="text-blue-400 ml-1">({tab.title})</span>}
+                </div>
+                <div className="text-[10px] text-gray-500 ml-1">
+                  {tab.model === 'claude' ? '🧠 Claude' : '💎 Gemini'}
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className={`w-1.5 h-1.5 rounded-full ${
+                  tab.status === 'active' ? 'bg-green-400 animate-pulse' :
+                  tab.status === 'error' ? 'bg-red-400' :
+                  'bg-gray-600'
+                }`} />
+                {tab.unreadCount > 0 && (
+                  <span className="text-yellow-400">({tab.unreadCount})</span>
+                )}
+                {tab.isCloseable && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTabClose(tab.agentId);
+                    }}
+                    className="text-gray-500 hover:text-red-400 ml-1"
+                  >
+                    x
+                  </button>
+                )}
+              </div>
             </div>
           ))}
           
@@ -395,6 +407,22 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Leave empty for auto-generated name
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  AI Model
+                </label>
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gemini')}
+                  className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:border-green-400 outline-none"
+                >
+                  <option value="claude">🧠 Claude (Anthropic)</option>
+                  <option value="gemini">💎 Gemini (Google)</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  This model will be used for the agent's entire lifespan
                 </p>
               </div>
               <div className="flex gap-3 pt-2">

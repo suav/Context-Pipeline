@@ -118,8 +118,14 @@ export async function POST(
                     for await (const chunk of responseStream) {
                         fullResponse += chunk;
                         
-                        // Send chunk to client
-                        controller.enqueue(encoder.encode(`data: {"type":"chunk","content":"${chunk.replace(/"/g, '\\"')}"}\n\n`));
+                        // Send chunk to client with proper escaping
+                        const escapedChunk = chunk
+                            .replace(/\\/g, '\\\\')  // Escape backslashes first
+                            .replace(/"/g, '\\"')    // Escape quotes
+                            .replace(/\n/g, '\\n')   // Escape newlines
+                            .replace(/\r/g, '\\r')   // Escape carriage returns
+                            .replace(/\t/g, '\\t');  // Escape tabs
+                        controller.enqueue(encoder.encode(`data: {"type":"chunk","content":"${escapedChunk}"}\n\n`));
                         
                         // Add small delay to prevent overwhelming the client
                         await new Promise(resolve => setTimeout(resolve, 50));
@@ -158,11 +164,29 @@ export async function POST(
                     // Send completion signal
                     controller.enqueue(encoder.encode(`data: {"type":"complete","message_id":"${assistantMessageId}"}\n\n`));
                     
+                    // Add a small delay before closing to ensure all data is sent
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
                 } catch (error) {
                     console.error('Streaming error:', error);
-                    controller.enqueue(encoder.encode(`data: {"type":"error","error":"${(error as Error).message}"}\n\n`));
+                    const escapedError = (error as Error).message
+                        .replace(/\\/g, '\\\\')
+                        .replace(/"/g, '\\"')
+                        .replace(/\n/g, '\\n')
+                        .replace(/\r/g, '\\r')
+                        .replace(/\t/g, '\\t');
+                    controller.enqueue(encoder.encode(`data: {"type":"error","error":"${escapedError}"}\n\n`));
+                    
+                    // Add delay for error case too
+                    await new Promise(resolve => setTimeout(resolve, 100));
                 } finally {
-                    controller.close();
+                    // Close the stream gracefully
+                    try {
+                        controller.close();
+                    } catch (closeError) {
+                        // Stream might already be closed, ignore the error
+                        console.warn('Stream close warning (expected):', closeError);
+                    }
                 }
             }
         });

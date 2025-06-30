@@ -7,13 +7,17 @@
 import React, { useState, useEffect } from 'react';
 import { WorkspaceDraft } from '../types';
 import { WorkspaceCard } from './WorkspaceCard';
+import { WorkspaceValidationAlert, CheckEngineBadge } from './WorkspaceValidationAlert';
 
 export function WorkspaceStage() {
     const [publishedWorkspaces, setPublishedWorkspaces] = useState<WorkspaceDraft[]>([]);
     const [activeWorkspaces, setActiveWorkspaces] = useState<WorkspaceDraft[]>([]);
+    const [invalidWorkspaces, setInvalidWorkspaces] = useState<any[]>([]);
+    const [validationDismissed, setValidationDismissed] = useState<Set<string>>(new Set());
     
     useEffect(() => {
         loadWorkspaces();
+        validateWorkspaces();
     }, []);
     
     const loadWorkspaces = async () => {
@@ -42,6 +46,50 @@ export function WorkspaceStage() {
             setPublishedWorkspaces(published);
             setActiveWorkspaces([]);
         }
+    };
+    
+    const validateWorkspaces = async () => {
+        try {
+            const response = await fetch('/api/workspaces/validate');
+            if (response.ok) {
+                const data = await response.json();
+                setInvalidWorkspaces(data.invalid_workspaces || []);
+            }
+        } catch (error) {
+            console.error('Failed to validate workspaces:', error);
+        }
+    };
+    
+    const handleMoveToDrafts = async (workspaceId: string) => {
+        try {
+            const response = await fetch('/api/workspaces/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'move_to_drafts',
+                    workspaceId
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                alert(`✅ Workspace moved to drafts: ${result.draft_id}`);
+                
+                // Refresh workspaces and validation
+                await loadWorkspaces();
+                await validateWorkspaces();
+            } else {
+                const error = await response.json();
+                alert(`❌ Failed to move workspace: ${error.error}`);
+            }
+        } catch (error) {
+            console.error('Failed to move workspace to drafts:', error);
+            alert('❌ Failed to move workspace to drafts');
+        }
+    };
+    
+    const handleDismissValidation = (workspaceId: string) => {
+        setValidationDismissed(prev => new Set(prev).add(workspaceId));
     };
     
     const handleOpenIDE = async (workspaceId: string) => {
@@ -77,13 +125,40 @@ export function WorkspaceStage() {
     
     return (
         <div>
-            <h3 className="text-xl font-semibold mb-4">🏗️ Workspace Management</h3>
+            {/* Validation Alerts */}
+            {invalidWorkspaces.length > 0 && (
+                <div className="mb-6 space-y-4">
+                    {invalidWorkspaces
+                        .filter(workspace => !validationDismissed.has(workspace.id))
+                        .map(workspace => (
+                            <WorkspaceValidationAlert
+                                key={workspace.id}
+                                workspaceId={workspace.id}
+                                workspaceName={workspace.name}
+                                issues={workspace.validation.issues}
+                                onMoveToDrafts={() => handleMoveToDrafts(workspace.id)}
+                                onDismiss={() => handleDismissValidation(workspace.id)}
+                            />
+                        ))
+                    }
+                </div>
+            )}
+            
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold">🏗️ Workspace Management</h3>
+                {invalidWorkspaces.length > 0 && (
+                    <CheckEngineBadge 
+                        issueCount={invalidWorkspaces.filter(w => !validationDismissed.has(w.id)).length}
+                        onClick={() => validateWorkspaces()}
+                    />
+                )}
+            </div>
             
             {/* Published Workspaces */}
             <div className="mb-8">
                 <h4 className="font-medium text-gray-900 mb-3">Published Workspaces</h4>
                 {publishedWorkspaces.length > 0 ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {publishedWorkspaces.map(workspace => (
                             <WorkspaceCard
                                 key={workspace.id}

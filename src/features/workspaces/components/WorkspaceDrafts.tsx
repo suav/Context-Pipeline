@@ -78,19 +78,49 @@ export function WorkspaceDrafts() {
         syncDraftsToStorage(updatedDrafts);
     };
     
-    const deleteDraft = (draftId: string) => {
-        if (window.confirm('Are you sure you want to delete this workspace draft?')) {
-            const updatedDrafts = drafts.filter(draft => draft.id !== draftId);
-            localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
-            setDrafts(updatedDrafts);
-            syncDraftsToStorage(updatedDrafts);
-            
-            // Remove from selection if selected
-            setSelectedDrafts(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(draftId);
-                return newSet;
-            });
+    const archiveDraft = async (draftId: string) => {
+        const draft = drafts.find(d => d.id === draftId);
+        if (!draft) return;
+        
+        const confirmMessage = `Archive workspace draft "${draft.name}"?\n\nThis will:\n• Remove it from your active drafts\n• Preserve complete history in archives\n• Allow future restoration\n\nContinue?`;
+        
+        if (window.confirm(confirmMessage)) {
+            try {
+                // Archive the draft
+                const response = await fetch('/api/context-workflow/archives', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'archive_draft',
+                        draft,
+                        reason: 'manual_archive'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Remove from active drafts
+                    const updatedDrafts = drafts.filter(draft => draft.id !== draftId);
+                    localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
+                    setDrafts(updatedDrafts);
+                    syncDraftsToStorage(updatedDrafts);
+                    
+                    // Remove from selection if selected
+                    setSelectedDrafts(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(draftId);
+                        return newSet;
+                    });
+                    
+                    alert(`✅ "${draft.name}" has been archived and can be restored later.`);
+                } else {
+                    alert(`❌ Failed to archive: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Failed to archive draft:', error);
+                alert('❌ Failed to archive workspace draft');
+            }
         }
     };
     
@@ -227,7 +257,7 @@ export function WorkspaceDrafts() {
                         isSelected={selectedDrafts.has(draft.id)}
                         onSelect={toggleDraftSelection}
                         onUpdate={updateDraft}
-                        onDelete={deleteDraft}
+                        onDelete={archiveDraft}
                         onPublish={publishDraft}
                     />
                 ))}

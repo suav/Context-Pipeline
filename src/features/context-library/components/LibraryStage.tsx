@@ -8,6 +8,8 @@ import React, { useState, useEffect } from 'react';
 import { LibraryCard } from './LibraryCard';
 import { LibraryItem } from '../types';
 import { WorkspaceDrafts } from '@/features/workspaces/components/WorkspaceDrafts';
+import { ImportModal } from '@/features/context-import/components/ImportModal';
+import { ArchiveManager } from './ArchiveManager';
 
 export function LibraryStage() {
     const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
@@ -17,6 +19,8 @@ export function LibraryStage() {
     const [availableWorkspaces, setAvailableWorkspaces] = useState<any[]>([]);
     const [loadingWorkspaces, setLoadingWorkspaces] = useState(false);
     const [hasExistingWorkspaces, setHasExistingWorkspaces] = useState(false);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [showArchiveManager, setShowArchiveManager] = useState(false);
     
     // Debug log to ensure component is updating
     console.log('LibraryStage rendered - clickable cards version');
@@ -26,18 +30,109 @@ export function LibraryStage() {
         checkExistingWorkspaces();
     }, []);
 
-    const loadLibraryItems = () => {
+    const loadLibraryItems = async () => {
         try {
-            const items = JSON.parse(localStorage.getItem('context-library') || '[]');
-            console.log('🔍 LibraryStage - Loaded items from localStorage:', items.length, items);
-            setLibraryItems(items);
+            const localItems = JSON.parse(localStorage.getItem('context-library') || '[]');
+            console.log('🔍 LibraryStage - Loaded items from localStorage:', localItems.length);
             
-            // Auto-sync to file system when library is loaded
-            if (items.length > 0) {
-                syncToFileSystemFromLibrary(items);
+            // If localStorage is empty, try to load from storage
+            if (localItems.length === 0) {
+                console.log('📁 localStorage empty, attempting to load from storage...');
+                await loadFromStorage();
+            } else {
+                // Check if these are lightweight items from storage
+                const hasStorageItems = localItems.some((item: any) => item._isFromStorage);
+                
+                if (hasStorageItems) {
+                    console.log('🔄 Found storage-based items, loading full data...');
+                    await loadFromStorage();
+                } else {
+                    // Validate items before setting
+                    const validItems = localItems.filter((item: any) => 
+                        item && item.id && item.source && item.title && 
+                        typeof item.id === 'string' && typeof item.title === 'string' &&
+                        item.title !== 'undefined' && item.id !== 'undefined' && 
+                        item.source !== 'undefined' && item.title.trim() !== '' && 
+                        item.id.trim() !== ''
+                    );
+                    
+                    console.log(`🧹 Filtered items: ${localItems.length} -> ${validItems.length} valid`);
+                    
+                    // If we filtered out invalid items, update localStorage
+                    if (validItems.length !== localItems.length) {
+                        localStorage.setItem('context-library', JSON.stringify(validItems));
+                        console.log(`✅ Cleaned localStorage: removed ${localItems.length - validItems.length} invalid items`);
+                    }
+                    
+                    setLibraryItems(validItems);
+                    // Auto-sync to file system when library is loaded
+                    syncToFileSystemFromLibrary(validItems);
+                }
             }
         } catch (error) {
             console.error('Failed to load library:', error);
+            // If localStorage is corrupted, try loading from storage
+            await loadFromStorage();
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const loadFromStorage = async () => {
+        try {
+            const response = await fetch('/api/context-workflow/library');
+            const result = await response.json();
+            
+            if (result.success && result.items.length > 0) {
+                console.log(`📥 Loaded ${result.items.length} items from storage`);
+                
+                // Only store lightweight metadata in localStorage to avoid quota issues
+                const lightweightItems = result.items.map((item: any) => ({
+                    id: item.id,
+                    title: item.title,
+                    source: item.source,
+                    type: item.type,
+                    preview: item.preview?.substring(0, 200) + '...' || '',
+                    tags: item.tags?.slice(0, 3) || [],
+                    added_at: item.added_at,
+                    size_bytes: item.size_bytes,
+                    library_metadata: item.library_metadata,
+                    // Store a flag indicating full data is in storage
+                    _isFromStorage: true
+                }));
+                
+                try {
+                    localStorage.setItem('context-library', JSON.stringify(lightweightItems));
+                    console.log('✅ Stored lightweight library items in localStorage');
+                } catch (quotaError) {
+                    console.warn('⚠️ Still too much data for localStorage, using session storage instead');
+                    // Fallback to just keeping in component state
+                }
+                
+                setLibraryItems(result.items); // Use full items in component state
+                return true;
+            } else {
+                console.log('📭 No items found in storage');
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Failed to load from storage:', error);
+            return false;
+        }
+    };
+    
+    const reloadFromStorage = async () => {
+        setLoading(true);
+        try {
+            const success = await loadFromStorage();
+            if (success) {
+                alert('✅ Library reloaded from storage!');
+            } else {
+                alert('📭 No items found in storage to reload');
+            }
+        } catch (error) {
+            console.error('❌ Reload failed:', error);
+            alert('❌ Failed to reload from storage');
         } finally {
             setLoading(false);
         }
@@ -66,10 +161,105 @@ export function LibraryStage() {
         }
     };
 
-    const removeFromLibrary = (itemId: string) => {
+    const removeFromLibrary = async (itemId: string) => {
         try {
+            const item = libraryItems.find(item => item.id === itemId);
+            if (!item) return;
+            
+            // Check for dependencies first
+            const dependencyResponse = await fetch('/api/context-workflow/library', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'check_dependencies',
+                    itemId
+                })
+            });
+            
+            const dependencyResult = await dependencyResponse.json();
+            
+            if (dependencyResult.success && dependencyResult.hasReferences) {
+                const { dependencies } = dependencyResult;
+                const draftsList = dependencies.drafts.map((d: any) => `• ${d.name}`).join('\n');
+                const publishedList = dependencies.published.map((w: any) => `• ${w.name}`).join('\n');
+                
+                let message = `⚠️ "${item.title}" is used in:`;
+                
+                if (dependencies.drafts.length > 0) {
+                    message += `\n\n📝 Workspace Drafts (${dependencies.drafts.length}):\n${draftsList}`;
+                }
+                
+                if (dependencies.published.length > 0) {
+                    message += `\n\n🏢 Published Workspaces (${dependencies.published.length}):\n${publishedList}`;
+                }
+                
+                message += `\n\nThis will remove the item from ALL locations.\n\nAre you sure you want to proceed?`;
+                
+                const confirmed = window.confirm(message);
+                
+                if (!confirmed) {
+                    return; // User cancelled
+                }
+                
+                // Force remove from everywhere
+                const removeResponse = await fetch('/api/context-workflow/library', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'force_remove',
+                        itemId
+                    })
+                });
+                
+                const removeResult = await removeResponse.json();
+                
+                if (removeResult.success) {
+                    alert(`✅ "${item.title}" has been removed from: ${removeResult.removedFrom.join(', ')}`);
+                } else {
+                    alert(`❌ Failed to remove item: ${removeResult.error}`);
+                    return;
+                }
+            } else {
+                // No dependencies, simple removal
+                const simpleConfirm = window.confirm(`Remove "${item.title}" from your library?`);
+                if (!simpleConfirm) return;
+                
+                const removeResponse = await fetch('/api/context-workflow/library', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'remove',
+                        item: { id: itemId }
+                    })
+                });
+                
+                if (!removeResponse.ok) {
+                    alert('❌ Failed to remove item from storage');
+                    return;
+                }
+            }
+            
+            // Update local state
             const updatedItems = libraryItems.filter(item => item.id !== itemId);
-            localStorage.setItem('context-library', JSON.stringify(updatedItems));
+            
+            // Try to update localStorage
+            try {
+                const lightweightItems = updatedItems.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    source: item.source,
+                    type: item.type,
+                    preview: item.preview?.substring(0, 200) + '...' || '',
+                    tags: item.tags?.slice(0, 3) || [],
+                    added_at: item.added_at,
+                    size_bytes: item.size_bytes,
+                    library_metadata: item.library_metadata
+                }));
+                localStorage.setItem('context-library', JSON.stringify(lightweightItems));
+            } catch (quotaError) {
+                console.warn('⚠️ localStorage quota exceeded, relying on storage sync');
+            }
+            
             setLibraryItems(updatedItems);
             
             // Remove from selection if selected
@@ -83,8 +273,10 @@ export function LibraryStage() {
             syncToFileSystemFromLibrary(updatedItems);
             
             console.log('✅ Removed from Library:', itemId);
+            
         } catch (error) {
             console.error('❌ Failed to remove from library:', error);
+            alert('❌ Failed to remove item. Please try again.');
         }
     };
 
@@ -355,24 +547,54 @@ export function LibraryStage() {
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-semibold">📚 Context Library</h3>
                 
-                {libraryItems.length > 0 && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-600">
-                            {libraryItems.length} items
-                        </span>
-                        {selectedItems.size > 0 && (
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                {selectedItems.size} selected
+                <div className="flex items-center gap-3">
+                    {/* Import Button */}
+                    <button
+                        onClick={() => setShowImportModal(true)}
+                        className="bg-blue-600 text-white px-3 py-2 rounded-lg transition-colors hover:bg-blue-700 flex items-center gap-2 text-sm font-medium"
+                    >
+                        <span>📥</span>
+                        <span>Import</span>
+                    </button>
+                    
+                    {/* Reload from Storage Button */}
+                    <button
+                        onClick={reloadFromStorage}
+                        disabled={loading}
+                        className="bg-green-600 text-white px-3 py-2 rounded-lg transition-colors hover:bg-green-700 flex items-center gap-2 text-sm font-medium disabled:bg-gray-400"
+                    >
+                        <span>📁</span>
+                        <span>Reload</span>
+                    </button>
+                    
+                    {/* Archive Manager Button */}
+                    <button
+                        onClick={() => setShowArchiveManager(true)}
+                        className="bg-purple-600 text-white px-3 py-2 rounded-lg transition-colors hover:bg-purple-700 flex items-center gap-2 text-sm font-medium"
+                    >
+                        <span>📦</span>
+                        <span>Archives</span>
+                    </button>
+                    
+                    {libraryItems.length > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                            <span className="text-gray-600">
+                                {libraryItems.length} items
                             </span>
-                        )}
-                        <button
-                            onClick={selectedItems.size === libraryItems.length ? clearSelection : selectAll}
-                            className="text-blue-600 hover:text-blue-800"
-                        >
-                            {selectedItems.size === libraryItems.length ? 'Clear All' : 'Select All'}
-                        </button>
-                    </div>
-                )}
+                            {selectedItems.size > 0 && (
+                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                    {selectedItems.size} selected
+                                </span>
+                            )}
+                            <button
+                                onClick={selectedItems.size === libraryItems.length ? clearSelection : selectAll}
+                                className="text-blue-600 hover:text-blue-800"
+                            >
+                                {selectedItems.size === libraryItems.length ? 'Clear All' : 'Select All'}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
             
             {/* Workspace Creation Actions */}
@@ -495,18 +717,22 @@ export function LibraryStage() {
                         🔍 Debug: Rendering {libraryItems.length} items
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {libraryItems.map((item, index) => {
-                            console.log(`🔍 Rendering card ${index}:`, item.title, item.id);
-                            return (
-                                <LibraryCard
-                                    key={`${item.id}-${item.library_metadata?.clone_mode || 'default'}`}
-                                    item={item}
-                                    isSelected={selectedItems.has(item.id)}
-                                    onSelect={toggleSelection}
-                                    onRemove={removeFromLibrary}
-                                />
-                            );
-                        })}
+                        {libraryItems
+                            .filter(item => item && item.id && item.title && item.source && 
+                                    String(item.id) !== 'undefined' && String(item.title) !== 'undefined' && 
+                                    String(item.source) !== 'undefined')
+                            .map((item, index) => {
+                                console.log(`🔍 Rendering card ${index}:`, item.title, item.id);
+                                return (
+                                    <LibraryCard
+                                        key={`${item.id}-${item.library_metadata?.clone_mode || 'default'}`}
+                                        item={item}
+                                        isSelected={selectedItems.has(item.id)}
+                                        onSelect={toggleSelection}
+                                        onRemove={removeFromLibrary}
+                                    />
+                                );
+                            })}
                     </div>
                 </div>
             ) : (
@@ -516,6 +742,21 @@ export function LibraryStage() {
                     <p className="text-sm">Import some content to get started!</p>
                 </div>
             )}
+            
+            {/* Import Modal */}
+            <ImportModal
+                isOpen={showImportModal}
+                onClose={() => setShowImportModal(false)}
+                onImportComplete={() => {
+                    loadLibraryItems(); // Refresh library when import is complete
+                }}
+            />
+            
+            {/* Archive Manager */}
+            <ArchiveManager
+                isOpen={showArchiveManager}
+                onClose={() => setShowArchiveManager(false)}
+            />
             
             {/* Workspace Drafts Section */}
             <WorkspaceDrafts />

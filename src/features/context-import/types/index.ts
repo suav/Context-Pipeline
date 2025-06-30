@@ -92,9 +92,8 @@ export const WORKFLOW_STAGES = {
     WORKSPACE: 'workspace'
 } as const;
 
-// Stage configuration for UI
+// Stage configuration for UI (removed import stage - now handled via modal)
 export const STAGE_CONFIG = [
-    { key: 'import', label: 'Import', icon: '📥', description: 'Import from external sources' },
     { key: 'library', label: 'Library', icon: '📚', description: 'Manage context items' },
     { key: 'workspace', label: 'Workspace', icon: '🏗️', description: 'Create workspaces' }
 ];

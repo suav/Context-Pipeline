@@ -21,7 +21,10 @@ export function LibraryCard({ item, isSelected, onSelect, onRemove }: LibraryCar
         if ((e.target as HTMLElement).closest('button')) {
             return;
         }
-        onSelect(item.id);
+        // Only select if item has valid ID
+        if (item.id && typeof item.id === 'string' && item.id !== 'undefined') {
+            onSelect(item.id);
+        }
     };
 
     const openSource = () => {
@@ -120,7 +123,15 @@ export function LibraryCard({ item, isSelected, onSelect, onRemove }: LibraryCar
                     </button>
                 )}
                 <button 
-                    onClick={() => onRemove(item.id)}
+                    onClick={() => {
+                        // Handle invalid items differently
+                        if (!item.id || typeof item.id !== 'string' || item.id === 'undefined') {
+                            alert('⚠️ This appears to be a corrupted item. Please use the Force Clear tool to remove it.');
+                            window.open('/api/force-clear', '_blank');
+                        } else {
+                            onRemove(item.id);
+                        }
+                    }}
                     className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded transition-colors"
                     title="Remove"
                 >

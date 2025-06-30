@@ -58,7 +58,7 @@ export async function POST(
     try {
         const { workspaceId } = await params;
         const body = await request.json();
-        const { name, title } = body;
+        const { name, title, preferredModel } = body;
         
         if (!name || name.trim() === '') {
             return NextResponse.json(
@@ -114,6 +114,7 @@ export async function POST(
             title: title && title.trim() ? title.trim() : undefined,
             color: agentColor,
             status: 'idle',
+            preferred_model: preferredModel || 'claude',
             created_at: new Date().toISOString(),
             last_activity: new Date().toISOString(),
             workspace_id: workspaceId
@@ -135,6 +136,7 @@ export async function POST(
             name: newAgent.name,
             title: newAgent.title,
             color: newAgent.color,
+            preferred_model: newAgent.preferred_model,
             created_at: newAgent.created_at,
             current_task: null,
             status: 'idle',
@@ -201,6 +203,7 @@ export async function POST(
                 title: newAgent.title,
                 color: newAgent.color,
                 status: newAgent.status,
+                preferred_model: newAgent.preferred_model,
                 created_at: newAgent.created_at
             }
         });

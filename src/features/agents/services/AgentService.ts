@@ -106,7 +106,7 @@ export class AgentService {
 
     try {
       // Load context manifest
-      const contextPath = path.join(workspacePath, 'context', 'manifest.json');
+      const contextPath = path.join(workspacePath, 'context', 'context-manifest.json');
       const contextData = await fs.readFile(contextPath, 'utf-8');
       const contextManifest = JSON.parse(contextData);
       
@@ -308,9 +308,9 @@ Please provide a helpful response as the workspace AI assistant.`;
         
         // Set timeout
         setTimeout(() => {
-          claudeProcess.kill();
+          claudeProcess.kill('SIGTERM');
           reject(new Error('Claude CLI timeout'));
-        }, 30000); // 30 second timeout
+        }, 15000); // 15 second timeout
         
       } catch (error) {
         reject(error);
@@ -390,9 +390,9 @@ Please provide a helpful response as the workspace AI assistant.`;
         
         // Set timeout
         setTimeout(() => {
-          geminiProcess.kill();
+          geminiProcess.kill('SIGTERM');
           reject(new Error('Gemini CLI timeout'));
-        }, 25000); // 25 second timeout
+        }, 12000); // 12 second timeout
         
       } catch (error) {
         reject(error);
@@ -688,6 +688,11 @@ What would you like to work on?`;
     preferredModel?: 'claude' | 'gemini'
   ): Promise<AsyncIterable<string>> {
     
+    // For now, skip CLI attempts and go straight to fallback to avoid timeouts
+    console.log('Using fallback response to avoid CLI timeout issues');
+    return this.createFallbackStream(this.generateIntelligentFallback(userMessage, conversationHistory));
+    
+    /* TODO: Re-enable when CLI issues are resolved
     // Respect model preference, but fallback to other models if preferred one fails
     const modelsToTry = preferredModel === 'gemini' 
       ? ['gemini', 'claude'] 
@@ -713,6 +718,7 @@ What would you like to work on?`;
 
     // Fallback to intelligent response stream
     return this.createFallbackStream(this.generateIntelligentFallback(userMessage, conversationHistory));
+    */
   }
 
   /**
@@ -724,17 +730,31 @@ What would you like to work on?`;
     conversationHistory: ConversationMessage[],
     workspaceId: string
   ): Promise<AsyncIterable<string> | null> {
-    // For now, fall back to non-streaming and simulate streaming
-    // Real streaming implementation would require more complex event handling
     try {
-      const response = await this.tryClaudeCLI(systemPrompt, userMessage, conversationHistory, workspaceId);
-      if (response) {
-        return this.createFallbackStream(response);
-      }
+      // Prepare the conversation context
+      const recentHistory = conversationHistory.slice(-10);
+      let contextMessages = recentHistory.map(msg => 
+        `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+      ).join('\n\n');
+      
+      const fullPrompt = `${systemPrompt}
+
+CONVERSATION HISTORY:
+${contextMessages}
+
+CURRENT REQUEST:
+Human: ${userMessage}
+
+Please provide a helpful response as the workspace AI assistant.`;
+
+      const workspacePath = path.join(this.workspaceBasePath, workspaceId);
+      
+      return this.createRealTimeStream('claude', fullPrompt, workspacePath);
+      
     } catch (error) {
       console.warn('Claude CLI not available for streaming:', error);
+      return null;
     }
-    return null;
   }
 
   /**
@@ -746,8 +766,15 @@ What would you like to work on?`;
     conversationHistory: ConversationMessage[],
     workspaceId: string
   ): Promise<AsyncIterable<string> | null> {
-    // Similar implementation for Gemini
-    // For now, return null to fall back to regular response
+    // For now, fall back to non-streaming response to avoid issues
+    try {
+      const response = await this.tryOpenAICLI(systemPrompt, userMessage, conversationHistory, workspaceId);
+      if (response) {
+        return this.createFallbackStream(response);
+      }
+    } catch (error) {
+      console.warn('Gemini CLI not available for streaming:', error);
+    }
     return null;
   }
 
@@ -755,11 +782,82 @@ What would you like to work on?`;
    * Create a fallback stream from static text
    */
   private async *createFallbackStream(text: string): AsyncIterable<string> {
+    // Stream word by word for better user experience
     const words = text.split(' ');
-    for (const word of words) {
-      yield word + ' ';
-      // Add delay to simulate streaming
-      await new Promise(resolve => setTimeout(resolve, 100));
+    
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const chunk = i === words.length - 1 ? word : word + ' ';
+      yield chunk;
+      
+      // Small delay between words for natural streaming feel
+      await new Promise(resolve => setTimeout(resolve, 30));
+    }
+  }
+  
+  /**
+   * Create a real-time stream from CLI process
+   */
+  private async *createRealTimeStream(command: string, prompt: string, workspacePath: string): AsyncIterable<string> {
+    const { spawn } = require('child_process');
+    
+    try {
+      const args = command === 'claude' 
+        ? ['--print', '--output-format', 'text', '--add-dir', workspacePath]
+        : ['--print', '--output-format', 'text'];
+        
+      const process = spawn(command, args, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: workspacePath
+      });
+      
+      // Send the prompt
+      process.stdin.write(prompt);
+      process.stdin.end();
+      
+      // Set timeout (reduced to prevent UI freezing)
+      const timeout = setTimeout(() => {
+        process.kill('SIGTERM');
+      }, 15000);
+      
+      // Promise-based approach to handle streaming data
+      const chunks: string[] = [];
+      
+      await new Promise<void>((resolve, reject) => {
+        process.stdout.on('data', (data: Buffer) => {
+          const text = data.toString();
+          chunks.push(text);
+        });
+        
+        process.on('close', (code: number) => {
+          clearTimeout(timeout);
+          if (code === 0) {
+            resolve();
+          } else if (code === 143) {
+            // SIGTERM timeout - provide better error message
+            reject(new Error('AI response timed out. Please try a simpler request or check your connection.'));
+          } else {
+            reject(new Error(`Process failed with code ${code}`));
+          }
+        });
+        
+        process.on('error', (error: Error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+      });
+      
+      // Yield the accumulated response in manageable chunks
+      const fullResponse = chunks.join('');
+      if (fullResponse.trim()) {
+        yield* this.createFallbackStream(fullResponse);
+      } else {
+        yield 'I apologize, but I received an empty response. Please try again.';
+      }
+      
+    } catch (error) {
+      console.error('Real-time streaming error:', error);
+      yield `I encountered an error: ${(error as Error).message}. Please try again.`;
     }
   }
 }

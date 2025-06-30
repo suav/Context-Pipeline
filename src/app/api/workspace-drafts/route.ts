@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     
     try {
         const body = await request.json();
-        const { action, drafts, workspaceDraft } = body;
+        const { action, drafts, workspaceDraft, itemId } = body;
         
         if (action === 'update') {
             // Update a specific workspace draft
@@ -69,6 +69,79 @@ export async function POST(request: NextRequest) {
                 message: `Synced ${drafts.length} drafts to storage`,
                 filePath: filePath
             });
+        }
+        
+        if (action === 'remove_context_item') {
+            // Remove a specific context item from all drafts
+            try {
+                const currentPath = path.join(DRAFTS_DIR, 'current-drafts.json');
+                let currentData = { drafts: [] };
+                
+                try {
+                    const data = await fs.readFile(currentPath, 'utf-8');
+                    currentData = JSON.parse(data);
+                } catch (error) {
+                    // No current drafts file, nothing to do
+                    return NextResponse.json({
+                        success: true,
+                        message: 'No drafts found to update',
+                        removedFrom: []
+                    });
+                }
+                
+                let updatedCount = 0;
+                const removedFrom: string[] = [];
+                
+                // Remove the context item from all drafts
+                const updatedDrafts = currentData.drafts.map((draft: any) => {
+                    const originalCount = draft.context_items?.length || 0;
+                    const filteredItems = draft.context_items?.filter((item: any) => item.id !== itemId) || [];
+                    
+                    if (filteredItems.length < originalCount) {
+                        updatedCount++;
+                        removedFrom.push(draft.name);
+                        return {
+                            ...draft,
+                            context_items: filteredItems,
+                            last_updated: new Date().toISOString()
+                        };
+                    }
+                    
+                    return draft;
+                });
+                
+                // Save updated drafts
+                await fs.writeFile(currentPath, JSON.stringify({
+                    lastSync: new Date().toISOString(),
+                    count: updatedDrafts.length,
+                    drafts: updatedDrafts
+                }, null, 2));
+                
+                // Also create a removal log
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const logPath = path.join(DRAFTS_DIR, `item-removal-${timestamp}.json`);
+                await fs.writeFile(logPath, JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    action: 'remove_context_item',
+                    itemId,
+                    updatedDrafts: updatedCount,
+                    removedFrom
+                }, null, 2));
+                
+                return NextResponse.json({
+                    success: true,
+                    message: `Context item removed from ${updatedCount} draft(s)`,
+                    removedFrom,
+                    updatedDrafts: updatedCount
+                });
+                
+            } catch (error) {
+                console.error('Failed to remove context item from drafts:', error);
+                return NextResponse.json({
+                    success: false,
+                    error: 'Failed to remove context item from drafts'
+                }, { status: 500 });
+            }
         }
         
         return NextResponse.json({

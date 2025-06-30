@@ -36,6 +36,9 @@ export function AgentOverlay({
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCommandInjector, setShowCommandInjector] = useState(false);
+  const [showAgentCreator, setShowAgentCreator] = useState(false);
+  const [agentTitle, setAgentTitle] = useState('');
+  const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini'>('claude');
 
   useEffect(() => {
     if (AGENTS_ENABLED) {
@@ -78,7 +81,9 @@ export function AgentOverlay({
       return;
     }
     
-    setShowCommandInjector(true);
+    setAgentTitle('');
+    setSelectedModel('claude');
+    setShowAgentCreator(true);
   };
 
   const handleCommandSelect = async (command: string) => {
@@ -87,8 +92,11 @@ export function AgentOverlay({
     
     try {
       // First create the agent
+      const agentName = agentTitle.trim() || `Agent ${Date.now().toString().slice(-4)}`;
       const requestBody = {
-        name: `Agent ${Date.now().toString().slice(-4)}` // Simple name for now
+        name: agentName,
+        title: agentTitle.trim() || undefined,
+        preferredModel: selectedModel
       };
       
       console.log('Request body:', requestBody);
@@ -110,8 +118,9 @@ export function AgentOverlay({
         console.log('Agent created successfully:', data);
         const newAgentId = data.agent.id;
         
-        // Close the command injector
+        // Close the dialogs
         setShowCommandInjector(false);
+        setShowAgentCreator(false);
         
         // Open the terminal with the new agent
         console.log('Opening terminal for agent:', newAgentId);
@@ -188,13 +197,27 @@ export function AgentOverlay({
   // Always render when called (visibility managed by parent)
 
   return (
-    <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+    <div 
+      className="absolute top-full right-0 mt-2 w-96 border rounded-lg shadow-lg z-10"
+      style={{
+        backgroundColor: 'var(--color-surface)',
+        borderColor: 'var(--color-border)',
+      }}
+    >
       <div className="p-4">
         <div className="flex justify-between items-center mb-3">
-          <h4 className="font-medium text-gray-900">Agent Management</h4>
+          <h4 
+            className="font-medium"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Agent Management
+          </h4>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="transition-colors"
+            style={{ 
+              color: 'var(--color-text-muted)',
+            }}
           >
             ✕
           </button>
@@ -213,8 +236,12 @@ export function AgentOverlay({
         )}
 
         {AGENTS_ENABLED && loading ? (
-          <div className="text-center py-4 text-gray-500">
-            <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+          <div 
+            className="text-center py-4"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            <div className="animate-spin h-5 w-5 border-2 border-t-transparent rounded-full mx-auto mb-2"
+                 style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }}></div>
             Loading agents...
           </div>
         ) : agents.length > 0 ? (
@@ -233,8 +260,16 @@ export function AgentOverlay({
                   style={{ backgroundColor: agent.color }}
                 ></div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm truncate">{agent.name}</div>
-                  <div className="text-xs text-gray-500 truncate">
+                  <div 
+                    className="font-medium text-sm truncate"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    {agent.name}
+                  </div>
+                  <div 
+                    className="text-xs truncate"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
                     {agent.status} • {new Date(agent.last_activity).toLocaleDateString()}
                   </div>
                 </div>
@@ -247,43 +282,139 @@ export function AgentOverlay({
             ))}
           </div>
         ) : (
-          <div className="text-center py-4 text-gray-500 mb-3">
+          <div 
+            className="text-center py-4 mb-3"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
             <div className="text-2xl mb-2">🤖</div>
             <p className="text-sm">No agents deployed yet</p>
           </div>
         )}
 
-        {!showCommandInjector ? (
+        {!showCommandInjector && !showAgentCreator ? (
           <div className="space-y-2">
             <button
               onClick={handleNewAgent}
-              className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                AGENTS_ENABLED && agents.length < 4
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-              }`}
+              className="w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: AGENTS_ENABLED && agents.length < 4
+                  ? 'var(--color-primary)'
+                  : 'var(--color-button-secondary)',
+                color: AGENTS_ENABLED && agents.length < 4
+                  ? 'var(--color-text-inverse)'
+                  : 'var(--color-text-secondary)',
+              }}
               disabled={agents.length >= 4}
             >
               {!AGENTS_ENABLED ? '🚧 Deploy New Agent (Coming Soon)' :
                agents.length >= 4 ? '🚫 Max Agents Reached (4/4)' :
-               '🚀 Deploy with Command'}
+               '🚀 Deploy New Agent'}
             </button>
             {AGENTS_ENABLED && (
               <button
-                onClick={() => handleCommandSelect('help')}
-                className="w-full py-1 px-3 rounded text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+                onClick={() => {
+                  setAgentTitle('');
+                  setSelectedModel('claude');
+                  handleCommandSelect('help');
+                }}
+                className="w-full py-1 px-3 rounded text-xs transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-button-secondary)',
+                  color: 'var(--color-text-secondary)',
+                }}
               >
-                Quick Deploy (help command)
+                Quick Deploy (help command, default settings)
               </button>
             )}
+          </div>
+        ) : showAgentCreator ? (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span 
+                className="text-sm font-medium"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Create New Agent
+              </span>
+              <button
+                onClick={() => setShowAgentCreator(false)}
+                className="transition-colors"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label 
+                  className="block text-xs font-medium mb-1"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  Agent Title (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={agentTitle}
+                  onChange={(e) => setAgentTitle(e.target.value)}
+                  placeholder="e.g., Code Assistant, Bug Fixer..."
+                  className="w-full text-sm px-2 py-1 border rounded focus:ring-2 outline-none"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                  maxLength={50}
+                />
+              </div>
+              <div>
+                <label 
+                  className="block text-xs font-medium mb-1"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  AI Model
+                </label>
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gemini')}
+                  className="w-full text-sm px-2 py-1 border rounded focus:ring-2 outline-none"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  <option value="claude">🧠 Claude (Anthropic)</option>
+                  <option value="gemini">💎 Gemini (Google)</option>
+                </select>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAgentCreator(false);
+                  setShowCommandInjector(true);
+                }}
+                className="w-full py-2 px-3 rounded text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'var(--color-text-inverse)',
+                }}
+              >
+                Continue to Commands
+              </button>
+            </div>
           </div>
         ) : (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-900">Select Startup Command</span>
+              <span 
+                className="text-sm font-medium"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Select Startup Command
+              </span>
               <button
                 onClick={() => setShowCommandInjector(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="transition-colors"
+                style={{ color: 'var(--color-text-muted)' }}
               >
                 ✕
               </button>
@@ -303,11 +434,20 @@ export function AgentOverlay({
         )}
 
         {AGENTS_ENABLED && agents.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <div className="text-xs text-gray-500 text-center">
+          <div 
+            className="mt-3 pt-3 border-t"
+            style={{ borderColor: 'var(--color-border)' }}
+          >
+            <div 
+              className="text-xs text-center"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               Click an agent to open conversation
               {agents.length >= 4 && (
-                <div className="text-orange-600 mt-1">
+                <div 
+                  className="mt-1"
+                  style={{ color: 'var(--color-warning)' }}
+                >
                   (Workspace at max capacity: 4/4 agents)
                 </div>
               )}
