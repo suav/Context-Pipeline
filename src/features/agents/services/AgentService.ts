@@ -151,12 +151,34 @@ IMPORTANT CONSTRAINTS:
 - All file operations must be within the workspace boundary
 
 WORKSPACE STRUCTURE:
-- You are in the workspace root directory
+- You are in the workspace root directory and have access to all subdirectories
 - The workspace contains these folders:
-  - target/ - The main project/codebase to work on
-  - context/ - Context information and references
-  - feedback/ - Validation results and analysis
+  - target/ - The main project/codebase to work on (primary focus)
+  - context/ - Context information and references for understanding the project
+  - feedback/ - Validation results and analysis reports
   - agents/ - Agent configurations and conversations
+
+IMPORTANT WORKING DIRECTORY:
+- You start in the workspace root with access to all 4 directories
+- Use 'cd target/' when working with the main project files
+- Use 'cd context/' when reviewing project context and requirements  
+- Use 'cd feedback/' when checking validation results
+- Use 'cd agents/' when managing agent configurations
+- Always use 'pwd' to confirm your current directory before running commands
+
+SAFETY GUIDELINES:
+- Before running git commands that modify files, run 'git status' first to see what will be affected
+- Use 'git status --porcelain | head -20' to limit output for large repositories
+- For .gitignore changes, always backup the existing .gitignore first if it exists
+- When running commands that might produce large output, use head/tail to limit results
+- If a command seems to hang, it might be waiting for user input - try using flags like -y or --force if appropriate
+
+GIT CLEANUP COMMANDS:
+- 'git checkout .' - Discard all unstaged changes (revert files to last commit)
+- 'git reset --hard HEAD' - Reset everything to last commit state
+- 'git clean -fd' - Remove untracked files and directories
+- 'git diff --name-only' - Show only names of changed files
+- 'git status --porcelain' - Clean status output for scripting
   
 WORKSPACE CONTEXT:
 - Name: ${context.name}
@@ -164,6 +186,12 @@ WORKSPACE CONTEXT:
 - Context Items: ${context.context_items.length} items available
 - Target: ${context.target_summary.substring(0, 500)}${context.target_summary.length > 500 ? '...' : ''}
 - Git Repository: ${context.git_status?.has_git ? 'Available' : 'Not available'}
+
+PROJECT STRUCTURE NOTES:
+- This appears to be a Next.js/React TypeScript project
+- Main source code is likely in 'src/' directory within target/
+- Build artifacts (.next/, node_modules/) should be in .gitignore
+- Common files to ignore: *.log, .env.local, .DS_Store, coverage/, dist/
 
 CAPABILITIES:
 - Analyze code, provide suggestions, and help with development tasks within this workspace
@@ -201,15 +229,19 @@ Respond as a helpful AI assistant ready to collaborate on this specific project.
     
     // Try Claude first (if available)
     try {
+      console.log('Attempting Claude CLI call...');
       const claudeResponse = await this.tryClaudeCLI(systemPrompt, userMessage, conversationHistory, workspaceId);
       if (claudeResponse) {
+        console.log('Claude CLI succeeded, response length:', claudeResponse.length);
         return {
           content: claudeResponse,
           metadata: { backend: 'claude-cli', success: true }
         };
       }
     } catch (error) {
-      console.warn('Claude CLI not available:', (error as Error).message);
+      console.error('Claude CLI failed with error:', error);
+      console.warn('Claude CLI not available - falling back to intelligent assistant:', (error as Error).message);
+      // Don't throw here, continue to fallback
     }
 
     // Try Gemini (if available)
@@ -243,7 +275,7 @@ Respond as a helpful AI assistant ready to collaborate on this specific project.
   ): Promise<string | null> {
     const { spawn } = require('child_process');
     
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         // Prepare the conversation context
         const recentHistory = conversationHistory.slice(-10); // Last 10 messages for context
@@ -265,14 +297,29 @@ Please provide a helpful response as the workspace AI assistant.`;
         // Get workspace directory path
         const workspacePath = path.join(this.workspaceBasePath, workspaceId);
         
+        // Setup Claude settings in workspace
+        await this.ensureClaudeSettings(workspacePath);
+        
         // Spawn Claude CLI process with workspace directory constraints
-        const claudeProcess = spawn('claude', [
-          '--print', 
-          '--output-format', 'text',
-          '--add-dir', workspacePath
-        ], {
+        console.log('Attempting to spawn Claude CLI with workspace:', workspacePath);
+        console.log('Full prompt length:', fullPrompt.length, 'characters');
+        
+        // First cd into the workspace root directory, then launch Claude
+        // This gives Claude access to all 4 folders: target, context, feedback, agents
+        
+        // Ensure workspace directory exists
+        try {
+          await fs.access(workspacePath);
+        } catch {
+          console.log('Creating workspace directory:', workspacePath);
+          await fs.mkdir(workspacePath, { recursive: true });
+        }
+        
+        // Use bash to cd into workspace root first, then run claude
+        const claudeProcess = spawn('bash', ['-c', `cd "${workspacePath}" && claude`], {
           stdio: ['pipe', 'pipe', 'pipe'],
-          cwd: workspacePath
+          env: { ...process.env },
+          timeout: 60000
         });
         
         let output = '';
@@ -280,37 +327,71 @@ Please provide a helpful response as the workspace AI assistant.`;
         
         // Handle stdout
         claudeProcess.stdout.on('data', (data: Buffer) => {
-          output += data.toString();
+          const chunk = data.toString();
+          console.log('Claude stdout chunk:', chunk.length, 'chars');
+          output += chunk;
         });
         
         // Handle stderr
         claudeProcess.stderr.on('data', (data: Buffer) => {
-          errorOutput += data.toString();
+          const error = data.toString();
+          console.log('Claude stderr:', error);
+          errorOutput += error;
         });
         
         // Handle process completion
         claudeProcess.on('close', (code: number) => {
+          console.log('Claude process closed with code:', code);
+          console.log('Total output length:', output.length);
+          console.log('Total error length:', errorOutput.length);
+          
           if (code === 0 && output.trim()) {
             resolve(output.trim());
           } else {
-            reject(new Error(`Claude CLI failed with code ${code}: ${errorOutput}`));
+            // Enhanced error handling for common Claude CLI issues
+            let errorMessage = `Claude CLI failed with code ${code}`;
+            if (errorOutput.includes('not authenticated') || errorOutput.includes('login')) {
+              errorMessage = 'Claude CLI not authenticated. Please run: claude auth login';
+            } else if (errorOutput.includes('permission') || errorOutput.includes('access')) {
+              errorMessage = 'Claude CLI permission denied. Check workspace access rights.';
+            } else if (errorOutput.includes('network') || errorOutput.includes('connection')) {
+              errorMessage = 'Claude CLI network error. Check internet connection.';
+            } else if (errorOutput.trim()) {
+              errorMessage += `: ${errorOutput}`;
+            }
+            console.error('Claude CLI failed:', { code, errorOutput, outputLength: output.length });
+            reject(new Error(errorMessage));
           }
         });
         
         // Handle process error
         claudeProcess.on('error', (error: Error) => {
-          reject(new Error(`Failed to spawn Claude CLI: ${error.message}`));
+          console.error('Claude CLI spawn error:', error);
+          if (error.message.includes('ENOENT')) {
+            reject(new Error('Claude CLI not found. Please install Claude CLI: https://claude.ai/cli'));
+          } else {
+            reject(new Error(`Failed to spawn Claude CLI: ${error.message}`));
+          }
         });
         
         // Send input and close stdin
-        claudeProcess.stdin.write(fullPrompt);
-        claudeProcess.stdin.end();
+        console.log('Sending prompt to Claude CLI...');
+        console.log('Prompt preview:', fullPrompt.substring(0, 200) + '...');
         
-        // Set timeout
+        try {
+          claudeProcess.stdin.write(fullPrompt);
+          claudeProcess.stdin.end();
+          console.log('Prompt sent successfully to Claude CLI');
+        } catch (writeError) {
+          console.error('Error writing to Claude CLI stdin:', writeError);
+          throw writeError;
+        }
+        
+        // Set timeout for long operations  
         setTimeout(() => {
           claudeProcess.kill('SIGTERM');
-          reject(new Error('Claude CLI timeout'));
-        }, 15000); // 15 second timeout
+          reject(new Error('Claude CLI timeout - check if Claude is authenticated and workspace has proper permissions.'));
+        }, 30000); // 30 second timeout
         
       } catch (error) {
         reject(error);
@@ -351,10 +432,14 @@ Please provide a helpful response as the workspace AI assistant.`;
         // Get workspace directory path
         const workspacePath = path.join(this.workspaceBasePath, workspaceId);
         
-        // Spawn Gemini CLI process with workspace directory constraints
-        const geminiProcess = spawn('gemini', ['--prompt', 'Please respond to this user message:'], {
+        console.log('Attempting to spawn Gemini CLI with workspace:', workspacePath);
+        console.log('Full prompt length:', fullPrompt.length, 'characters');
+        
+        // Spawn Gemini CLI process with the prompt as argument
+        const geminiProcess = spawn('gemini', ['--prompt', fullPrompt], {
           stdio: ['pipe', 'pipe', 'pipe'],
-          cwd: workspacePath
+          cwd: workspacePath,
+          env: { ...process.env }
         });
         
         let output = '';
@@ -362,20 +447,29 @@ Please provide a helpful response as the workspace AI assistant.`;
         
         // Handle stdout
         geminiProcess.stdout.on('data', (data: Buffer) => {
-          output += data.toString();
+          const chunk = data.toString();
+          console.log('Gemini stdout chunk:', chunk.length, 'chars');
+          output += chunk;
         });
         
         // Handle stderr
         geminiProcess.stderr.on('data', (data: Buffer) => {
-          errorOutput += data.toString();
+          const error = data.toString();
+          console.log('Gemini stderr:', error);
+          errorOutput += error;
         });
         
         // Handle process completion
         geminiProcess.on('close', (code: number) => {
+          console.log('Gemini process closed with code:', code);
+          console.log('Total output length:', output.length);
+          console.log('Total error length:', errorOutput.length);
+          
           if (code === 0 && output.trim()) {
             resolve(output.trim());
           } else {
-            reject(new Error(`Gemini CLI failed with code ${code}: ${errorOutput}`));
+            console.error('Gemini CLI failed:', { code, errorOutput, outputLength: output.length });
+            reject(new Error(`Gemini CLI failed with code ${code}: ${errorOutput || 'No error output'}`));
           }
         });
         
@@ -384,15 +478,14 @@ Please provide a helpful response as the workspace AI assistant.`;
           reject(new Error(`Failed to spawn Gemini CLI: ${error.message}`));
         });
         
-        // Send input and close stdin
-        geminiProcess.stdin.write(fullPrompt);
+        // Close stdin immediately (Gemini takes prompt as argument)
         geminiProcess.stdin.end();
         
-        // Set timeout
+        // Set timeout for long operations
         setTimeout(() => {
           geminiProcess.kill('SIGTERM');
-          reject(new Error('Gemini CLI timeout'));
-        }, 12000); // 12 second timeout
+          reject(new Error('AI response timed out. Please try a simpler request or check your connection.'));
+        }, 30000); // 30 second timeout - fail fast to avoid blocking UI
         
       } catch (error) {
         reject(error);
@@ -408,6 +501,8 @@ Please provide a helpful response as the workspace AI assistant.`;
     conversationHistory: ConversationMessage[]
   ): string {
     const message = userMessage.toLowerCase().trim();
+    
+    console.log('🧠 Generating intelligent response for:', message.substring(0, 50));
     
     // Handle specific commands first
     if (message === 'help') {
@@ -520,7 +615,11 @@ Untracked files:
 
         src/features/agents/CommandPalette.tsx
 
-no changes added to commit (use "git add ..." or "git commit -a")`;
+no changes added to commit (use "git add ..." or "git commit -a")
+
+💡 To clean up modified files: git checkout .
+💡 To remove untracked files: git clean -fd
+💡 To reset everything: git reset --hard HEAD`;
       }
       
       if (message.includes('log')) {
@@ -546,6 +645,27 @@ index 1234567..abcdefg 100644
      // Process command
      processCommand(command);
    };`;
+      }
+      
+      if (message.includes('clean') || message.includes('reset')) {
+        return `Git Cleanup Commands:
+
+🔧 Reset modified files to last commit:
+   git checkout .
+
+🧹 Remove untracked files and directories:
+   git clean -fd
+
+💣 Reset everything (DESTRUCTIVE):
+   git reset --hard HEAD
+
+📋 Show only file names that changed:
+   git diff --name-only
+
+⚡ Quick status check:
+   git status --porcelain
+
+Use these commands carefully in the target/ directory!`;
       }
       
       return `git: '${message.replace('git ', '')}' is not a git command. See 'git --help'.`;
@@ -663,22 +783,118 @@ For specific implementation help, I'll be more effective once connected to AI se
 I'm currently in offline mode, but when connected to AI services, I can provide more specific debugging assistance based on your actual code and error messages.`;
     }
     
-    return `Thanks for your message: "${userMessage}". I'm your AI development assistant, currently running in offline mode. 
+    // Enhanced intelligent responses based on common development requests
+    if (message.includes('analyze') || message.includes('review') || message.includes('architecture')) {
+      return `I'd be happy to help analyze your project! Here's what I can guide you through:
 
-I'm designed to help with:
-• Software development and coding
-• Code review and optimization
-• Debugging and problem-solving
-• Project planning and architecture
-• Workspace management
+🔍 **Code Analysis Approach:**
+1. **Structure Review** - Examine file organization, module patterns
+2. **Dependencies** - Check package.json, imports, and dependency health  
+3. **Code Quality** - Look for patterns, consistency, potential improvements
+4. **Performance** - Identify bottlenecks, optimization opportunities
+5. **Security** - Review for common vulnerabilities and best practices
 
-For full AI-powered assistance, I'll need connection to Claude, OpenAI, or similar services. In the meantime, I can provide general development guidance and help you organize your approach to problems.
+📁 **Common Analysis Commands:**
+\`\`\`bash
+# Project overview
+find . -name "*.js" -o -name "*.ts" | head -20
+npm list --depth=0
+git log --oneline -10
 
-What would you like to work on?`;
+# Code quality
+eslint src/
+npm audit
+\`\`\`
+
+To get started, you could run \`ls -la\` to see your project structure, then \`cat package.json\` to understand dependencies. What specific aspect would you like to focus on?`;
+    }
+
+    if (message.includes('build') || message.includes('compile') || message.includes('deploy')) {
+      return `Let's get your build working! Here's a systematic approach:
+
+🔨 **Build Troubleshooting Steps:**
+1. **Clean build artifacts**: \`rm -rf .next node_modules/.cache\`
+2. **Reinstall dependencies**: \`npm ci\` or \`npm install\`
+3. **Check for TypeScript errors**: \`npx tsc --noEmit\`
+4. **Run build**: \`npm run build\`
+
+⚡ **Common Build Issues:**
+• **Memory errors** - Try \`NODE_OPTIONS="--max-old-space-size=4096" npm run build\`
+• **TypeScript errors** - Run \`npm run lint\` to see issues
+• **Missing dependencies** - Check if all imports are installed
+• **Environment variables** - Ensure .env files are properly set
+
+🚀 **Deploy Checklist:**
+- Build completes without errors
+- All tests pass (\`npm test\`)
+- Environment variables configured
+- Production optimizations enabled
+
+What's the specific error you're seeing?`;
+    }
+
+    if (message.includes('git') || message.includes('version') || message.includes('commit')) {
+      return `Git workflow guidance! Here's how to manage your repository effectively:
+
+📋 **Git Status & Cleanup:**
+\`\`\`bash
+git status                    # See current changes
+git diff --name-only         # List changed files only
+git log --oneline -5         # Recent commits
+
+# Clean up workspace
+git checkout .               # Discard unstaged changes
+git clean -fd               # Remove untracked files
+git reset --hard HEAD       # Reset to last commit
+\`\`\`
+
+🔄 **Common Workflows:**
+\`\`\`bash
+# Feature development
+git checkout -b feature/new-feature
+git add .
+git commit -m "Add new feature"
+git push -u origin feature/new-feature
+
+# Quick fixes
+git add .
+git commit -m "Fix: description of fix"
+git push
+\`\`\`
+
+🔒 **Best Practices:**
+• Use clear, descriptive commit messages
+• Keep commits focused on single changes  
+• Review changes before committing (\`git diff --staged\`)
+• Use .gitignore for build artifacts
+
+What specific git operation do you need help with?`;
+    }
+
+    // General fallback
+    return `I'm your workspace development assistant! While external AI services are unavailable, I can still help guide you through development tasks.
+
+🛠️ **I can help you with:**
+• **Code Analysis** - Project structure, dependencies, quality review
+• **Build & Deploy** - Troubleshooting compilation, optimization tips  
+• **Git Management** - Version control workflows, cleanup commands
+• **Development Setup** - Environment configuration, tool setup
+• **Debugging** - Systematic problem-solving approaches
+• **Best Practices** - Code organization, testing strategies
+
+💡 **Your request:** "${userMessage}"
+
+To get started, try:
+1. \`ls -la\` - See your project structure
+2. \`git status\` - Check repository state  
+3. \`npm run\` - See available scripts
+4. \`cat package.json\` - Review project config
+
+What specific area would you like help with? I can provide detailed guidance and commands for your development workflow.`;
   }
 
   /**
-   * Try streaming backends in order of preference
+   * Try streaming backends in order of preference - but fail fast to avoid blocking UI
    */
   private async tryStreamingBackends(
     systemPrompt: string,
@@ -688,37 +904,38 @@ What would you like to work on?`;
     preferredModel?: 'claude' | 'gemini'
   ): Promise<AsyncIterable<string>> {
     
-    // For now, skip CLI attempts and go straight to fallback to avoid timeouts
-    console.log('Using fallback response to avoid CLI timeout issues');
-    return this.createFallbackStream(this.generateIntelligentFallback(userMessage, conversationHistory));
-    
-    /* TODO: Re-enable when CLI issues are resolved
-    // Respect model preference, but fallback to other models if preferred one fails
-    const modelsToTry = preferredModel === 'gemini' 
-      ? ['gemini', 'claude'] 
-      : ['claude', 'gemini'];
-
-    for (const model of modelsToTry) {
+    // Try Claude CLI first (if available and preferred)
+    if (preferredModel === 'claude') {
       try {
-        if (model === 'claude') {
-          const claudeStream = await this.tryClaudeStreaming(systemPrompt, userMessage, conversationHistory, workspaceId);
-          if (claudeStream) {
-            return claudeStream;
-          }
-        } else if (model === 'gemini') {
-          const geminiStream = await this.tryGeminiStreaming(systemPrompt, userMessage, conversationHistory, workspaceId);
-          if (geminiStream) {
-            return geminiStream;
-          }
+        console.log('🔮 Attempting Claude CLI streaming...');
+        await this.ensureClaudeSettings(path.join(this.workspaceBasePath, workspaceId));
+        const claudeStream = await this.tryClaudeStreaming(systemPrompt, userMessage, conversationHistory, workspaceId);
+        if (claudeStream) {
+          console.log('✅ Claude CLI streaming succeeded');
+          return claudeStream;
         }
       } catch (error) {
-        console.warn(`${model} CLI streaming not available:`, (error as Error).message);
+        console.warn('⚠️ Claude CLI streaming failed:', (error as Error).message);
       }
     }
 
-    // Fallback to intelligent response stream
+    // Try Gemini CLI if Claude failed or not preferred
+    try {
+      console.log('🔮 Attempting Gemini CLI streaming...');
+      const geminiStream = await this.tryGeminiStreaming(systemPrompt, userMessage, conversationHistory, workspaceId);
+      if (geminiStream) {
+        console.log('✅ Gemini CLI streaming succeeded');
+        return geminiStream;
+      }
+    } catch (error) {
+      console.warn('⚠️ Gemini CLI streaming failed:', (error as Error).message);
+    }
+
+    // Fallback to intelligent response if both CLI attempts fail
+    console.log('🤖 Using intelligent AI assistant (CLI tools failed, using fallback)');
+    console.log(`💡 User requested: "${userMessage.substring(0, 100)}${userMessage.length > 100 ? '...' : ''}"`);
+    console.log('🔄 Generating intelligent fallback response...');
     return this.createFallbackStream(this.generateIntelligentFallback(userMessage, conversationHistory));
-    */
   }
 
   /**
@@ -749,6 +966,8 @@ Please provide a helpful response as the workspace AI assistant.`;
 
       const workspacePath = path.join(this.workspaceBasePath, workspaceId);
       
+      // Ensure Claude settings are configured
+      await this.ensureClaudeSettings(workspacePath);
       return this.createRealTimeStream('claude', fullPrompt, workspacePath);
       
     } catch (error) {
@@ -766,16 +985,31 @@ Please provide a helpful response as the workspace AI assistant.`;
     conversationHistory: ConversationMessage[],
     workspaceId: string
   ): Promise<AsyncIterable<string> | null> {
-    // For now, fall back to non-streaming response to avoid issues
     try {
-      const response = await this.tryOpenAICLI(systemPrompt, userMessage, conversationHistory, workspaceId);
-      if (response) {
-        return this.createFallbackStream(response);
-      }
+      // Prepare the conversation context
+      const recentHistory = conversationHistory.slice(-10);
+      let contextMessages = recentHistory.map(msg => 
+        `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+      ).join('\n\n');
+      
+      const fullPrompt = `${systemPrompt}
+
+CONVERSATION HISTORY:
+${contextMessages}
+
+CURRENT REQUEST:
+Human: ${userMessage}
+
+Please provide a helpful response as the workspace AI assistant.`;
+
+      const workspacePath = path.join(this.workspaceBasePath, workspaceId);
+      
+      return this.createRealTimeStream('gemini', fullPrompt, workspacePath);
+      
     } catch (error) {
       console.warn('Gemini CLI not available for streaming:', error);
+      return null;
     }
-    return null;
   }
 
   /**
@@ -802,64 +1036,238 @@ Please provide a helpful response as the workspace AI assistant.`;
     const { spawn } = require('child_process');
     
     try {
-      const args = command === 'claude' 
-        ? ['--print', '--output-format', 'text', '--add-dir', workspacePath]
-        : ['--print', '--output-format', 'text'];
+      console.log('🚀 createRealTimeStream called with:', { command, promptLength: prompt.length, workspacePath });
+      console.log('🚀 Using streaming for real-time responses');
+      
+      // Configure args based on CLI tool
+      let args: string[];
+      let sendPromptViaStdin = true;
+      
+      if (command === 'claude') {
+        // Ensure Claude settings are configured for this workspace
+        await this.ensureClaudeSettings(workspacePath);
+        args = ['--print', '--output-format', 'json'];
+      } else if (command === 'gemini') {
+        // Gemini takes the prompt via --prompt flag
+        args = ['--prompt', prompt];
+        sendPromptViaStdin = false;
+      } else {
+        args = [];
+      }
         
-      const process = spawn(command, args, {
+      // For all AI agents, cd into the workspace root directory first
+      // This gives them access to all 4 folders: target, context, feedback, agents
+      
+      console.log('🔧 Spawning process:', command, 'with args:', args.length > 100 ? args.slice(0, 2).concat(['...prompt...']) : args);
+      console.log('🔧 Working directory:', workspacePath);
+      
+      let processCommand: string;
+      let processArgs: string[];
+      
+      if (command === 'claude') {
+        // Use bash to cd into workspace root first, then run claude
+        processCommand = 'bash';
+        processArgs = ['-c', `cd "${workspacePath}" && claude ${args.join(' ')}`];
+      } else if (command === 'gemini') {
+        // For Gemini with prompt in args, also use bash
+        processCommand = 'bash';
+        processArgs = ['-c', `cd "${workspacePath}" && gemini ${args.map(arg => `"${arg}"`).join(' ')}`];
+      } else {
+        processCommand = command;
+        processArgs = args;
+      }
+      
+      const claudeProcess = spawn(processCommand, processArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: workspacePath
+        env: { ...process.env }
       });
       
-      // Send the prompt
-      process.stdin.write(prompt);
-      process.stdin.end();
+      console.log('🔧 Process spawned with PID:', claudeProcess.pid);
       
-      // Set timeout (reduced to prevent UI freezing)
+      // Track stderr for debugging
+      let stderrOutput = '';
+      claudeProcess.stderr.on('data', (data: Buffer) => {
+        const error = data.toString();
+        stderrOutput += error;
+        console.log('🚨', command, 'stderr:', error);
+      });
+      
+      // Send the prompt (if needed)
+      if (sendPromptViaStdin) {
+        console.log('📝 Sending prompt to', command, '- Length:', prompt.length);
+        console.log('📝 Prompt preview:', prompt.substring(0, 200) + '...');
+        
+        try {
+          claudeProcess.stdin.write(prompt);
+          claudeProcess.stdin.end();
+          console.log('✅ Prompt sent successfully to', command);
+        } catch (writeError) {
+          console.error('❌ Error writing to', command, 'stdin:', writeError);
+          throw writeError;
+        }
+      } else {
+        console.log('📝 Prompt passed as argument to', command);
+        claudeProcess.stdin.end();
+      }
+      
+      // Set timeout for AI calls - reasonable time for most requests
       const timeout = setTimeout(() => {
-        process.kill('SIGTERM');
-      }, 15000);
+        console.log('⏰ Timeout reached for', command, '- killing process PID:', claudeProcess.pid);
+        console.log('⏰ Stderr so far:', stderrOutput);
+        console.log('⏰ This may indicate the AI is waiting for user input or processing too much data');
+        claudeProcess.kill('SIGTERM');
+      }, 30000); // 30 seconds - fail fast to avoid blocking other requests
       
-      // Promise-based approach to handle streaming data
-      const chunks: string[] = [];
+      // Create async iterator for streaming responses
+      let buffer = '';
+      let finished = false;
+      let error: Error | null = null;
       
-      await new Promise<void>((resolve, reject) => {
-        process.stdout.on('data', (data: Buffer) => {
-          const text = data.toString();
-          chunks.push(text);
-        });
+      claudeProcess.stdout.on('data', (data: Buffer) => {
+        const text = data.toString();
+        buffer += text;
         
-        process.on('close', (code: number) => {
-          clearTimeout(timeout);
-          if (code === 0) {
-            resolve();
-          } else if (code === 143) {
-            // SIGTERM timeout - provide better error message
-            reject(new Error('AI response timed out. Please try a simpler request or check your connection.'));
-          } else {
-            reject(new Error(`Process failed with code ${code}`));
-          }
-        });
-        
-        process.on('error', (error: Error) => {
-          clearTimeout(timeout);
-          reject(error);
-        });
+        // Accumulate all responses
+        console.log('📦 Received data chunk:', text.length, 'chars');
       });
       
-      // Yield the accumulated response in manageable chunks
-      const fullResponse = chunks.join('');
-      if (fullResponse.trim()) {
-        yield* this.createFallbackStream(fullResponse);
+      claudeProcess.on('close', (code: number) => {
+        console.log('🏁 Process closed with code:', code);
+        clearTimeout(timeout);
+        finished = true;
+        
+        if (code !== 0 && code !== 143) {
+          error = new Error(`${command} CLI failed with code ${code}. Stderr: ${stderrOutput}`);
+        } else if (code === 143) {
+          error = new Error('AI response timed out. Please try a simpler request or check your connection.');
+        }
+      });
+      
+      claudeProcess.on('error', (processError: Error) => {
+        console.error('🚨 Process error:', processError);
+        clearTimeout(timeout);
+        finished = true;
+        error = processError;
+      });
+      
+      // Wait for completion
+      while (!finished) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Parse and yield the response
+      if (buffer.trim()) {
+        if (command === 'claude') {
+          try {
+            const jsonResponse = JSON.parse(buffer);
+            const content = jsonResponse.result || jsonResponse.content || buffer;
+            console.log('📤 Parsed Claude response, content length:', content.length);
+            yield* this.createFallbackStream(content);
+          } catch (parseError) {
+            console.log('📤 Failed to parse JSON, using raw response');
+            yield* this.createFallbackStream(buffer);
+          }
+        } else {
+          // Gemini or other CLI tools - use response as-is
+          yield* this.createFallbackStream(buffer);
+        }
       } else {
         yield 'I apologize, but I received an empty response. Please try again.';
       }
       
+    } catch (streamError) {
+      console.error('Real-time streaming error:', streamError);
+      yield `I encountered an error: ${(streamError as Error).message}. Please try again.`;
+    }
+  }
+
+  /**
+   * Ensure Claude settings.local.json is configured at workspace root for all agents
+   */
+  private async ensureClaudeSettings(workspacePath: string): Promise<void> {
+    const fs = require('fs').promises;
+    
+    try {
+      // Put .claude directory in the workspace root so Claude has access to all folders
+      const claudeDir = path.join(workspacePath, '.claude');
+      const settingsPath = path.join(claudeDir, 'settings.local.json');
+      
+      // Ensure the workspace directory exists first
+      try {
+        await fs.access(workspacePath);
+      } catch {
+        console.log('Creating workspace directory:', workspacePath);
+        await fs.mkdir(workspacePath, { recursive: true });
+      }
+      
+      // Create .claude directory if it doesn't exist
+      try {
+        await fs.access(claudeDir);
+      } catch {
+        console.log('Creating .claude directory at workspace root:', claudeDir);
+        await fs.mkdir(claudeDir, { recursive: true });
+      }
+      
+      // Check if settings.local.json exists
+      try {
+        await fs.access(settingsPath);
+        console.log('Claude settings.local.json already exists at workspace root');
+      } catch {
+        // Create settings.local.json with workspace-specific configuration
+        const settings = {
+          "allowedTools": [
+            "bash",
+            "grep", 
+            "glob",
+            "read_file",
+            "write_file", 
+            "edit_file",
+            "multi_edit",
+            "list_files"
+          ],
+          "workspaceConfig": {
+            "maxFileSize": "10MB",
+            "allowedFileTypes": [
+              "*.js", "*.ts", "*.tsx", "*.jsx", 
+              "*.json", "*.md", "*.txt", "*.yaml", "*.yml",
+              "*.css", "*.scss", "*.html", "*.xml",
+              "*.py", "*.sh", "*.dockerfile", "*.env"
+            ],
+            "excludedDirectories": [
+              "node_modules",
+              ".git", 
+              "dist",
+              "build",
+              ".next",
+              "coverage"
+            ]
+          },
+          "permissions": {
+            "readFiles": true,
+            "writeFiles": true,
+            "executeCommands": true,
+            "networkAccess": false
+          },
+          "contextWindow": {
+            "maxTokens": 100000,
+            "preserveHistory": true
+          }
+        };
+        
+        console.log('Creating Claude settings.local.json at workspace root:', settingsPath);
+        await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+        console.log('✅ Claude settings.local.json created for all agents to use');
+      }
+      
     } catch (error) {
-      console.error('Real-time streaming error:', error);
-      yield `I encountered an error: ${(error as Error).message}. Please try again.`;
+      console.warn('Failed to ensure Claude settings:', error);
+      // Don't throw error - allow fallback to work without settings
     }
   }
 }
 
-export const agentService = new AgentService();
+export const agentService = new AgentService();// Trigger rebuild

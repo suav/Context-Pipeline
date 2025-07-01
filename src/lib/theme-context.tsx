@@ -64,28 +64,28 @@ export interface Theme {
   };
 }
 
-// Default theme (clean, professional)
-export const defaultTheme: Theme = {
-  id: 'default',
-  name: 'Default',
-  description: 'Clean and professional interface',
+// Default Light theme (clean, professional)
+export const defaultLightTheme: Theme = {
+  id: 'default-light',
+  name: 'Default Light',
+  description: 'Clean and professional light interface',
   colors: {
-    background: '#f9fafb',
-    surface: '#ffffff',
+    background: '#ffffff',
+    surface: '#f8fafc',
     surfaceElevated: '#ffffff',
     
-    textPrimary: '#111827',
-    textSecondary: '#374151',
-    textMuted: '#6b7280',
+    textPrimary: '#0f172a',
+    textSecondary: '#475569',
+    textMuted: '#64748b',
     textInverse: '#ffffff',
     
-    border: '#e5e7eb',
+    border: '#e2e8f0',
     borderFocus: '#3b82f6',
     
     primary: '#3b82f6',
     primaryHover: '#2563eb',
-    secondary: '#6b7280',
-    secondaryHover: '#4b5563',
+    secondary: '#64748b',
+    secondaryHover: '#475569',
     success: '#10b981',
     successHover: '#059669',
     warning: '#f59e0b',
@@ -94,19 +94,78 @@ export const defaultTheme: Theme = {
     errorHover: '#dc2626',
     
     cardBackground: '#ffffff',
-    cardBorder: '#e5e7eb',
+    cardBorder: '#e2e8f0',
     buttonPrimary: '#3b82f6',
     buttonPrimaryHover: '#2563eb',
-    buttonSecondary: '#f3f4f6',
-    buttonSecondaryHover: '#e5e7eb',
+    buttonSecondary: '#f1f5f9',
+    buttonSecondaryHover: '#e2e8f0',
     
     overlay: 'rgba(0, 0, 0, 0.5)',
     modalBackground: '#ffffff',
+    
+    terminalBackground: '#000000',
+    terminalText: '#00ff00',
+    terminalPrompt: '#00ff00',
   },
   fonts: {
-    ui: 'ui-sans-serif, system-ui, sans-serif',
+    ui: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     mono: 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
-    heading: 'ui-sans-serif, system-ui, sans-serif',
+    heading: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  },
+  spacing: {
+    cardPadding: '1.5rem',
+    buttonHeight: '2.5rem',
+    borderRadius: '0.5rem',
+  },
+};
+
+// Default Dark theme
+export const defaultDarkTheme: Theme = {
+  id: 'default-dark',
+  name: 'Default Dark',
+  description: 'Clean and professional dark interface',
+  colors: {
+    background: '#0f172a',
+    surface: '#1e293b',
+    surfaceElevated: '#334155',
+    
+    textPrimary: '#f8fafc',
+    textSecondary: '#cbd5e1',
+    textMuted: '#94a3b8',
+    textInverse: '#0f172a',
+    
+    border: '#475569',
+    borderFocus: '#60a5fa',
+    
+    primary: '#60a5fa',
+    primaryHover: '#3b82f6',
+    secondary: '#64748b',
+    secondaryHover: '#475569',
+    success: '#34d399',
+    successHover: '#10b981',
+    warning: '#fbbf24',
+    warningHover: '#f59e0b',
+    error: '#f87171',
+    errorHover: '#ef4444',
+    
+    cardBackground: '#1e293b',
+    cardBorder: '#475569',
+    buttonPrimary: '#60a5fa',
+    buttonPrimaryHover: '#3b82f6',
+    buttonSecondary: '#334155',
+    buttonSecondaryHover: '#475569',
+    
+    overlay: 'rgba(0, 0, 0, 0.7)',
+    modalBackground: '#1e293b',
+    
+    terminalBackground: '#000000',
+    terminalText: '#00ff00',
+    terminalPrompt: '#00ff00',
+  },
+  fonts: {
+    ui: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    mono: 'ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
+    heading: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
   spacing: {
     cardPadding: '1.5rem',
@@ -170,67 +229,71 @@ export const spaceInvadersTheme: Theme = {
   },
 };
 
-// Cerulean City theme (Pokemon Game Boy aesthetic)
+// Cerulean City theme (Pokemon Game Boy aesthetic - Light Powder Blue)
 export const ceruleanCityTheme: Theme = {
   id: 'cerulean-city',
   name: 'Cerulean City',
-  description: 'Pokemon Game Boy inspired blue monochrome palette',
+  description: 'Pokemon-inspired light powder blue theme with retro gaming fonts',
   colors: {
-    background: '#9bbc0f',
-    surface: '#8bac0f',
-    surfaceElevated: '#306230',
+    background: '#e3f2fd',
+    surface: '#bbdefb',
+    surfaceElevated: '#90caf9',
     
-    textPrimary: '#0f380f',
-    textSecondary: '#1e5d1e',
-    textMuted: '#4f7f4f',
-    textInverse: '#9bbc0f',
+    textPrimary: '#0d47a1',
+    textSecondary: '#1565c0',
+    textMuted: '#1976d2',
+    textInverse: '#ffffff',
     
-    border: '#306230',
-    borderFocus: '#0f380f',
+    border: '#64b5f6',
+    borderFocus: '#2196f3',
     
-    primary: '#0f380f',
-    primaryHover: '#1e5d1e',
-    secondary: '#4f7f4f',
-    secondaryHover: '#306230',
-    success: '#0f380f',
-    successHover: '#1e5d1e',
-    warning: '#8bac0f',
-    warningHover: '#7a9b0f',
-    error: '#5a2f2f',
-    errorHover: '#4a1f1f',
+    primary: '#2196f3',
+    primaryHover: '#1976d2',
+    secondary: '#42a5f5',
+    secondaryHover: '#1e88e5',
+    success: '#4caf50',
+    successHover: '#388e3c',
+    warning: '#ff9800',
+    warningHover: '#f57c00',
+    error: '#f44336',
+    errorHover: '#d32f2f',
     
-    cardBackground: '#8bac0f',
-    cardBorder: '#306230',
-    buttonPrimary: '#0f380f',
-    buttonPrimaryHover: '#1e5d1e',
-    buttonSecondary: '#4f7f4f',
-    buttonSecondaryHover: '#306230',
+    cardBackground: '#bbdefb',
+    cardBorder: '#64b5f6',
+    buttonPrimary: '#2196f3',
+    buttonPrimaryHover: '#1976d2',
+    buttonSecondary: '#e3f2fd',
+    buttonSecondaryHover: '#bbdefb',
     
-    overlay: 'rgba(15, 56, 15, 0.3)',
-    modalBackground: '#8bac0f',
+    overlay: 'rgba(13, 71, 161, 0.3)',
+    modalBackground: '#bbdefb',
     
-    terminalBackground: '#9bbc0f',
-    terminalText: '#0f380f',
-    terminalPrompt: '#1e5d1e',
+    terminalBackground: '#000000',
+    terminalText: '#00ff00',
+    terminalPrompt: '#00ff00',
   },
   fonts: {
-    ui: '"Pixelify Sans", "Courier New", monospace',
-    mono: '"Pixelify Sans", "Courier New", monospace',
-    heading: '"Pixelify Sans", "Courier New", monospace',
+    ui: '"Pokemon Solid", "Press Start 2P", "Pixelify Sans", "Courier New", monospace',
+    mono: '"Pokemon Solid", "Press Start 2P", "Pixelify Sans", "Courier New", monospace',
+    heading: '"Pokemon Solid", "Press Start 2P", "Pixelify Sans", "Courier New", monospace',
   },
   spacing: {
     cardPadding: '1rem',
     buttonHeight: '2rem',
-    borderRadius: '0.125rem',
+    borderRadius: '0.25rem',
   },
 };
 
 // Available themes
 export const themes: Record<string, Theme> = {
-  default: defaultTheme,
+  'default-light': defaultLightTheme,
+  'default-dark': defaultDarkTheme,
   'space-invaders': spaceInvadersTheme,
   'cerulean-city': ceruleanCityTheme,
 };
+
+// Keep backward compatibility
+export const defaultTheme = defaultLightTheme;
 
 // Theme context
 interface ThemeContextType {
@@ -247,7 +310,7 @@ interface ThemeProviderProps {
   defaultThemeId?: string;
 }
 
-export function ThemeProvider({ children, defaultThemeId = 'default' }: ThemeProviderProps) {
+export function ThemeProvider({ children, defaultThemeId = 'default-light' }: ThemeProviderProps) {
   const [currentThemeId, setCurrentThemeId] = useState(defaultThemeId);
   const [currentTheme, setCurrentTheme] = useState(themes[defaultThemeId]);
 

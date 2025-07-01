@@ -45,6 +45,11 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   const [editedName, setEditedName] = useState(agentName);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Add abort controller for proper cleanup and concurrent request handling
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isComponentActiveRef = useRef(true);
+  const isLoadingHistoryRef = useRef(false);
 
   useEffect(() => {
     console.log('ChatInterface mounted/updated for agent:', agentId, 'workspace:', workspaceId);
@@ -59,11 +64,31 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   // Reset state when agent changes
   useEffect(() => {
     console.log('Resetting state for new agent:', agentId);
+    
+    // Cancel any ongoing requests for the previous agent
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    
     setHistoryLoaded(false);
     setAgentLoaded(false);
     setMessages([]);
     setCommandHistory([]);
+    setIsProcessing(false); // Reset processing state on agent change
+    isComponentActiveRef.current = true;
+    isLoadingHistoryRef.current = false;
   }, [agentId, workspaceId]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isComponentActiveRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Load agent state to get preferred model
   useEffect(() => {
@@ -125,6 +150,13 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       return;
     }
 
+    // Prevent duplicate history loading requests
+    if (isLoadingHistoryRef.current) {
+      console.log('History loading already in progress, skipping duplicate request');
+      return;
+    }
+
+    isLoadingHistoryRef.current = true;
     console.log('Loading conversation history for:', { workspaceId, agentId });
     
     try {
@@ -180,10 +212,28 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       console.error('Failed to load conversation history (error):', error);
       // Still mark as loaded to prevent infinite retry loops
       setHistoryLoaded(true);
+    } finally {
+      isLoadingHistoryRef.current = false;
     }
   };
 
   const sendCommandWithStreaming = useCallback(async (command: string) => {
+    // Check if component is still active (prevent tab bleeding)
+    if (!isComponentActiveRef.current) {
+      console.log(`[${componentId.current}] Component inactive, ignoring command`);
+      return;
+    }
+
+    // Cancel any existing request for this agent
+    if (abortControllerRef.current) {
+      console.log(`[${componentId.current}] Aborting previous request`);
+      abortControllerRef.current.abort();
+    }
+    
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+    const currentAbortController = abortControllerRef.current;
+
     const userMessage: ConversationMessage = {
       id: generateMessageId(),
       timestamp: new Date().toISOString(),
@@ -202,7 +252,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     scrollToBottom();
 
     try {
-      // Use streaming endpoint for better response handling
+      // Use streaming endpoint with abort signal for proper cleanup
       const response = await fetch(`/api/workspaces/${workspaceId}/agents/${agentId}/conversation/stream`, {
         method: 'POST',
         headers: {
@@ -212,27 +262,24 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
           message: command,
           model: selectedModel
         }),
+        signal: currentAbortController.signal  // Add abort signal
       });
 
       if (response.ok && response.body) {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let assistantMessageId = '';
         let assistantContent = '';
         
         // Create placeholder assistant message
+        const assistantMessageId = generateMessageId();
         const placeholderMessage: ConversationMessage = {
-          id: generateMessageId(),
+          id: assistantMessageId,
           timestamp: new Date().toISOString(),
           role: 'assistant',
           content: ''
         };
         
         setMessages(prev => [...prev, placeholderMessage]);
-        // Use a callback to get the current length
-        const getCurrentMessageIndex = () => {
-          return messages.length + 1; // +1 for user message we added earlier
-        };
         
         try {
           while (true) {
@@ -254,23 +301,20 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                     // Response started
                     continue;
                   } else if (data.type === 'chunk') {
-                    // Update assistant message with new content
-                    assistantContent += data.content;
-                    setMessages(prev => {
-                      const newMessages = [...prev];
-                      const messageIndex = newMessages.length - 1; // Last message is our placeholder
-                      if (newMessages[messageIndex]) {
-                        newMessages[messageIndex] = {
-                          ...newMessages[messageIndex],
-                          content: assistantContent
-                        };
-                      }
-                      return newMessages;
-                    });
-                    scrollToBottom();
+                    // Only update if this component is still active (prevent tab bleeding)
+                    if (isComponentActiveRef.current && !currentAbortController.signal.aborted) {
+                      assistantContent += data.content;
+                      setMessages(prev => {
+                        return prev.map(msg => 
+                          msg.id === assistantMessageId 
+                            ? { ...msg, content: assistantContent }
+                            : msg
+                        );
+                      });
+                      scrollToBottom();
+                    }
                   } else if (data.type === 'complete') {
                     // Response completed successfully
-                    assistantMessageId = data.message_id;
                     console.log('Response completed successfully');
                     break; // Exit the loop on completion
                   } else if (data.type === 'error') {
@@ -318,31 +362,56 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         }
       }
     } catch (error) {
-      const errorMessage: ConversationMessage = {
-        id: generateMessageId(),
-        timestamp: new Date().toISOString(),
-        role: 'system',
-        content: `✗ Error: ${(error as any).message || 'Network error'}`
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      // Only show error if request wasn't aborted and component is still active
+      if (!currentAbortController.signal.aborted && isComponentActiveRef.current) {
+        const errorMessage: ConversationMessage = {
+          id: generateMessageId(),
+          timestamp: new Date().toISOString(),
+          role: 'system',
+          content: `✗ Error: ${(error as any).message || 'Network error'}`
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      } else if (currentAbortController.signal.aborted) {
+        console.log(`[${componentId.current}] Request aborted - no error shown`);
+      }
     } finally {
-      console.log(`[${componentId.current}] Setting processing to false (sendCommandWithStreaming)`);
-      setIsProcessing(false);
-      if (inputRef.current) {
-        inputRef.current.focus();
+      // Only update UI state if component is still active
+      if (isComponentActiveRef.current) {
+        console.log(`[${componentId.current}] Setting processing to false (sendCommandWithStreaming)`);
+        setIsProcessing(false);
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }
+      
+      // Clear abort controller reference
+      if (abortControllerRef.current === currentAbortController) {
+        abortControllerRef.current = null;
       }
     }
   }, [workspaceId, agentId, selectedModel, setMessages, setCommandHistory, setHistoryIndex, setIsProcessing, scrollToBottom, messages.length]);
 
   const sendCommand = async () => {
-    if (!inputValue.trim() || isProcessing) {
-      console.log(`[${componentId.current}] Blocking sendCommand - inputValue: "${inputValue.trim()}", isProcessing: ${isProcessing}`);
+    if (!inputValue.trim()) {
+      console.log(`[${componentId.current}] Blocking sendCommand - empty input`);
+      return;
+    }
+    
+    // Block concurrent requests to prevent message corruption
+    if (isProcessing) {
+      console.log(`[${componentId.current}] Blocking concurrent request - already processing`);
       return;
     }
 
     const command = inputValue.trim();
-    setInputValue('');
-    await sendCommandWithStreaming(command);
+    setInputValue(''); // Clear input immediately
+    
+    // Await the command to maintain proper state management
+    try {
+      await sendCommandWithStreaming(command);
+    } catch (error) {
+      console.error(`[${componentId.current}] Command failed:`, error);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -446,6 +515,73 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     }
   };
 
+  const renderFormattedContent = (content: string) => {
+    // Enhanced text formatting with VS Code-like styling
+    const lines = content.split('\n');
+    return lines.map((line, index) => {
+      // Code blocks
+      if (line.startsWith('```')) {
+        return (
+          <div key={index} className="text-blue-400 bg-gray-900 px-2 py-1 rounded text-xs">
+            {line}
+          </div>
+        );
+      }
+      
+      // Command outputs
+      if (line.startsWith('$ ') || line.startsWith('> ')) {
+        return (
+          <div key={index} className="text-green-400 font-bold">
+            {line}
+          </div>
+        );
+      }
+      
+      // File paths
+      if (line.includes('/') && (line.includes('.js') || line.includes('.ts') || line.includes('.json') || line.includes('.md'))) {
+        return (
+          <div key={index} className="text-cyan-400">
+            {line}
+          </div>
+        );
+      }
+      
+      // Error messages
+      if (line.toLowerCase().includes('error') || line.toLowerCase().includes('failed') || line.includes('✗')) {
+        return (
+          <div key={index} className="text-red-400">
+            {line}
+          </div>
+        );
+      }
+      
+      // Success messages
+      if (line.toLowerCase().includes('success') || line.toLowerCase().includes('completed') || line.includes('✓')) {
+        return (
+          <div key={index} className="text-green-400">
+            {line}
+          </div>
+        );
+      }
+      
+      // Warning messages
+      if (line.toLowerCase().includes('warning') || line.toLowerCase().includes('warn') || line.includes('⚠')) {
+        return (
+          <div key={index} className="text-yellow-400">
+            {line}
+          </div>
+        );
+      }
+      
+      // Default
+      return (
+        <div key={index}>
+          {line}
+        </div>
+      );
+    });
+  };
+
   // Handle external command injection
   useEffect(() => {
     const eventName = `injectCommand_${agentId}`;
@@ -469,17 +605,17 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       
       const command = event.detail?.command;
       if (command && typeof command === 'string') {
-        console.log(`[${componentId.current}] Processing command for agent ${agentId}`);
+        console.log(`[${componentId.current}] Processing command for agent ${agentId}: "${command}"`);
         setInputValue(command);
         
         // Auto-send the command if requested
         if (event.detail?.autoSend) {
-          console.log(`[${componentId.current}] Auto-sending command immediately`);
+          console.log(`[${componentId.current}] Auto-sending command immediately: "${command}"`);
           
           // Wait for history to load before auto-sending
           const tryAutoSend = () => {
             if (historyLoaded) {
-              console.log(`[${componentId.current}] History loaded, sending command now`);
+              console.log(`[${componentId.current}] History loaded, sending command now: "${command}"`);
               sendCommandWithStreaming(command.trim());
               
               // Clear input after a short delay
@@ -600,11 +736,11 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
             ) : message.role === 'assistant' ? (
               <div className="ml-4">
                 <div className="text-gray-500 text-xs mb-1">
-                  [{formatTimestamp(message.timestamp)}] Processing...
+                  [{formatTimestamp(message.timestamp)}] {isProcessing ? 'Processing...' : 'Completed'}
                 </div>
-                <pre className="text-gray-300 whitespace-pre-wrap leading-relaxed">
-                  {message.content}
-                </pre>
+                <div className="text-gray-300 whitespace-pre-wrap leading-relaxed font-mono">
+                  {renderFormattedContent(message.content)}
+                </div>
                 {message.metadata?.command_id && (
                   <div className="text-blue-400 text-xs mt-1">
                     → Command ID: {message.metadata.command_id}
@@ -613,6 +749,19 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                 {message.metadata?.file_changes && message.metadata.file_changes.length > 0 && (
                   <div className="text-yellow-400 text-xs mt-1">
                     → Files modified: {message.metadata.file_changes.join(', ')}
+                  </div>
+                )}
+                {message.metadata?.approval_required && (
+                  <div className="mt-2 p-2 bg-yellow-900 border border-yellow-600 rounded">
+                    <div className="text-yellow-300 text-sm mb-2">⚠️ This action requires approval:</div>
+                    <div className="flex gap-2">
+                      <button className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded">
+                        ✓ Approve
+                      </button>
+                      <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded">
+                        ✗ Deny
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -625,11 +774,25 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
           </div>
         ))}
 
-        {/* Processing Indicator - Only show for this specific agent */}
+        {/* Enhanced Processing Indicator - VS Code-like */}
         {isProcessing && agentId && (
-          <div className="flex items-center text-gray-400" key={`processing-${agentId}`}>
-            <span className="mr-2">&gt;</span>
-            <span className="animate-pulse">Processing command... (Agent: {agentName} - {agentId.slice(-6)})</span>
+          <div className="flex items-center text-gray-400 bg-gray-900 p-2 rounded border-l-4 border-blue-500" key={`processing-${agentId}`}>
+            <span className="mr-2 text-blue-400">&gt;</span>
+            <div className="flex-1">
+              <div className="flex items-center">
+                <span className="animate-pulse text-blue-400 mr-2">●</span>
+                <span className="text-sm">Waiting for AI response...</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Agent: {agentName} ({agentId.slice(-6)}) • Timeout: 3 minutes
+              </div>
+              <div className="text-xs text-gray-500">
+                💡 Long responses are normal for complex requests
+              </div>
+              <div className="text-xs text-gray-500">
+                ⚡ If stuck, try a simpler request or refresh the page
+              </div>
+            </div>
           </div>
         )}
       </div>

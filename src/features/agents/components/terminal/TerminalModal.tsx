@@ -227,18 +227,18 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
       />
       
       {/* Modal - Terminal Style */}
-      <div className="relative bg-gray-900 rounded-lg shadow-2xl w-[90vw] h-[80vh] max-h-[800px] flex flex-col border border-gray-700">
+      <div className="relative terminal-modal rounded shadow-2xl w-[90vw] h-[80vh] max-h-[800px] flex flex-col">
         {/* Header - Terminal Style */}
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+        <div className="flex items-center justify-between px-4 py-2 terminal-container border-b">
           <div className="flex items-center gap-2">
-            <span className="text-green-400 font-mono text-sm">AGENT_TERMINAL</span>
-            <span className="text-gray-500 font-mono text-xs">v1.0</span>
+            <span className="terminal-text font-mono text-sm">AGENT_TERMINAL</span>
+            <span className="terminal-prompt font-mono text-xs">v1.0</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-xs text-gray-400 font-mono">workspace:{workspaceId.substring(0, 12)}</span>
+            <span className="text-xs terminal-prompt font-mono">workspace:{workspaceId.substring(0, 12)}</span>
             <button
               onClick={handleClose}
-              className="text-gray-500 hover:text-gray-300 transition-colors font-mono"
+              className="terminal-text hover:text-red-400 transition-colors font-mono"
             >
               [X]
             </button>
@@ -246,7 +246,7 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
         </div>
 
         {/* Tab Bar - Terminal Style - Fixed at top */}
-        <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1 border-b border-gray-700 bg-gray-800">
+        <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1 border-b terminal-container">
           {agentTabs.map((tab, index) => (
             <div
               key={tab.agentId}
@@ -375,71 +375,71 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
         />
       )}
 
-      {/* Agent Creator Dialog */}
+      {/* Agent Creator Dialog - Always show name/model box */}
       {showAgentCreator && (
-        <div className="absolute inset-0 z-60 flex items-center justify-center">
+        <div className="absolute inset-0 z-60 flex items-center justify-center command-popup">
           <div 
             className="absolute inset-0 bg-black bg-opacity-75"
             onClick={() => setShowAgentCreator(false)}
           />
-          <div className="relative bg-gray-900 rounded-lg shadow-2xl p-6 max-w-md w-full mx-4">
+          <div className="relative terminal-container rounded shadow-2xl p-4 max-w-sm w-full mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-green-400 font-mono">Create New Agent</h2>
+              <h2 className="text-lg font-semibold terminal-text font-mono">DEPLOY_NEW_AGENT</h2>
               <button
                 onClick={() => setShowAgentCreator(false)}
-                className="text-gray-400 hover:text-gray-200"
+                className="terminal-text hover:text-red-400 font-mono"
               >
-                ✕
+                [X]
               </button>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3 name-model-box" style={{display: 'block', visibility: 'visible', opacity: 1}}>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Agent Title (Optional)
+                <label className="block text-xs font-medium terminal-text mb-1 font-mono">
+                  &gt; AGENT_NAME:
                 </label>
                 <input
                   type="text"
                   value={agentTitle}
                   onChange={(e) => setAgentTitle(e.target.value)}
-                  placeholder="e.g., Code Assistant, Documentation Writer..."
-                  className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:border-green-400 outline-none"
-                  maxLength={50}
+                  placeholder="Code_Assistant | Doc_Writer..."
+                  className="terminal-input w-full px-2 py-1 text-xs font-mono"
+                  maxLength={30}
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Leave empty for auto-generated name
+                <p className="text-xs terminal-text mt-0.5 font-mono opacity-70">
+                  // Leave empty for auto-generated
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  AI Model
+                <label className="block text-xs font-medium terminal-text mb-1 font-mono">
+                  &gt; AI_MODEL:
                 </label>
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value as 'claude' | 'gemini')}
-                  className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white text-sm focus:border-green-400 outline-none"
+                  className="terminal-input w-full px-2 py-1 text-xs font-mono"
                 >
-                  <option value="claude">🧠 Claude (Anthropic)</option>
-                  <option value="gemini">💎 Gemini (Google)</option>
+                  <option value="claude">CLAUDE_3.5_SONNET</option>
+                  <option value="gemini">GEMINI_PRO</option>
                 </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  This model will be used for the agent's entire lifespan
+                <p className="text-xs terminal-text mt-0.5 font-mono opacity-70">
+                  // Model locked for agent lifetime
                 </p>
               </div>
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   onClick={() => {
                     setShowAgentCreator(false);
                     setShowCommandInjector(true);
                   }}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+                  className="flex-1 terminal-input hover:bg-green-800 px-3 py-1 text-xs font-medium font-mono border-green-400"
                 >
-                  Continue
+                  [DEPLOY] &gt;&gt;
                 </button>
                 <button
                   onClick={() => setShowAgentCreator(false)}
-                  className="px-4 py-2 text-gray-400 hover:text-gray-200 text-sm transition-colors"
+                  className="px-3 py-1 terminal-text hover:text-red-400 text-xs font-mono"
                 >
-                  Cancel
+                  [ABORT]
                 </button>
               </div>
             </div>
@@ -447,21 +447,21 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
         </div>
       )}
 
-      {/* Command Injector for New Agent */}
+      {/* Command Injector for New Agent - Terminal Style */}
       {showCommandInjector && (
-        <div className="absolute inset-0 z-60 flex items-center justify-center">
+        <div className="absolute inset-0 z-60 flex items-center justify-center command-container">
           <div 
             className="absolute inset-0 bg-black bg-opacity-75"
             onClick={() => setShowCommandInjector(false)}
           />
-          <div className="relative bg-gray-900 rounded-lg shadow-2xl p-6 max-w-2xl w-full mx-4">
+          <div className="relative terminal-container rounded shadow-2xl p-6 max-w-2xl w-full mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-green-400 font-mono">Deploy New Agent</h2>
+              <h2 className="text-lg font-semibold terminal-text font-mono">COMMAND_INJECTION_MODE</h2>
               <button
                 onClick={() => setShowCommandInjector(false)}
-                className="text-gray-400 hover:text-gray-200"
+                className="terminal-text hover:text-red-400 font-mono"
               >
-                ✕
+                [X]
               </button>
             </div>
             <CommandInjector
@@ -473,14 +473,14 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
                 has_email: false
               }}
               onCommandSelect={handleCommandSelect}
-              className="mb-0"
+              className="mb-0 terminal-container"
             />
             <div className="mt-4 text-center">
               <button
                 onClick={() => handleCommandSelect('help')}
-                className="text-sm text-gray-400 hover:text-gray-200"
+                className="text-sm terminal-text hover:text-green-400 font-mono"
               >
-                or start with a simple 'help' command →
+                &gt; or execute 'help' command_
               </button>
             </div>
           </div>

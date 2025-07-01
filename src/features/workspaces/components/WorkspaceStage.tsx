@@ -26,10 +26,44 @@ export function WorkspaceStage() {
             const response = await fetch('/api/workspaces');
             if (response.ok) {
                 const data = await response.json();
-                setPublishedWorkspaces(data.workspaces || []);
+                const allWorkspaces = data.workspaces || [];
                 
-                // Filter active vs published based on agent activity
-                const active = data.workspaces?.filter((w: any) => w.active_agents > 0) || [];
+                // Load agent status for each workspace
+                const workspacesWithAgentStatus = await Promise.all(
+                    allWorkspaces.map(async (workspace: any) => {
+                        try {
+                            const agentResponse = await fetch(`/api/workspaces/${workspace.id}/agents/status`);
+                            if (agentResponse.ok) {
+                                const agentData = await agentResponse.json();
+                                return {
+                                    ...workspace,
+                                    hasActiveAgents: agentData.active_agents > 0,
+                                    agentCount: agentData.active_agents || 0
+                                };
+                            }
+                        } catch (error) {
+                            console.warn(`Failed to load agents for workspace ${workspace.id}:`, error);
+                        }
+                        return {
+                            ...workspace,
+                            hasActiveAgents: false,
+                            agentCount: 0
+                        };
+                    })
+                );
+                
+                // Sort workspaces: ones with agents first, then ones without agents
+                const sortedWorkspaces = workspacesWithAgentStatus.sort((a, b) => {
+                    if (a.hasActiveAgents && !b.hasActiveAgents) return -1;
+                    if (!a.hasActiveAgents && b.hasActiveAgents) return 1;
+                    // If both have agents or both don't have agents, sort by agent count (descending)
+                    return b.agentCount - a.agentCount;
+                });
+                
+                setPublishedWorkspaces(sortedWorkspaces);
+                
+                // Keep active workspaces as those with agents for backward compatibility
+                const active = sortedWorkspaces.filter((w: any) => w.hasActiveAgents);
                 setActiveWorkspaces(active);
             } else {
                 // Fallback to localStorage drafts
@@ -154,19 +188,61 @@ export function WorkspaceStage() {
                 )}
             </div>
             
-            {/* Published Workspaces */}
+            {/* Published Workspaces - Sorted by Agent Status */}
             <div className="mb-8">
-                <h4 className="font-medium text-gray-900 mb-3">Published Workspaces</h4>
+                <h4 className="font-medium text-gray-900 mb-3">
+                    Published Workspaces
+                    {publishedWorkspaces.some((w: any) => w.hasActiveAgents) && (
+                        <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                            🤖 Agents active
+                        </span>
+                    )}
+                </h4>
                 {publishedWorkspaces.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {publishedWorkspaces.map(workspace => (
-                            <WorkspaceCard
-                                key={workspace.id}
-                                workspace={workspace}
-                                onOpenIDE={handleOpenIDE}
-                                onOpenFeedback={handleOpenFeedback}
-                            />
-                        ))}
+                    <div>
+                        {/* Workspaces with agents */}
+                        {publishedWorkspaces.filter((w: any) => w.hasActiveAgents).length > 0 && (
+                            <div className="mb-6">
+                                <h5 className="text-sm font-medium text-green-700 mb-2 flex items-center">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                    With Active Agents ({publishedWorkspaces.filter((w: any) => w.hasActiveAgents).length})
+                                </h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    {publishedWorkspaces
+                                        .filter((w: any) => w.hasActiveAgents)
+                                        .map(workspace => (
+                                            <WorkspaceCard
+                                                key={workspace.id}
+                                                workspace={workspace}
+                                                onOpenIDE={handleOpenIDE}
+                                                onOpenFeedback={handleOpenFeedback}
+                                            />
+                                        ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Workspaces without agents */}
+                        {publishedWorkspaces.filter((w: any) => !w.hasActiveAgents).length > 0 && (
+                            <div>
+                                <h5 className="text-sm font-medium text-gray-600 mb-2 flex items-center">
+                                    <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                                    No Active Agents ({publishedWorkspaces.filter((w: any) => !w.hasActiveAgents).length})
+                                </h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    {publishedWorkspaces
+                                        .filter((w: any) => !w.hasActiveAgents)
+                                        .map(workspace => (
+                                            <WorkspaceCard
+                                                key={workspace.id}
+                                                workspace={workspace}
+                                                onOpenIDE={handleOpenIDE}
+                                                onOpenFeedback={handleOpenFeedback}
+                                            />
+                                        ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">

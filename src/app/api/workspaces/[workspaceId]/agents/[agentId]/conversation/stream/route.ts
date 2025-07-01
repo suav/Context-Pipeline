@@ -1,11 +1,12 @@
 /**
- * Agent Conversation Streaming API Route
+ * Agent Conversation Streaming API Route  
  * Handles streaming responses from AI agents
+ * UPDATED: Using improved fallback system for CLI issues
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 import { agentService } from '../../../../../../../../features/agents/services/AgentService';
 
 const WORKSPACE_BASE_DIR = process.env.WORKSPACE_DIR || path.join(process.cwd(), 'storage', 'workspaces');

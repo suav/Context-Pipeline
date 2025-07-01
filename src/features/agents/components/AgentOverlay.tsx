@@ -194,6 +194,54 @@ export function AgentOverlay({
     onAgentClick(agentId);
   };
 
+  const handleDeleteAgent = async (agentId: string) => {
+    if (!confirm('Are you sure you want to delete this agent? This will remove all conversation history.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/workspaces/${workspaceId}/agents/${agentId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        console.log('Agent deleted successfully:', agentId);
+        // Refresh the agent list
+        await loadAgents();
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to delete agent:', response.status, errorText);
+        alert('Failed to delete agent. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      alert('Failed to delete agent. Please try again.');
+    }
+  };
+
+  const handleOpenVSCode = () => {
+    // Get the workspace path for VSCode Web
+    const workspacePath = `/storage/workspaces/${workspaceId}/target`;
+    
+    // Create VSCode Web URL - using vscode.dev with file system access
+    const vscodeUrl = `https://vscode.dev/`;
+    
+    // Open in a new window/tab
+    window.open(vscodeUrl, '_blank', 'width=1400,height=900');
+    
+    // Show instructions to user
+    setTimeout(() => {
+      alert(`VSCode Web opened! 
+
+To access your workspace:
+1. Click "Open Folder" in VSCode Web
+2. Navigate to: ${workspacePath}
+3. Or use File > Open Folder to browse to your workspace
+
+Note: For full file system access, you may need to grant permissions.`);
+    }, 1000);
+  };
+
   // Always render when called (visibility managed by parent)
 
   return (
@@ -273,11 +321,23 @@ export function AgentOverlay({
                     {agent.status} • {new Date(agent.last_activity).toLocaleDateString()}
                   </div>
                 </div>
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  agent.status === 'active' ? 'bg-green-500' :
-                  agent.status === 'error' ? 'bg-red-500' :
-                  'bg-gray-400'
-                }`}></div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                    agent.status === 'active' ? 'bg-green-500' :
+                    agent.status === 'error' ? 'bg-red-500' :
+                    'bg-gray-400'
+                  }`}></div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteAgent(agent.id);
+                    }}
+                    className="text-xs text-red-400 hover:text-red-300 px-1 py-0.5 rounded hover:bg-red-900/20 transition-colors"
+                    title="Delete agent"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -310,6 +370,20 @@ export function AgentOverlay({
                agents.length >= 4 ? '🚫 Max Agents Reached (4/4)' :
                '🚀 Deploy New Agent'}
             </button>
+            
+            <button
+              onClick={() => handleOpenVSCode()}
+              className="w-full py-1 px-3 rounded text-xs transition-colors border"
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-primary)',
+              }}
+              title="Open VSCode Web for this workspace"
+            >
+              💻 Open in VSCode Web
+            </button>
+            
             {AGENTS_ENABLED && (
               <button
                 onClick={() => {

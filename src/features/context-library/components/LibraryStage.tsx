@@ -588,14 +588,14 @@ export function LibraryStage() {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">📚 Context Library</h3>
+            <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold">📚 Context Library</h3>
                 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     {/* Import Button */}
                     <button
                         onClick={() => setShowImportModal(true)}
-                        className="bg-blue-600 text-white px-3 py-2 rounded-lg transition-colors hover:bg-blue-700 flex items-center gap-2 text-sm font-medium"
+                        className="bg-blue-600 text-white px-2 py-1 rounded transition-colors hover:bg-blue-700 flex items-center gap-1 text-xs"
                     >
                         <span>📥</span>
                         <span>Import</span>
@@ -605,7 +605,7 @@ export function LibraryStage() {
                     <button
                         onClick={reloadFromStorage}
                         disabled={loading}
-                        className="bg-green-600 text-white px-3 py-2 rounded-lg transition-colors hover:bg-green-700 flex items-center gap-2 text-sm font-medium disabled:bg-gray-400"
+                        className="bg-green-600 text-white px-2 py-1 rounded transition-colors hover:bg-green-700 flex items-center gap-1 text-xs disabled:bg-gray-400"
                     >
                         <span>📁</span>
                         <span>Reload</span>
@@ -614,25 +614,25 @@ export function LibraryStage() {
                     {/* Archive Manager Button */}
                     <button
                         onClick={() => setShowArchiveManager(true)}
-                        className="bg-purple-600 text-white px-3 py-2 rounded-lg transition-colors hover:bg-purple-700 flex items-center gap-2 text-sm font-medium"
+                        className="bg-purple-600 text-white px-2 py-1 rounded transition-colors hover:bg-purple-700 flex items-center gap-1 text-xs"
                     >
                         <span>📦</span>
                         <span>Archives</span>
                     </button>
                     
                     {libraryItems.length > 0 && (
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2 text-xs">
                             <span className="text-gray-600">
                                 {libraryItems.length} items
                             </span>
                             {selectedItems.size > 0 && (
-                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                <span className="bg-blue-100 text-blue-800 px-1 py-0.5 rounded text-xs">
                                     {selectedItems.size} selected
                                 </span>
                             )}
                             <button
                                 onClick={selectedItems.size === libraryItems.length ? clearSelection : selectAll}
-                                className="text-blue-600 hover:text-blue-800"
+                                className="text-blue-600 hover:text-blue-800 text-xs"
                             >
                                 {selectedItems.size === libraryItems.length ? 'Clear All' : 'Select All'}
                             </button>
@@ -643,21 +643,21 @@ export function LibraryStage() {
             
             {/* Workspace Creation Actions */}
             {selectedItems.size > 0 && (
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <span className="text-sm font-medium text-blue-900">
+                <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-medium text-blue-900">
                             {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected:
                         </span>
                         <button
                             onClick={createWorkspaceForAll}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition-colors"
                         >
                             🏗️ Make Workspace (All Together)
                         </button>
                         {selectedItems.size > 1 && (
                             <button
                                 onClick={createWorkspaceForEach}
-                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                                className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors"
                             >
                                 🏗️ Make Workspace (For Each)
                             </button>
@@ -665,16 +665,16 @@ export function LibraryStage() {
                         {hasExistingWorkspaces && (
                             <button
                                 onClick={handleAddToExistingWorkspace}
-                                className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs transition-colors"
                             >
-                                📂 Add to Existing Workspace
+                                📂 Add to Existing
                             </button>
                         )}
                         <button
                             onClick={clearSelection}
-                            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded text-xs transition-colors"
                         >
-                            ✕ Clear Selection
+                            ✕ Clear
                         </button>
                     </div>
                 </div>
@@ -755,8 +755,8 @@ export function LibraryStage() {
             
             {/* Filters */}
             {libraryItems.length > 0 && (
-                <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div className="mb-3 p-3 bg-gray-50 rounded border">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                         {/* Search */}
                         <div className="flex-1">
                             <input
@@ -764,7 +764,7 @@ export function LibraryStage() {
                                 placeholder="Search library items..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                         </div>
                         
@@ -773,7 +773,7 @@ export function LibraryStage() {
                             <select
                                 value={sourceFilter}
                                 onChange={(e) => setSourceFilter(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                             >
                                 <option value="all">All Sources</option>
                                 {uniqueSources.map(source => (
@@ -787,7 +787,7 @@ export function LibraryStage() {
                             <select
                                 value={typeFilter}
                                 onChange={(e) => setTypeFilter(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                             >
                                 <option value="all">All Types</option>
                                 {uniqueTypes.map(type => (
@@ -801,7 +801,7 @@ export function LibraryStage() {
                             <select
                                 value={priorityFilter}
                                 onChange={(e) => setPriorityFilter(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                             >
                                 <option value="all">All Priorities</option>
                                 {uniquePriorities.map(priority => (
@@ -812,7 +812,7 @@ export function LibraryStage() {
                     </div>
                     
                     {/* Filter Results Summary */}
-                    <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+                    <div className="mt-2 flex items-center justify-between text-xs text-gray-600">
                         <span>
                             Showing {filteredItems.length} of {libraryItems.length} items
                         </span>
