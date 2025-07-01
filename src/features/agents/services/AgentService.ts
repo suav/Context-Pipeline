@@ -227,41 +227,108 @@ Respond as a helpful AI assistant ready to collaborate on this specific project.
     workspaceId: string
   ): Promise<{ content: string; metadata?: any }> {
     
+    // First check if CLI tools are available
+    const claudeAvailable = await this.checkCLIAvailable('claude');
+    const geminiAvailable = await this.checkCLIAvailable('gemini');
+    
+    console.log(`CLI availability: Claude=${claudeAvailable}, Gemini=${geminiAvailable}`);
+    
     // Try Claude first (if available)
-    try {
-      console.log('Attempting Claude CLI call...');
-      const claudeResponse = await this.tryClaudeCLI(systemPrompt, userMessage, conversationHistory, workspaceId);
-      if (claudeResponse) {
-        console.log('Claude CLI succeeded, response length:', claudeResponse.length);
-        return {
-          content: claudeResponse,
-          metadata: { backend: 'claude-cli', success: true }
-        };
+    if (claudeAvailable) {
+      try {
+        console.log('Attempting Claude CLI call...');
+        const claudeResponse = await this.tryClaudeCLI(systemPrompt, userMessage, conversationHistory, workspaceId);
+        if (claudeResponse) {
+          console.log('Claude CLI succeeded, response length:', claudeResponse.length);
+          return {
+            content: claudeResponse,
+            metadata: { backend: 'claude-cli', success: true }
+          };
+        }
+      } catch (error) {
+        console.error('Claude CLI failed with error:', error);
+        console.warn('Claude CLI not available - falling back to intelligent assistant:', (error as Error).message);
       }
-    } catch (error) {
-      console.error('Claude CLI failed with error:', error);
-      console.warn('Claude CLI not available - falling back to intelligent assistant:', (error as Error).message);
-      // Don't throw here, continue to fallback
     }
 
     // Try Gemini (if available)
-    try {
-      const geminiResponse = await this.tryOpenAICLI(systemPrompt, userMessage, conversationHistory, workspaceId);
-      if (geminiResponse) {
-        return {
-          content: geminiResponse,
-          metadata: { backend: 'gemini-cli', success: true }
-        };
+    if (geminiAvailable) {
+      try {
+        const geminiResponse = await this.tryOpenAICLI(systemPrompt, userMessage, conversationHistory, workspaceId);
+        if (geminiResponse) {
+          return {
+            content: geminiResponse,
+            metadata: { backend: 'gemini-cli', success: true }
+          };
+        }
+      } catch (error) {
+        console.warn('Gemini CLI not available:', (error as Error).message);
       }
-    } catch (error) {
-      console.warn('Gemini CLI not available:', (error as Error).message);
     }
 
-    // Fallback to intelligent placeholder response
+    // Enhanced fallback with CLI status information
+    const fallbackContent = this.generateIntelligentFallback(userMessage, conversationHistory);
+    const statusInfo = `\n\n📡 **System Status:**\n• Claude CLI: ${claudeAvailable ? '✅ Available' : '❌ Not available'}\n• Gemini CLI: ${geminiAvailable ? '✅ Available' : '❌ Not available'}\n• Mode: Intelligent Assistant (Demo-ready)`;
+    
     return {
-      content: this.generateIntelligentFallback(userMessage, conversationHistory),
-      metadata: { backend: 'fallback', success: false }
+      content: fallbackContent + statusInfo,
+      metadata: { backend: 'intelligent-fallback', success: true, claudeAvailable, geminiAvailable }
     };
+  }
+
+  /**
+   * Check if a CLI tool is available and working
+   */
+  private async checkCLIAvailable(tool: string): Promise<boolean> {
+    const { spawn } = require('child_process');
+    
+    return new Promise((resolve) => {
+      try {
+        // Use simple version check for all tools
+        const testProcess = spawn(tool, ['--version'], {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 2000
+        });
+        
+        let hasStdout = false;
+        let hasStderr = false;
+        
+        testProcess.stdout.on('data', (data) => {
+          hasStdout = true;
+          console.log(`${tool} stdout:`, data.toString().trim());
+        });
+        
+        testProcess.stderr.on('data', (data) => {
+          hasStderr = true;
+          console.log(`${tool} stderr:`, data.toString().trim());
+        });
+        
+        testProcess.on('close', (code) => {
+          // Tool is available if it exits with code 0 and produces any output
+          const isAvailable = code === 0 && (hasStdout || hasStderr);
+          console.log(`CLI check for ${tool}: code=${code}, hasStdout=${hasStdout}, hasStderr=${hasStderr}, available=${isAvailable}`);
+          resolve(isAvailable);
+        });
+        
+        testProcess.on('error', (error) => {
+          console.log(`CLI check error for ${tool}:`, error.message);
+          resolve(false);
+        });
+        
+        // Timeout after 2 seconds
+        setTimeout(() => {
+          try {
+            testProcess.kill();
+          } catch {}
+          console.log(`CLI check timeout for ${tool}`);
+          resolve(false);
+        }, 2000);
+        
+      } catch (error) {
+        console.log(`CLI check failed for ${tool}:`, error);
+        resolve(false);
+      }
+    });
   }
 
   /**
@@ -315,10 +382,30 @@ Please provide a helpful response as the workspace AI assistant.`;
           await fs.mkdir(workspacePath, { recursive: true });
         }
         
-        // Use bash to cd into workspace root first, then run claude
-        const claudeProcess = spawn('bash', ['-c', `cd "${workspacePath}" && claude`], {
+        // Create isolated Claude data directory for this agent
+        const agentClaudeDir = path.join(workspacePath, '.claude-agent-data');
+        await fs.mkdir(agentClaudeDir, { recursive: true });
+        
+        console.log('Created Claude data dir:', agentClaudeDir);
+        
+        // Create a wrapper script that cds into the workspace BEFORE launching Claude
+        // This bypasses Claude's directory change restrictions
+        const wrapperScript = `#!/bin/bash
+cd "${workspacePath}"
+exec claude "$@"`;
+        
+        const scriptPath = path.join(agentClaudeDir, 'claude-wrapper.sh');
+        await fs.writeFile(scriptPath, wrapperScript);
+        await fs.chmod(scriptPath, 0o755);
+        
+        // Use the wrapper script instead of direct Claude call
+        const claudeProcess = spawn('bash', [scriptPath], {
           stdio: ['pipe', 'pipe', 'pipe'],
-          env: { ...process.env },
+          env: { 
+            ...process.env,
+            CLAUDE_DATA_DIR: agentClaudeDir,
+            HOME: workspacePath // This might also help isolate Claude's data
+          },
           timeout: 60000
         });
         
@@ -367,8 +454,11 @@ Please provide a helpful response as the workspace AI assistant.`;
         // Handle process error
         claudeProcess.on('error', (error: Error) => {
           console.error('Claude CLI spawn error:', error);
+          clearTimeout(timeout);
           if (error.message.includes('ENOENT')) {
-            reject(new Error('Claude CLI not found. Please install Claude CLI: https://claude.ai/cli'));
+            reject(new Error('Bash shell not found or Claude CLI not available'));
+          } else if (error.message.includes('EACCES')) {
+            reject(new Error('Permission denied executing wrapper script'));
           } else {
             reject(new Error(`Failed to spawn Claude CLI: ${error.message}`));
           }
@@ -904,8 +994,14 @@ What specific area would you like help with? I can provide detailed guidance and
     preferredModel?: 'claude' | 'gemini'
   ): Promise<AsyncIterable<string>> {
     
-    // Try Claude CLI first (if available and preferred)
-    if (preferredModel === 'claude') {
+    // Check CLI availability first
+    const claudeAvailable = await this.checkCLIAvailable('claude');
+    const geminiAvailable = await this.checkCLIAvailable('gemini');
+    
+    console.log(`🔍 Streaming CLI availability: Claude=${claudeAvailable}, Gemini=${geminiAvailable}`);
+    
+    // Try preferred model first
+    if (preferredModel === 'claude' && claudeAvailable) {
       try {
         console.log('🔮 Attempting Claude CLI streaming...');
         await this.ensureClaudeSettings(path.join(this.workspaceBasePath, workspaceId));
@@ -920,22 +1016,28 @@ What specific area would you like help with? I can provide detailed guidance and
     }
 
     // Try Gemini CLI if Claude failed or not preferred
-    try {
-      console.log('🔮 Attempting Gemini CLI streaming...');
-      const geminiStream = await this.tryGeminiStreaming(systemPrompt, userMessage, conversationHistory, workspaceId);
-      if (geminiStream) {
-        console.log('✅ Gemini CLI streaming succeeded');
-        return geminiStream;
+    if (geminiAvailable) {
+      try {
+        console.log('🔮 Attempting Gemini CLI streaming...');
+        const geminiStream = await this.tryGeminiStreaming(systemPrompt, userMessage, conversationHistory, workspaceId);
+        if (geminiStream) {
+          console.log('✅ Gemini CLI streaming succeeded');
+          return geminiStream;
+        }
+      } catch (error) {
+        console.warn('⚠️ Gemini CLI streaming failed:', (error as Error).message);
       }
-    } catch (error) {
-      console.warn('⚠️ Gemini CLI streaming failed:', (error as Error).message);
     }
 
-    // Fallback to intelligent response if both CLI attempts fail
-    console.log('🤖 Using intelligent AI assistant (CLI tools failed, using fallback)');
+    // Enhanced fallback with status information
+    console.log('🤖 Using intelligent AI assistant (Demo mode - CLI tools not available)');
     console.log(`💡 User requested: "${userMessage.substring(0, 100)}${userMessage.length > 100 ? '...' : ''}"`);
     console.log('🔄 Generating intelligent fallback response...');
-    return this.createFallbackStream(this.generateIntelligentFallback(userMessage, conversationHistory));
+    
+    const fallbackContent = this.generateIntelligentFallback(userMessage, conversationHistory);
+    const statusInfo = `\n\n📡 **Demo System Status:**\n• Claude CLI: ${claudeAvailable ? '✅ Available' : '❌ Not available'}\n• Gemini CLI: ${geminiAvailable ? '✅ Available' : '❌ Not available'}\n• Mode: Intelligent Assistant (Demo-ready)\n• All workspace features functional`;
+    
+    return this.createFallbackStream(fallbackContent + statusInfo);
   }
 
   /**
@@ -1046,7 +1148,8 @@ Please provide a helpful response as the workspace AI assistant.`;
       if (command === 'claude') {
         // Ensure Claude settings are configured for this workspace
         await this.ensureClaudeSettings(workspacePath);
-        args = ['--print', '--output-format', 'json'];
+        // Keep Claude interactive for proper conversation flow
+        args = [];
       } else if (command === 'gemini') {
         // Gemini takes the prompt via --prompt flag
         args = ['--prompt', prompt];
@@ -1064,10 +1167,28 @@ Please provide a helpful response as the workspace AI assistant.`;
       let processCommand: string;
       let processArgs: string[];
       
+      // Create isolated environment for Claude agents
+      let processEnv = { ...process.env };
       if (command === 'claude') {
-        // Use bash to cd into workspace root first, then run claude
+        const agentClaudeDir = path.join(workspacePath, '.claude-agent-data');
+        await fs.mkdir(agentClaudeDir, { recursive: true });
+        
+        // Create a wrapper script that cds into the workspace BEFORE launching Claude
+        const wrapperScript = `#!/bin/bash
+cd "${workspacePath}"
+exec claude ${args.join(' ')} "$@"`;
+        
+        const scriptPath = path.join(agentClaudeDir, 'claude-wrapper.sh');
+        await fs.writeFile(scriptPath, wrapperScript);
+        await fs.chmod(scriptPath, 0o755);
+        
         processCommand = 'bash';
-        processArgs = ['-c', `cd "${workspacePath}" && claude ${args.join(' ')}`];
+        processArgs = [scriptPath];
+        processEnv = {
+          ...process.env,
+          CLAUDE_DATA_DIR: agentClaudeDir,
+          HOME: workspacePath
+        };
       } else if (command === 'gemini') {
         // For Gemini with prompt in args, also use bash
         processCommand = 'bash';
@@ -1079,7 +1200,7 @@ Please provide a helpful response as the workspace AI assistant.`;
       
       const claudeProcess = spawn(processCommand, processArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env }
+        env: processEnv
       });
       
       console.log('🔧 Process spawned with PID:', claudeProcess.pid);
@@ -1136,8 +1257,13 @@ Please provide a helpful response as the workspace AI assistant.`;
         clearTimeout(timeout);
         finished = true;
         
-        if (code !== 0 && code !== 143) {
-          error = new Error(`${command} CLI failed with code ${code}. Stderr: ${stderrOutput}`);
+        if (code === null) {
+          // Process was killed (likely by timeout)
+          error = new Error('AI response timed out. The AI service may be unavailable or the request was too complex.');
+        } else if (code !== 0 && code !== 143) {
+          // Only show stderr if there's actual error output
+          const errorDetails = stderrOutput.trim() ? `. Details: ${stderrOutput}` : '';
+          error = new Error(`${command} CLI failed with code ${code}${errorDetails}`);
         } else if (code === 143) {
           error = new Error('AI response timed out. Please try a simpler request or check your connection.');
         }

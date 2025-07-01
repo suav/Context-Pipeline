@@ -183,6 +183,43 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
     ));
   };
 
+  const handleOpenVSCode = async (agentId: string) => {
+    try {
+      const workspacePath = `/mnt/c/Users/EnricoPatarini/Development Projects/Second-Rebuild/context-pipeline/storage/workspaces/${workspaceId}`;
+      
+      // Show the user the workspace path and give them options
+      const message = `Workspace Path:\n${workspacePath}\n\nChoose how to open:`;
+      const options = [
+        'Copy path to clipboard',
+        'Try VS Code protocol', 
+        'Try code-server (localhost:8080)',
+        'Cancel'
+      ];
+      
+      const choice = prompt(`${message}\n\n${options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}\n\nEnter choice (1-4):`);
+      
+      switch (choice) {
+        case '1':
+          await navigator.clipboard.writeText(workspacePath);
+          alert('Workspace path copied to clipboard!');
+          break;
+        case '2':
+          window.open(`vscode://file${workspacePath}`, '_blank');
+          break;
+        case '3':
+          window.open(`http://localhost:8080/?folder=${encodeURIComponent(workspacePath)}`, '_blank');
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error('Failed to open VS Code:', error);
+      // Fallback: just show the path
+      const workspacePath = `/mnt/c/Users/EnricoPatarini/Development Projects/Second-Rebuild/context-pipeline/storage/workspaces/${workspaceId}`;
+      alert(`Workspace path:\n${workspacePath}\n\nOpen this folder in your preferred editor.`);
+    }
+  };
+
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -299,6 +336,18 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
             <span>[+]</span>
             {!AGENTS_ENABLED && <span className="text-xs">🚧</span>}
           </button>
+          
+          {/* VS Code Web Button */}
+          {activeTabId && (
+            <button
+              onClick={() => handleOpenVSCode(activeTabId)}
+              className="flex items-center gap-1 px-3 py-1 text-xs font-mono text-gray-500 hover:text-blue-400 hover:bg-gray-700 border border-gray-700 transition-colors"
+              title="Open VS Code Web in Workspace"
+            >
+              <span>📝</span>
+              <span>VSCode</span>
+            </button>
+          )}
         </div>
 
         {/* Content Area - Flexible container */}
