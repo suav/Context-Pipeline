@@ -126,39 +126,101 @@ export async function POST(
                     const responseStream = await agentService.generateStreamingResponse(workspaceId, agentId, message, conversation.messages, model as 'claude' | 'gemini');
                     
                     let fullResponse = '';
+                    let sessionData: any = null;
+                    let toolUses: any[] = [];
+                    let toolResults: any[] = [];
+                    let usageData: any = null;
+                    let resultData: any = null;
                     const assistantMessageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                     
                     // Stream the response
                     for await (const chunk of responseStream) {
-                        fullResponse += chunk;
-                        
-                        // Send chunk to client with proper escaping
-                        const escapedChunk = chunk
-                            .replace(/\\/g, '\\\\')  // Escape backslashes first
-                            .replace(/"/g, '\\"')    // Escape quotes
-                            .replace(/\n/g, '\\n')   // Escape newlines
-                            .replace(/\r/g, '\\r')   // Escape carriage returns
-                            .replace(/\t/g, '\\t');  // Escape tabs
-                        controller.enqueue(encoder.encode(`data: {"type":"chunk","content":"${escapedChunk}"}\n\n`));
+                        // Check if this is a metadata chunk
+                        if (chunk.includes('<<<CLAUDE_METADATA:') && chunk.includes('>>>')) {
+                            // Parse and store metadata
+                            const metadataMatch = chunk.match(/<<<CLAUDE_METADATA:(\w+):(.*?)>>>/);
+                            if (metadataMatch) {
+                                const [, metadataType, metadataContent] = metadataMatch;
+                                try {
+                                    const parsedMetadata = JSON.parse(metadataContent);
+                                    
+                                    switch (metadataType) {
+                                        case 'SYSTEM':
+                                            sessionData = parsedMetadata;
+                                            break;
+                                        case 'USAGE':
+                                            usageData = parsedMetadata;
+                                            break;
+                                        case 'TOOL_USE':
+                                            toolUses.push(parsedMetadata);
+                                            break;
+                                        case 'TOOL_RESULT':
+                                            toolResults.push(parsedMetadata);
+                                            break;
+                                        case 'RESULT':
+                                            resultData = parsedMetadata;
+                                            break;
+                                    }
+                                } catch (e) {
+                                    console.warn('Failed to parse metadata:', e);
+                                }
+                            }
+                            
+                            // Send metadata to client but don't add to fullResponse
+                            const escapedChunk = chunk
+                                .replace(/\\/g, '\\\\')  // Escape backslashes first
+                                .replace(/"/g, '\\"')    // Escape quotes
+                                .replace(/\n/g, '\\n')   // Escape newlines
+                                .replace(/\r/g, '\\r')   // Escape carriage returns
+                                .replace(/\t/g, '\\t');  // Escape tabs
+                            controller.enqueue(encoder.encode(`data: {"type":"chunk","content":"${escapedChunk}"}\n\n`));
+                        } else {
+                            // This is actual content - add to fullResponse AND send to client
+                            fullResponse += chunk;
+                            
+                            // Send chunk to client with proper escaping
+                            const escapedChunk = chunk
+                                .replace(/\\/g, '\\\\')  // Escape backslashes first
+                                .replace(/"/g, '\\"')    // Escape quotes
+                                .replace(/\n/g, '\\n')   // Escape newlines
+                                .replace(/\r/g, '\\r')   // Escape carriage returns
+                                .replace(/\t/g, '\\t');  // Escape tabs
+                            controller.enqueue(encoder.encode(`data: {"type":"chunk","content":"${escapedChunk}"}\n\n`));
+                        }
                         
                         // Add small delay to prevent overwhelming the client
                         await new Promise(resolve => setTimeout(resolve, 50));
                     }
                     
-                    // Save the complete assistant response
+                    // Save the complete assistant response with comprehensive metadata
                     const assistantMessage: ConversationMessage = {
                         id: assistantMessageId,
                         timestamp: new Date().toISOString(),
                         role: 'assistant',
                         content: fullResponse,
-                        metadata: { backend: 'streaming', success: true }
+                        metadata: { 
+                            backend: 'streaming', 
+                            success: true,
+                            model: sessionData?.model,
+                            session_id: sessionData?.session_id,
+                            tools: sessionData?.tools,
+                            usage: usageData,
+                            tool_uses: toolUses,
+                            tool_results: toolResults,
+                            result: resultData
+                        }
                     };
+                    
+                    console.log(`[Streaming] Saving assistant response - Length: ${fullResponse.length} chars`);
+                    console.log(`[Streaming] First 100 chars: ${fullResponse.substring(0, 100)}`);
                     
                     conversation.messages.push(assistantMessage);
                     conversation.updated_at = new Date().toISOString();
                     
                     // Save updated conversation
+                    console.log(`[Streaming] Writing conversation to: ${conversationPath}`);
                     await fs.writeFile(conversationPath, JSON.stringify(conversation, null, 2));
+                    console.log(`[Streaming] Conversation saved successfully with ${conversation.messages.length} messages`);
                     
                     // Update agent state to idle
                     try {

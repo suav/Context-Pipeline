@@ -236,7 +236,8 @@ ASSISTANT:`;
     childProcess.stdin?.end();
 
     let buffer = '';
-    let streamEnded = false;
+    let sessionInfo: any = null;
+    let totalUsage: any = null;
 
     // Set up data handlers before yielding
     const processData = (data: Buffer) => {
@@ -247,33 +248,131 @@ ASSISTANT:`;
       const lines = buffer.split('\n');
       buffer = lines.pop() || ''; // Keep incomplete line in buffer
       
+      const results: string[] = [];
+      
       for (const line of lines) {
         if (line.trim()) {
           try {
             const jsonData = JSON.parse(line);
-            if (jsonData.type === 'assistant' && jsonData.message?.content) {
-              // Extract text content and yield immediately
+            
+            // Capture system initialization info
+            if (jsonData.type === 'system' && jsonData.subtype === 'init') {
+              sessionInfo = jsonData;
+              // Yield system info as metadata
+              results.push(`<<<CLAUDE_METADATA:SYSTEM:${JSON.stringify({
+                model: jsonData.model,
+                session_id: jsonData.session_id,
+                tools: jsonData.tools,
+                cwd: jsonData.cwd
+              })}>>>`);
+            }
+            
+            // Process assistant messages
+            else if (jsonData.type === 'assistant' && jsonData.message) {
+              const message = jsonData.message;
+              
+              // Yield usage info if available
+              if (message.usage) {
+                results.push(`<<<CLAUDE_METADATA:USAGE:${JSON.stringify(message.usage)}>>>`);
+              }
+              
+              // Extract content
+              if (message.content) {
+                for (const contentItem of message.content) {
+                  if (contentItem.type === 'text' && contentItem.text) {
+                    results.push(contentItem.text);
+                  } else if (contentItem.type === 'tool_use') {
+                    // Capture comprehensive tool use information
+                    const toolUse = {
+                      id: contentItem.id,
+                      name: contentItem.name,
+                      input: contentItem.input,
+                      timestamp: new Date().toISOString(),
+                      // Extract key operation details based on tool type
+                      operation_summary: generateToolSummary(contentItem.name, contentItem.input)
+                    };
+                    
+                    results.push(`<<<CLAUDE_METADATA:TOOL_USE:${JSON.stringify(toolUse)}>>>`);
+                    
+                    // Also yield a human-readable tool use notification
+                    results.push(`\n🔧 **Tool Used: ${contentItem.name}**\n${generateToolDescription(contentItem.name, contentItem.input)}\n`);
+                  }
+                }
+              }
+              
+              // Check stop reason
+              if (message.stop_reason) {
+                results.push(`<<<CLAUDE_METADATA:STOP:${JSON.stringify({
+                  reason: message.stop_reason,
+                  sequence: message.stop_sequence
+                })}>>>`);
+              }
+            }
+            
+            // Process tool results (from user messages with tool results)
+            else if (jsonData.type === 'user' && jsonData.message?.content) {
               for (const contentItem of jsonData.message.content) {
-                if (contentItem.type === 'text' && contentItem.text) {
-                  return contentItem.text;
+                if (contentItem.type === 'tool_result') {
+                  const toolResult = {
+                    tool_use_id: contentItem.tool_use_id,
+                    is_error: contentItem.is_error || false,
+                    content: contentItem.content,
+                    timestamp: new Date().toISOString(),
+                    content_preview: generateResultPreview(contentItem.content)
+                  };
+                  
+                  results.push(`<<<CLAUDE_METADATA:TOOL_RESULT:${JSON.stringify(toolResult)}>>>`);
+                  
+                  // Also yield a human-readable result notification
+                  if (contentItem.is_error) {
+                    results.push(`\n❌ **Tool Error**: ${contentItem.content}\n`);
+                  } else {
+                    results.push(`\n✅ **Tool Result**: ${generateResultPreview(contentItem.content)}\n`);
+                  }
                 }
               }
             }
+            
+            // Process final result
+            else if (jsonData.type === 'result') {
+              totalUsage = jsonData.usage;
+              results.push(`<<<CLAUDE_METADATA:RESULT:${JSON.stringify({
+                success: jsonData.subtype === 'success',
+                duration_ms: jsonData.duration_ms,
+                duration_api_ms: jsonData.duration_api_ms,
+                num_turns: jsonData.num_turns,
+                total_cost_usd: jsonData.total_cost_usd,
+                usage: jsonData.usage
+              })}>>>`);
+            }
+            
+            // Process thinking/status updates
+            else if (jsonData.type === 'thinking') {
+              results.push(`<<<CLAUDE_METADATA:THINKING:${JSON.stringify({
+                content: jsonData.content
+              })}>>>`);
+            }
+            
           } catch (e) {
-            // Not JSON, might be plain text
-            return line;
+            // Not JSON, might be plain text from verbose output
+            if (!line.startsWith('[') && !line.includes('INFO:')) {
+              results.push(line);
+            }
           }
         }
       }
-      return null;
+      
+      return results.length > 0 ? results : null;
     };
 
     try {
       yield* (async function* () {
         for await (const data of childProcess.stdout!) {
-          const text = processData(data);
-          if (text) {
-            yield text;
+          const results = processData(data);
+          if (results) {
+            for (const result of results) {
+              yield result;
+            }
           }
         }
       })();
@@ -289,4 +388,118 @@ ASSISTANT:`;
       }
     }
   }
+}
+
+/**
+ * Generate a human-readable summary of tool operation
+ */
+function generateToolSummary(toolName: string, input: any): string {
+  switch (toolName) {
+    case 'Read':
+      return `Reading file: ${input.file_path}`;
+    case 'Write':
+      return `Writing to file: ${input.file_path}`;
+    case 'Edit':
+      return `Editing file: ${input.file_path}`;
+    case 'MultiEdit':
+      return `Making ${input.edits?.length || 0} edits to: ${input.file_path}`;
+    case 'Bash':
+      return `Running command: ${input.command}`;
+    case 'LS':
+      return `Listing directory: ${input.path || 'current directory'}`;
+    case 'Glob':
+      return `Finding files matching: ${input.pattern}`;
+    case 'Grep':
+      return `Searching for pattern: ${input.pattern}`;
+    case 'Task':
+      return `Delegating task: ${input.description || 'subtask'}`;
+    case 'WebFetch':
+      return `Fetching URL: ${input.url}`;
+    case 'WebSearch':
+      return `Searching web: ${input.query}`;
+    case 'TodoRead':
+      return 'Reading todo list';
+    case 'TodoWrite':
+      return `Updating todo list with ${input.todos?.length || 0} items`;
+    case 'NotebookRead':
+      return `Reading notebook: ${input.notebook_path}`;
+    case 'NotebookEdit':
+      return `Editing notebook: ${input.notebook_path}`;
+    default:
+      return `Using ${toolName}`;
+  }
+}
+
+/**
+ * Generate a human-readable description of tool usage
+ */
+function generateToolDescription(toolName: string, input: any): string {
+  switch (toolName) {
+    case 'Read':
+      return `📖 Reading file: \`${input.file_path}\`${input.limit ? ` (${input.limit} lines)` : ''}`;
+    case 'Write':
+      return `✏️  Writing to file: \`${input.file_path}\` (${input.content?.length || 0} characters)`;
+    case 'Edit':
+      return `🔧 Editing file: \`${input.file_path}\`\n   Replacing: "${(input.old_string || '').substring(0, 50)}${input.old_string?.length > 50 ? '...' : ''}"\n   With: "${(input.new_string || '').substring(0, 50)}${input.new_string?.length > 50 ? '...' : ''}"`;
+    case 'MultiEdit':
+      return `🔧 Making ${input.edits?.length || 0} edits to: \`${input.file_path}\``;
+    case 'Bash':
+      return `💻 Running: \`${input.command}\`${input.timeout ? ` (timeout: ${input.timeout}ms)` : ''}`;
+    case 'LS':
+      return `📁 Listing contents of: \`${input.path || '.'}\``;
+    case 'Glob':
+      return `🔍 Finding files matching pattern: \`${input.pattern}\`${input.path ? ` in \`${input.path}\`` : ''}`;
+    case 'Grep':
+      return `🔎 Searching for pattern: \`${input.pattern}\`${input.include ? ` in files: \`${input.include}\`` : ''}`;
+    case 'Task':
+      return `🎯 Delegating subtask: "${input.description || 'task'}"`;
+    case 'WebFetch':
+      return `🌐 Fetching: \`${input.url}\`\n   Query: "${input.prompt}"`;
+    case 'WebSearch':
+      return `🔍 Web search: "${input.query}"`;
+    case 'TodoRead':
+      return `📋 Reading current todo list`;
+    case 'TodoWrite':
+      return `📝 Updating todo list with ${input.todos?.length || 0} items`;
+    case 'NotebookRead':
+      return `📓 Reading notebook: \`${input.notebook_path}\``;
+    case 'NotebookEdit':
+      return `📝 Editing notebook: \`${input.notebook_path}\``;
+    default:
+      return `🛠️  Using tool: ${toolName}`;
+  }
+}
+
+/**
+ * Generate a preview of tool result content
+ */
+function generateResultPreview(content: any): string {
+  if (!content) return 'No output';
+  
+  const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+  
+  // Handle different types of content
+  if (contentStr.includes('error') || contentStr.includes('Error')) {
+    return `Error: ${contentStr.substring(0, 100)}${contentStr.length > 100 ? '...' : ''}`;
+  }
+  
+  if (contentStr.includes('✓') || contentStr.includes('success')) {
+    return `Success: ${contentStr.substring(0, 100)}${contentStr.length > 100 ? '...' : ''}`;
+  }
+  
+  // For file listings or directory contents
+  if (contentStr.includes('- /') || contentStr.includes('drwx') || contentStr.includes('total ')) {
+    const lines = contentStr.split('\n');
+    const fileCount = lines.filter(line => line.trim() && !line.includes('total ')).length;
+    return `Directory listing: ${fileCount} items found`;
+  }
+  
+  // For command outputs
+  if (contentStr.includes('$') || contentStr.includes('>')) {
+    return `Command output: ${contentStr.substring(0, 100)}${contentStr.length > 100 ? '...' : ''}`;
+  }
+  
+  // Default preview
+  const preview = contentStr.substring(0, 150);
+  return `${preview}${contentStr.length > 150 ? '...' : ''}`;
 }

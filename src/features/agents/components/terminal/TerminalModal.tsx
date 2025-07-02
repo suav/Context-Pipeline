@@ -392,16 +392,35 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
                 </button>
               </div>
             </div>
-          ) : activeTabId ? (
-            <ChatInterface
-              agentId={activeTabId}
-              workspaceId={workspaceId}
-              agentName={agentTabs.find(tab => tab.agentId === activeTabId)?.name || 'Agent'}
-              agentTitle={agentTabs.find(tab => tab.agentId === activeTabId)?.title}
-              agentColor={agentTabs.find(tab => tab.agentId === activeTabId)?.color || '#3B82F6'}
-              onAgentNameUpdate={(newName) => handleAgentNameUpdate(activeTabId, newName)}
-            />
-          ) : null}
+          ) : (
+            // Render all ChatInterface instances to preserve state, but only show the active one
+            <div className="flex-1 relative">
+              {agentTabs.map((tab) => (
+                <div
+                  key={tab.agentId}
+                  className={`absolute inset-0 ${activeTabId === tab.agentId ? 'block' : 'hidden'}`}
+                >
+                  <ChatInterface
+                    agentId={tab.agentId}
+                    workspaceId={workspaceId}
+                    agentName={tab.name}
+                    agentTitle={tab.title}
+                    agentColor={tab.color}
+                    onAgentNameUpdate={(newName) => handleAgentNameUpdate(tab.agentId, newName)}
+                  />
+                </div>
+              ))}
+              {!activeTabId && (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-4xl mb-4">🤖</div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Select an Agent</h3>
+                    <p className="text-gray-600">Choose an agent tab to start chatting</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer with keyboard shortcuts - Terminal Style */}

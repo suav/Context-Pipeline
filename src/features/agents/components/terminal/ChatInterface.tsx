@@ -31,6 +31,8 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, agentColor, onAgentNameUpdate }: ChatInterfaceProps) {
+  // This component now maintains its own state for its specific agent
+  
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -41,8 +43,10 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini'>('claude');
   const [agentLoaded, setAgentLoaded] = useState(false);
+  const [sessionInitialized, setSessionInitialized] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(agentName);
+  const [currentToolOperation, setCurrentToolOperation] = useState<string | null>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -51,42 +55,37 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   const isComponentActiveRef = useRef(true);
   const isLoadingHistoryRef = useRef(false);
 
+  // Load conversation history once when component mounts
   useEffect(() => {
-    console.log('ChatInterface mounted/updated for agent:', agentId, 'workspace:', workspaceId);
     if (agentId && workspaceId) {
-      console.log('Both IDs available, loading conversation history...');
-      loadConversationHistory();
-    } else {
-      console.log('Skipping history load:', { agentId, workspaceId });
+      console.log('Loading conversation history for agent:', agentId);
+      loadConversationHistory().then(() => {
+        setSessionInitialized(true);
+        console.log('Conversation history loaded for agent:', agentId);
+      });
     }
-  }, [agentId, workspaceId]); // Reload when agent or workspace changes
+  }, [agentId, workspaceId]); // Load history when this component mounts
 
-  // Reset state when agent changes
+  // Each component instance maintains its own messages state
+
+  // Handle component initialization for this specific agent - only run once
   useEffect(() => {
-    console.log('Resetting state for new agent:', agentId);
-    
-    // Cancel any ongoing requests for the previous agent
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    
-    setHistoryLoaded(false);
-    setAgentLoaded(false);
-    setMessages([]);
-    setCommandHistory([]);
-    setIsProcessing(false); // Reset processing state on agent change
+    console.log('ChatInterface initialized for agent:', agentId);
     isComponentActiveRef.current = true;
     isLoadingHistoryRef.current = false;
-  }, [agentId, workspaceId]);
+  }, []); // Only run once on component mount
   
-  // Handle visibility changes - reload conversation when returning to tab
+  // Handle visibility changes - maintain component state but don't reload
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && isComponentActiveRef.current) {
-        // User returned to this tab and component is active, reload conversation
-        console.log('Tab became visible, reloading conversation to get latest updates');
-        loadConversationHistory();
+        // User returned to this tab - just re-activate component, don't reload
+        console.log('Tab became visible, component reactivated (preserving state)');
+        // Focus input and scroll to bottom, but preserve all messages
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+        scrollToBottom();
       }
     };
 
@@ -95,7 +94,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [agentId, workspaceId]);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -161,6 +160,36 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     }
   };
 
+  // Save a single message to the conversation file immediately
+  const saveMessageToFile = async (message: ConversationMessage) => {
+    if (!agentId || !workspaceId) return;
+    
+    try {
+      const response = await fetch(`/api/workspaces/${workspaceId}/agents/${agentId}/conversation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message.content,
+          role: message.role,
+          messageId: message.id,
+          timestamp: message.timestamp,
+          metadata: message.metadata,
+          saveOnly: true // Flag to indicate this is just a save operation
+        })
+      });
+      
+      if (!response.ok) {
+        console.warn('Failed to save message to file:', response.status);
+      } else {
+        console.log(`💾 Message saved to file: ${message.role} - ${message.content.substring(0, 50)}...`);
+      }
+    } catch (error) {
+      console.warn('Error saving message to file:', error);
+    }
+  };
+
   const loadConversationHistory = async () => {
     if (!agentId || !workspaceId) {
       console.log('Skipping conversation load - missing IDs:', { agentId, workspaceId });
@@ -202,22 +231,39 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         const lastMessage = validMessages[validMessages.length - 1];
         const secondLastMessage = validMessages[validMessages.length - 2];
         
-        // If last message is from user and there's no assistant response, or
-        // if last assistant message is empty/incomplete, restore processing state
+        // Only restore processing state if there's actually an active request
+        // Check if last message is from user with no assistant response AND it's very recent (last 5 minutes)
         const shouldRestoreProcessing = (
-          lastMessage?.role === 'user' ||
-          (lastMessage?.role === 'assistant' && (!lastMessage.content || lastMessage.content.trim() === ''))
+          lastMessage?.role === 'user' && 
+          !abortControllerRef.current?.signal.aborted &&
+          new Date().getTime() - new Date(lastMessage.timestamp).getTime() < 5 * 60 * 1000 // 5 minutes
         );
         
         if (shouldRestoreProcessing) {
-          console.log('🔄 Detected incomplete conversation - restoring processing state');
-          setIsProcessing(true);
+          console.log('🔄 Detected recent incomplete conversation - checking if request is still active');
+          // Only set processing if we have an active abort controller (meaning there's an actual request)
+          if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+            console.log('🔄 Active request found - restoring processing state');
+            setIsProcessing(true);
+          } else {
+            console.log('🔄 No active request found - user message was abandoned, not restoring processing state');
+            setIsProcessing(false);
+          }
+        } else {
+          // Ensure processing is false for completed conversations
+          setIsProcessing(false);
         }
         
         console.log('Valid messages after filtering:', validMessages.length);
         
         // Update state with valid messages
         setMessages(validMessages);
+        
+        // Cache the messages for this agent
+        if (agentId) {
+          agentMessagesCache.current[agentId] = validMessages;
+          agentHistoryLoaded.current[agentId] = true;
+        }
         
         // Extract command history from user messages
         const commands = validMessages
@@ -245,8 +291,22 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       console.error('Failed to load conversation history (error):', error);
       // Still mark as loaded to prevent infinite retry loops
       setHistoryLoaded(true);
+      if (agentId) {
+        agentHistoryLoaded.current[agentId] = true;
+      }
     } finally {
+      // Always clear loading flag to prevent getting stuck
       isLoadingHistoryRef.current = false;
+      // Set a backup timeout to ensure we don't get stuck
+      setTimeout(() => {
+        if (!historyLoaded) {
+          console.warn('History loading timeout - forcing completion');
+          setHistoryLoaded(true);
+          if (agentId) {
+            agentHistoryLoaded.current[agentId] = true;
+          }
+        }
+      }, 5000);
     }
   };
 
@@ -281,6 +341,9 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     console.log(`[${componentId.current}] Setting processing to true (sendCommandWithStreaming)`);
     setIsProcessing(true);
     
+    // Save user message immediately to file
+    saveMessageToFile(userMessage);
+    
     // Scroll to bottom immediately after adding user message
     scrollToBottom();
 
@@ -302,6 +365,16 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let assistantContent = '';
+        let metadata: any = {
+          model: null,
+          session_id: null,
+          tools: [],
+          usage: null,
+          tool_uses: [],
+          tool_results: [],
+          thinking: [],
+          result: null
+        };
         
         // Create placeholder assistant message
         const assistantMessageId = generateMessageId();
@@ -313,6 +386,12 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         };
         
         setMessages(prev => [...prev, placeholderMessage]);
+        
+        // Save placeholder immediately to reserve the message slot
+        saveMessageToFile(placeholderMessage);
+        
+        let chunkCount = 0;
+        let lastSaveTime = Date.now();
         
         try {
           while (true) {
@@ -334,19 +413,72 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                     // Response started
                     continue;
                   } else if (data.type === 'chunk') {
-                    // Always accumulate content for server processing, but only update UI if component is active
-                    assistantContent += data.content;
+                    const content = data.content;
                     
-                    // Only update UI if this component is still active (prevent tab bleeding)
-                    if (isComponentActiveRef.current && !currentAbortController.signal.aborted) {
-                      setMessages(prev => {
-                        return prev.map(msg => 
-                          msg.id === assistantMessageId 
-                            ? { ...msg, content: assistantContent }
-                            : msg
-                        );
-                      });
-                      scrollToBottom();
+                    // Check if this is a metadata chunk
+                    const metadataMatch = content.match(/<<<CLAUDE_METADATA:(\w+):(.*?)>>>/);
+                    if (metadataMatch) {
+                      const [, metadataType, metadataContent] = metadataMatch;
+                      try {
+                        const parsedMetadata = JSON.parse(metadataContent);
+                        
+                        switch (metadataType) {
+                          case 'SYSTEM':
+                            metadata.model = parsedMetadata.model;
+                            metadata.session_id = parsedMetadata.session_id;
+                            metadata.tools = parsedMetadata.tools;
+                            break;
+                          case 'USAGE':
+                            metadata.usage = parsedMetadata;
+                            break;
+                          case 'TOOL_USE':
+                            metadata.tool_uses.push(parsedMetadata);
+                            // Show current tool operation
+                            setCurrentToolOperation(`${parsedMetadata.name}: ${parsedMetadata.operation_summary || 'Processing...'}`);
+                            break;
+                          case 'TOOL_RESULT':
+                            metadata.tool_results.push(parsedMetadata);
+                            break;
+                          case 'THINKING':
+                            metadata.thinking.push(parsedMetadata);
+                            break;
+                          case 'RESULT':
+                            metadata.result = parsedMetadata;
+                            break;
+                        }
+                      } catch (e) {
+                        console.warn('Failed to parse metadata:', e);
+                      }
+                    } else {
+                      // Regular content - accumulate it
+                      assistantContent += content;
+                      chunkCount++;
+                      
+                      // Only update UI if this component is still active (prevent tab bleeding)
+                      if (isComponentActiveRef.current && !currentAbortController.signal.aborted) {
+                        const updatedMessage = {
+                          id: assistantMessageId,
+                          timestamp: placeholderMessage.timestamp,
+                          role: 'assistant' as const,
+                          content: assistantContent,
+                          metadata: { ...metadata, backend: 'streaming-live', success: false }
+                        };
+                        
+                        setMessages(prev => {
+                          return prev.map(msg => 
+                            msg.id === assistantMessageId ? updatedMessage : msg
+                          );
+                        });
+                        scrollToBottom();
+                        
+                        // Save to file every 5 chunks or every 2 seconds
+                        const now = Date.now();
+                        if (chunkCount % 5 === 0 || (now - lastSaveTime) > 2000) {
+                          console.log(`💾 Chunked save: ${chunkCount} chunks, ${assistantContent.length} chars`);
+                          saveMessageToFile(updatedMessage);
+                          lastSaveTime = now;
+                        }
+                      }
                     }
                   } else if (data.type === 'complete') {
                     // Response completed successfully
@@ -375,6 +507,30 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
             console.warn('Reader release warning (expected):', releaseError);
           }
         }
+        
+        // Save final complete message with all metadata
+        const finalMessage = {
+          id: assistantMessageId,
+          timestamp: placeholderMessage.timestamp,
+          role: 'assistant' as const,
+          content: assistantContent,
+          metadata: { ...metadata, backend: 'streaming-complete', success: true }
+        };
+        
+        // Update UI with final message
+        setMessages(prev => {
+          return prev.map(msg => 
+            msg.id === assistantMessageId ? finalMessage : msg
+          );
+        });
+        
+        // Save final version to file
+        console.log(`💾 Final save: Complete message with ${assistantContent.length} chars`);
+        saveMessageToFile(finalMessage);
+        
+        // Turn off processing state and clear tool operation
+        setIsProcessing(false);
+        setCurrentToolOperation(null);
         
         // Final scroll to bottom
         scrollToBottom();
@@ -776,6 +932,61 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                 <div className="text-gray-300 whitespace-pre-wrap leading-relaxed font-mono">
                   {renderFormattedContent(message.content)}
                 </div>
+                {/* Claude Model & Session Info */}
+                {message.metadata?.model && (
+                  <div className="text-purple-400 text-xs mt-1">
+                    🤖 Model: {message.metadata.model}
+                    {message.metadata.session_id && (
+                      <span className="text-gray-500 ml-2">Session: {message.metadata.session_id.slice(-8)}</span>
+                    )}
+                  </div>
+                )}
+                
+                {/* Token Usage */}
+                {message.metadata?.usage && (
+                  <div className="text-cyan-400 text-xs mt-1">
+                    📊 Tokens: {message.metadata.usage.input_tokens || 0} in, {message.metadata.usage.output_tokens || 0} out
+                    {message.metadata.usage.cache_read_input_tokens && (
+                      <span className="text-green-400 ml-2">⚡ Cache: {message.metadata.usage.cache_read_input_tokens}</span>
+                    )}
+                  </div>
+                )}
+                
+                {/* Tool Usage - Compact Display */}
+                {message.metadata?.tool_uses && message.metadata.tool_uses.length > 0 && (
+                  <div className="text-blue-400 text-xs mt-1">
+                    🔧 {message.metadata.tool_uses.length} tool{message.metadata.tool_uses.length > 1 ? 's' : ''} used: {message.metadata.tool_uses.map((tool: any) => tool.name).join(', ')}
+                  </div>
+                )}
+                
+                {/* Tool Results - Only show if there were errors */}
+                {message.metadata?.tool_results && message.metadata.tool_results.some((r: any) => r.is_error) && (
+                  <div className="text-red-400 text-xs mt-1">
+                    ❌ Tool errors: {message.metadata.tool_results.filter((r: any) => r.is_error).length}
+                  </div>
+                )}
+                
+                {/* Performance & Cost */}
+                {message.metadata?.result && (
+                  <div className="text-blue-400 text-xs mt-1 flex gap-4">
+                    <span>⏱️ {message.metadata.result.duration_ms}ms</span>
+                    {message.metadata.result.total_cost_usd && (
+                      <span>💰 ${(message.metadata.result.total_cost_usd).toFixed(4)}</span>
+                    )}
+                    {message.metadata.result.num_turns && (
+                      <span>🔄 {message.metadata.result.num_turns} turns</span>
+                    )}
+                  </div>
+                )}
+                
+                {/* Available Tools */}
+                {message.metadata?.tools && message.metadata.tools.length > 0 && (
+                  <div className="text-gray-500 text-xs mt-1">
+                    🛠️ Available: {message.metadata.tools.slice(0, 5).join(', ')}{message.metadata.tools.length > 5 ? ` +${message.metadata.tools.length - 5} more` : ''}
+                  </div>
+                )}
+                
+                {/* Legacy metadata support */}
                 {message.metadata?.command_id && (
                   <div className="text-blue-400 text-xs mt-1">
                     → Command ID: {message.metadata.command_id}
@@ -818,6 +1029,11 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                 <span className="animate-pulse text-blue-400 mr-2">●</span>
                 <span className="text-sm">Waiting for AI response...</span>
               </div>
+              {currentToolOperation && (
+                <div className="text-xs text-yellow-400 mt-1">
+                  🔧 {currentToolOperation}
+                </div>
+              )}
               <div className="text-xs text-gray-500 mt-1">
                 Agent: {agentName} ({agentId.slice(-6)}) • Timeout: 3 minutes
               </div>

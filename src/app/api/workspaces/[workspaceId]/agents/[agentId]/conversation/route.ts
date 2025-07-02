@@ -20,7 +20,63 @@ interface ConversationMessage {
     file_changes?: string[];
     approval_required?: boolean;
     human_intervention?: boolean;
+    [key: string]: any;
   };
+}
+
+// Handle individual message saving for chunked updates
+async function handleMessageSave(workspaceId: string, agentId: string, messageToSave: ConversationMessage) {
+    const workspacePath = path.join(WORKSPACE_BASE_DIR, workspaceId);
+    const conversationPath = path.join(workspacePath, 'agents', 'conversations', `${agentId}.json`);
+    
+    try {
+        // Load existing conversation
+        let conversation;
+        try {
+            const conversationData = await fs.readFile(conversationPath, 'utf-8');
+            conversation = JSON.parse(conversationData);
+        } catch {
+            // Create new conversation if it doesn't exist
+            await fs.mkdir(path.dirname(conversationPath), { recursive: true });
+            conversation = {
+                agent_id: agentId,
+                workspace_id: workspaceId,
+                created_at: new Date().toISOString(),
+                messages: []
+            };
+        }
+        
+        // Find existing message with same ID or add new one
+        const existingIndex = conversation.messages.findIndex((msg: ConversationMessage) => msg.id === messageToSave.id);
+        
+        if (existingIndex >= 0) {
+            // Update existing message
+            conversation.messages[existingIndex] = messageToSave;
+            console.log(`📝 Updated existing message: ${messageToSave.id} (${messageToSave.content.length} chars)`);
+        } else {
+            // Add new message
+            conversation.messages.push(messageToSave);
+            console.log(`📝 Added new message: ${messageToSave.id} (${messageToSave.content.length} chars)`);
+        }
+        
+        conversation.updated_at = new Date().toISOString();
+        
+        // Save updated conversation
+        await fs.writeFile(conversationPath, JSON.stringify(conversation, null, 2));
+        
+        return NextResponse.json({ 
+            success: true, 
+            message: 'Message saved successfully',
+            messageId: messageToSave.id
+        });
+        
+    } catch (error) {
+        console.error('Failed to save message:', error);
+        return NextResponse.json(
+            { error: 'Failed to save message' },
+            { status: 500 }
+        );
+    }
 }
 
 export async function GET(
@@ -80,7 +136,18 @@ export async function POST(
     try {
         const { workspaceId, agentId } = await params;
         const body = await request.json();
-        const { message, model } = body;
+        const { message, model, messageId, role, timestamp, metadata, saveOnly } = body;
+        
+        // Check if this is a save-only request (for chunked saving)
+        if (saveOnly) {
+            return await handleMessageSave(workspaceId, agentId, {
+                id: messageId,
+                timestamp: timestamp || new Date().toISOString(),
+                role: role || 'assistant',
+                content: message,
+                metadata: metadata
+            });
+        }
         
         if (!message || message.trim() === '') {
             return NextResponse.json(
