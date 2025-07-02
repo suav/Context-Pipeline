@@ -468,10 +468,10 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
                   className="terminal-input w-full px-2 py-1 text-xs font-mono"
                 >
                   <option value="claude">CLAUDE_3.5_SONNET</option>
-                  <option value="gemini">GEMINI_PRO</option>
+                  <option value="gemini">GEMINI_PRO/FLASH</option>
                 </select>
                 <p className="text-xs terminal-text mt-0.5 font-mono opacity-70">
-                  // Model locked for agent lifetime
+                  // Gemini may auto-switch to Flash model
                 </p>
               </div>
               <div className="flex gap-2 pt-1">

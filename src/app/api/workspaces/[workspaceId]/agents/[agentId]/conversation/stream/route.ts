@@ -94,13 +94,26 @@ export async function POST(
                 try {
                     // Update agent state to active
                     try {
-                        const agentStateData = await fs.readFile(agentStatePath, 'utf-8');
-                        const agentState = JSON.parse(agentStateData);
+                        let agentState;
+                        try {
+                            const agentStateData = await fs.readFile(agentStatePath, 'utf-8');
+                            agentState = JSON.parse(agentStateData);
+                        } catch {
+                            // Create new agent state if file doesn't exist
+                            agentState = {
+                                id: agentId,
+                                status: 'idle',
+                                created_at: new Date().toISOString(),
+                                interaction_count: 0
+                            };
+                        }
                         
                         agentState.status = 'active';
                         agentState.last_activity = new Date().toISOString();
                         agentState.current_task = `Processing: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`;
                         
+                        // Ensure states directory exists
+                        await fs.mkdir(path.dirname(agentStatePath), { recursive: true });
                         await fs.writeFile(agentStatePath, JSON.stringify(agentState, null, 2));
                     } catch (error) {
                         console.warn('Could not update agent state:', error);

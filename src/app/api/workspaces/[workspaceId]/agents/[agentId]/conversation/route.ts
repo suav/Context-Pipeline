@@ -80,7 +80,7 @@ export async function POST(
     try {
         const { workspaceId, agentId } = await params;
         const body = await request.json();
-        const { message } = body;
+        const { message, model } = body;
         
         if (!message || message.trim() === '') {
             return NextResponse.json(
@@ -134,7 +134,7 @@ export async function POST(
         await fs.writeFile(conversationPath, JSON.stringify(conversation, null, 2));
         
         // Generate agent response using AgentService
-        const agentResponse = await agentService.generateResponse(workspaceId, agentId, message, conversation.messages);
+        const agentResponse = await agentService.generateResponse(workspaceId, agentId, message, conversation.messages, model as 'claude' | 'gemini');
         
         const assistantMessage: ConversationMessage = {
             id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -152,14 +152,27 @@ export async function POST(
         
         // Update agent state
         try {
-            const agentStateData = await fs.readFile(agentStatePath, 'utf-8');
-            const agentState = JSON.parse(agentStateData);
+            let agentState;
+            try {
+                const agentStateData = await fs.readFile(agentStatePath, 'utf-8');
+                agentState = JSON.parse(agentStateData);
+            } catch {
+                // Create new agent state if file doesn't exist
+                agentState = {
+                    id: agentId,
+                    status: 'idle',
+                    created_at: new Date().toISOString(),
+                    interaction_count: 0
+                };
+            }
             
             agentState.status = 'active';
             agentState.last_activity = new Date().toISOString();
             agentState.interaction_count = (agentState.interaction_count || 0) + 1;
             agentState.current_task = `Responding to: ${message.substring(0, 50)}${message.length > 50 ? '...' : ''}`;
             
+            // Ensure states directory exists
+            await fs.mkdir(path.dirname(agentStatePath), { recursive: true });
             await fs.writeFile(agentStatePath, JSON.stringify(agentState, null, 2));
         } catch (error) {
             console.warn('Could not update agent state:', error);

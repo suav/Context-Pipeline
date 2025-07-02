@@ -214,7 +214,18 @@ export function WorkspaceDrafts() {
     };
     
     if (drafts.length === 0) {
-        return null;
+        return (
+            <div className="mt-8 border-t pt-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold">🏗️ Workspace Drafts</h3>
+                </div>
+                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                    <div className="text-3xl mb-2">📝</div>
+                    <p>No workspace drafts yet</p>
+                    <p className="text-sm">Select context items above and click "Make Workspace" to create drafts</p>
+                </div>
+            </div>
+        );
     }
     
     return (

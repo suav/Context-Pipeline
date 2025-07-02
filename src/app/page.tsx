@@ -14,7 +14,7 @@ import { ThemeSelector } from '@/components/ThemeSelector';
 import { CredentialsManager } from '@/components/CredentialsManager';
 
 export default function ContextPipeline() {
-    const [currentStage, setCurrentStage] = useState('library');
+    const [currentStage, setCurrentStage] = useState('workspace');
     const [apiHealth, setApiHealth] = useState<string>('checking...');
     const [showCredentials, setShowCredentials] = useState(false);
 

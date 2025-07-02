@@ -80,6 +80,23 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     isLoadingHistoryRef.current = false;
   }, [agentId, workspaceId]);
   
+  // Handle visibility changes - reload conversation when returning to tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isComponentActiveRef.current) {
+        // User returned to this tab and component is active, reload conversation
+        console.log('Tab became visible, reloading conversation to get latest updates');
+        loadConversationHistory();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [agentId, workspaceId]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -180,6 +197,22 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         const validMessages = messagesFromAPI.filter((msg: any) => 
           msg && msg.id && msg.role && msg.content !== undefined
         );
+        
+        // Check if the last message indicates processing was in progress
+        const lastMessage = validMessages[validMessages.length - 1];
+        const secondLastMessage = validMessages[validMessages.length - 2];
+        
+        // If last message is from user and there's no assistant response, or
+        // if last assistant message is empty/incomplete, restore processing state
+        const shouldRestoreProcessing = (
+          lastMessage?.role === 'user' ||
+          (lastMessage?.role === 'assistant' && (!lastMessage.content || lastMessage.content.trim() === ''))
+        );
+        
+        if (shouldRestoreProcessing) {
+          console.log('🔄 Detected incomplete conversation - restoring processing state');
+          setIsProcessing(true);
+        }
         
         console.log('Valid messages after filtering:', validMessages.length);
         
@@ -301,9 +334,11 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                     // Response started
                     continue;
                   } else if (data.type === 'chunk') {
-                    // Only update if this component is still active (prevent tab bleeding)
+                    // Always accumulate content for server processing, but only update UI if component is active
+                    assistantContent += data.content;
+                    
+                    // Only update UI if this component is still active (prevent tab bleeding)
                     if (isComponentActiveRef.current && !currentAbortController.signal.aborted) {
-                      assistantContent += data.content;
                       setMessages(prev => {
                         return prev.map(msg => 
                           msg.id === assistantMessageId 
