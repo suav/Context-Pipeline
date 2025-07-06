@@ -222,7 +222,7 @@ export async function POST(
                     await fs.writeFile(conversationPath, JSON.stringify(conversation, null, 2));
                     console.log(`[Streaming] Conversation saved successfully with ${conversation.messages.length} messages`);
                     
-                    // Update agent state to idle
+                    // Update agent state to idle and save session ID
                     try {
                         const agentStateData = await fs.readFile(agentStatePath, 'utf-8');
                         const agentState = JSON.parse(agentStateData);
@@ -231,6 +231,13 @@ export async function POST(
                         agentState.last_activity = new Date().toISOString();
                         agentState.interaction_count = (agentState.interaction_count || 0) + 1;
                         agentState.current_task = null;
+                        
+                        // Save session ID for potential restoration
+                        if (sessionData?.session_id) {
+                            agentState.last_session_id = sessionData.session_id;
+                            agentState.last_session_time = new Date().toISOString();
+                            console.log(`💾 Saved session ID ${sessionData.session_id} for agent ${agentId}`);
+                        }
                         
                         await fs.writeFile(agentStatePath, JSON.stringify(agentState, null, 2));
                     } catch (error) {

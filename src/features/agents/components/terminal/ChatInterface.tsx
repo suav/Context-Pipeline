@@ -47,6 +47,12 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(agentName);
   const [currentToolOperation, setCurrentToolOperation] = useState<string | null>(null);
+  const [pendingToolApproval, setPendingToolApproval] = useState<{
+    toolName: string;
+    operation: string;
+    messageId: string;
+    requiresApproval: boolean;
+  } | null>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -62,6 +68,9 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       loadConversationHistory().then(() => {
         setSessionInitialized(true);
         console.log('Conversation history loaded for agent:', agentId);
+        
+        // Check if we need to restore a previous session
+        restoreSessionIfNeeded();
       });
     }
   }, [agentId, workspaceId]); // Load history when this component mounts
@@ -157,6 +166,105 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       setTimeout(scrollToEnd, 50);
       setTimeout(scrollToEnd, 100);
       setTimeout(scrollToEnd, 200);
+    }
+  };
+
+  // Handle tool approval
+  const handleToolApproval = async (approved: boolean) => {
+    if (!pendingToolApproval) return;
+    
+    try {
+      const response = await fetch(`/api/workspaces/${workspaceId}/agents/${agentId}/tool-approval`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageId: pendingToolApproval.messageId,
+          toolName: pendingToolApproval.toolName,
+          approved: approved
+        })
+      });
+      
+      if (response.ok) {
+        console.log(`Tool ${pendingToolApproval.toolName} ${approved ? 'approved' : 'denied'}`);
+        const toolName = pendingToolApproval.toolName;
+        setPendingToolApproval(null);
+        
+        // Add approval message to chat
+        const approvalMessage: ConversationMessage = {
+          id: `approval_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: new Date().toISOString(),
+          role: 'system',
+          content: `Tool ${toolName} ${approved ? '✅ APPROVED' : '❌ DENIED'} by user`,
+          metadata: { approval_action: true, tool_name: toolName, approved }
+        };
+        
+        setMessages(prev => [...prev, approvalMessage]);
+        scrollToBottom();
+        
+        // If approved, automatically request continuation to get agent's analysis
+        if (approved) {
+          console.log('🔄 Tool approved - requesting agent continuation');
+          setTimeout(async () => {
+            await sendCommandWithStreaming('Please continue with your analysis of the tool results and provide your findings.');
+          }, 1000); // Small delay to ensure approval is processed
+        }
+      }
+    } catch (error) {
+      console.error('Tool approval failed:', error);
+    }
+  };
+
+  // Restore previous Claude session if available
+  const restoreSessionIfNeeded = async () => {
+    try {
+      // Find the most recent session ID from conversation history
+      const lastSessionMessage = messages
+        .slice()
+        .reverse()
+        .find(msg => msg.metadata?.session_id);
+      
+      if (lastSessionMessage?.metadata?.session_id) {
+        console.log(`🔄 Found previous session ID: ${lastSessionMessage.metadata.session_id}`);
+        
+        // Attempt to restore session by sending a "session status" command
+        // This will reconnect to the existing Claude session if it's still active
+        const sessionCheckResponse = await fetch(`/api/workspaces/${workspaceId}/agents/${agentId}/session-restore`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: lastSessionMessage.metadata.session_id,
+            model: selectedModel
+          })
+        });
+        
+        if (sessionCheckResponse.ok) {
+          const sessionData = await sessionCheckResponse.json();
+          if (sessionData.restored) {
+            console.log(`✅ Session ${lastSessionMessage.metadata.session_id} restored successfully`);
+            
+            // Add session restore notification
+            const restoreMessage: ConversationMessage = {
+              id: `session_restore_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              timestamp: new Date().toISOString(),
+              role: 'system',
+              content: `🔄 Session restored: ${lastSessionMessage.metadata.session_id.slice(-8)}`,
+              metadata: { session_restored: true, session_id: lastSessionMessage.metadata.session_id }
+            };
+            
+            setMessages(prev => [...prev, restoreMessage]);
+            scrollToBottom();
+          }
+        }
+      } else {
+        console.log('🆕 No previous session found - will start fresh session');
+      }
+    } catch (error) {
+      console.warn('Session restoration failed:', error);
+      // Don't throw - just continue with a fresh session
     }
   };
 
@@ -302,9 +410,6 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         if (!historyLoaded) {
           console.warn('History loading timeout - forcing completion');
           setHistoryLoaded(true);
-          if (agentId) {
-            agentHistoryLoaded.current[agentId] = true;
-          }
         }
       }, 5000);
     }
@@ -435,6 +540,23 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                             metadata.tool_uses.push(parsedMetadata);
                             // Show current tool operation
                             setCurrentToolOperation(`${parsedMetadata.name}: ${parsedMetadata.operation_summary || 'Processing...'}`);
+                            
+                            // Check if this tool requires approval (expanded list for Claude tools)
+                            const toolsRequiringApproval = ['bash', 'edit_file', 'Edit', 'Bash', 'Write', 'MultiEdit'];
+                            const requiresApproval = parsedMetadata.approval_required || 
+                                                   toolsRequiringApproval.includes(parsedMetadata.name);
+                            
+                            console.log(`🔧 Tool detected: ${parsedMetadata.name}, requires approval: ${requiresApproval}`);
+                            
+                            if (requiresApproval) {
+                              setPendingToolApproval({
+                                toolName: parsedMetadata.name,
+                                operation: parsedMetadata.operation_summary || `Execute ${parsedMetadata.name}`,
+                                messageId: assistantMessageId,
+                                requiresApproval: true
+                              });
+                              console.log(`⚠️ Tool approval required for: ${parsedMetadata.name}`);
+                            }
                             break;
                           case 'TOOL_RESULT':
                             metadata.tool_results.push(parsedMetadata);
@@ -453,6 +575,12 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                       // Regular content - accumulate it
                       assistantContent += content;
                       chunkCount++;
+                      
+                      // Turn off processing indicator as soon as content starts arriving
+                      if (isProcessing && assistantContent.length > 0) {
+                        setIsProcessing(false);
+                        setCurrentToolOperation(null); // Clear any tool operation display
+                      }
                       
                       // Only update UI if this component is still active (prevent tab bleeding)
                       if (isComponentActiveRef.current && !currentAbortController.signal.aborted) {
@@ -606,6 +734,19 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // Tool approval shortcuts - highest priority
+    if (pendingToolApproval) {
+      if (e.key === 'y' && e.ctrlKey) {
+        e.preventDefault();
+        handleToolApproval(true);
+        return;
+      } else if (e.key === 'n' && e.ctrlKey) {
+        e.preventDefault();
+        handleToolApproval(false);
+        return;
+      }
+    }
+    
     if (e.key === 'Enter') {
       e.preventDefault();
       sendCommand();
@@ -835,11 +976,17 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   }, [agentId, workspaceId, historyLoaded, sendCommandWithStreaming]); // Add dependencies to ensure fresh values
 
   return (
-    <div className="flex flex-col flex-1 bg-black text-green-400 font-mono text-sm overflow-y-auto">
+    <div className="flex flex-col h-full bg-black text-green-400 font-mono text-sm" style={{ height: '100%' }}>
       {/* Scrollable Content Area */}
       <div 
         ref={terminalRef}
-        className="flex-1 overflow-y-auto p-4 bg-black"
+        className="overflow-y-auto p-4 bg-black"
+        style={{ 
+          flex: '1 1 auto',
+          minHeight: '0',
+          overflowY: 'auto',
+          overflowX: 'hidden'
+        }}
         onClick={() => inputRef.current?.focus()}
       >
         {/* Welcome Message */}
@@ -932,57 +1079,51 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                 <div className="text-gray-300 whitespace-pre-wrap leading-relaxed font-mono">
                   {renderFormattedContent(message.content)}
                 </div>
-                {/* Claude Model & Session Info */}
-                {message.metadata?.model && (
-                  <div className="text-purple-400 text-xs mt-1">
-                    🤖 Model: {message.metadata.model}
-                    {message.metadata.session_id && (
-                      <span className="text-gray-500 ml-2">Session: {message.metadata.session_id.slice(-8)}</span>
-                    )}
-                  </div>
-                )}
-                
-                {/* Token Usage */}
-                {message.metadata?.usage && (
-                  <div className="text-cyan-400 text-xs mt-1">
-                    📊 Tokens: {message.metadata.usage.input_tokens || 0} in, {message.metadata.usage.output_tokens || 0} out
-                    {message.metadata.usage.cache_read_input_tokens && (
-                      <span className="text-green-400 ml-2">⚡ Cache: {message.metadata.usage.cache_read_input_tokens}</span>
-                    )}
-                  </div>
-                )}
-                
-                {/* Tool Usage - Compact Display */}
-                {message.metadata?.tool_uses && message.metadata.tool_uses.length > 0 && (
-                  <div className="text-blue-400 text-xs mt-1">
-                    🔧 {message.metadata.tool_uses.length} tool{message.metadata.tool_uses.length > 1 ? 's' : ''} used: {message.metadata.tool_uses.map((tool: any) => tool.name).join(', ')}
-                  </div>
-                )}
-                
-                {/* Tool Results - Only show if there were errors */}
-                {message.metadata?.tool_results && message.metadata.tool_results.some((r: any) => r.is_error) && (
-                  <div className="text-red-400 text-xs mt-1">
-                    ❌ Tool errors: {message.metadata.tool_results.filter((r: any) => r.is_error).length}
-                  </div>
-                )}
-                
-                {/* Performance & Cost */}
-                {message.metadata?.result && (
-                  <div className="text-blue-400 text-xs mt-1 flex gap-4">
-                    <span>⏱️ {message.metadata.result.duration_ms}ms</span>
-                    {message.metadata.result.total_cost_usd && (
-                      <span>💰 ${(message.metadata.result.total_cost_usd).toFixed(4)}</span>
-                    )}
-                    {message.metadata.result.num_turns && (
-                      <span>🔄 {message.metadata.result.num_turns} turns</span>
-                    )}
-                  </div>
-                )}
-                
-                {/* Available Tools */}
-                {message.metadata?.tools && message.metadata.tools.length > 0 && (
-                  <div className="text-gray-500 text-xs mt-1">
-                    🛠️ Available: {message.metadata.tools.slice(0, 5).join(', ')}{message.metadata.tools.length > 5 ? ` +${message.metadata.tools.length - 5} more` : ''}
+                {/* Consolidated Metadata - 2 lines max, importance-based sizing */}
+                {(message.metadata?.model || message.metadata?.usage || message.metadata?.tool_uses) && (
+                  <div className="text-xs mt-1 space-y-1">
+                    {/* Primary Line: Model, Tokens, Tools */}
+                    <div className="flex items-center gap-3 text-xs">
+                      {message.metadata?.model && (
+                        <span className="text-purple-400 font-medium">
+                          🤖 {message.metadata.model.replace('claude-', '').replace('-20250514', '')}
+                        </span>
+                      )}
+                      {message.metadata?.usage && (
+                        <span className="text-cyan-400">
+                          📊 {message.metadata.usage.input_tokens || 0}→{message.metadata.usage.output_tokens || 0}
+                          {message.metadata.usage.cache_read_input_tokens && (
+                            <span className="text-green-400 ml-1">⚡{message.metadata.usage.cache_read_input_tokens}</span>
+                          )}
+                        </span>
+                      )}
+                      {message.metadata?.tool_uses && message.metadata.tool_uses.length > 0 && (
+                        <span className="text-blue-400">
+                          🔧 {message.metadata.tool_uses.length} tool{message.metadata.tool_uses.length > 1 ? 's' : ''}
+                          {message.metadata?.tool_results && message.metadata.tool_results.some((r: any) => r.is_error) && (
+                            <span className="text-red-400 ml-1">❌{message.metadata.tool_results.filter((r: any) => r.is_error).length}</span>
+                          )}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Secondary Line: Performance, Cost, Session */}
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      {message.metadata?.result && (
+                        <>
+                          <span>⏱️ {(message.metadata.result.duration_ms / 1000).toFixed(1)}s</span>
+                          {message.metadata.result.total_cost_usd && (
+                            <span>💰 ${(message.metadata.result.total_cost_usd).toFixed(4)}</span>
+                          )}
+                          {message.metadata.result.num_turns && (
+                            <span>🔄 {message.metadata.result.num_turns}</span>
+                          )}
+                        </>
+                      )}
+                      {message.metadata?.session_id && (
+                        <span>Session: {message.metadata.session_id.slice(-8)}</span>
+                      )}
+                    </div>
                   </div>
                 )}
                 
@@ -1043,6 +1184,42 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
               <div className="text-xs text-gray-500">
                 ⚡ If stuck, try a simpler request or refresh the page
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tool Approval UI */}
+        {pendingToolApproval && (
+          <div className="flex items-center text-yellow-300 bg-yellow-900 bg-opacity-30 p-3 rounded border-l-4 border-yellow-500" key={`approval-${pendingToolApproval.messageId}`}>
+            <span className="mr-2 text-yellow-400">🔧</span>
+            <div className="flex-1">
+              <div className="flex items-center">
+                <span className="animate-pulse text-yellow-400 mr-2">⚠️</span>
+                <span className="text-sm font-medium">Tool Approval Required</span>
+              </div>
+              <div className="text-sm mt-1">
+                <strong>{pendingToolApproval.toolName}</strong> wants to: {pendingToolApproval.operation}
+              </div>
+              <div className="text-xs text-gray-400 mt-1">
+                This tool can modify files or execute commands. Do you approve?
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                ⚡ Shortcuts: Ctrl+Y (Yes) • Ctrl+N (No)
+              </div>
+            </div>
+            <div className="flex gap-2 ml-4">
+              <button
+                onClick={() => handleToolApproval(true)}
+                className="px-3 py-1 bg-green-600 hover:bg-green-500 text-white text-sm rounded transition-colors"
+              >
+                ✅ Yes (Ctrl+Y)
+              </button>
+              <button
+                onClick={() => handleToolApproval(false)}
+                className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white text-sm rounded transition-colors"
+              >
+                ❌ No (Ctrl+N)
+              </button>
             </div>
           </div>
         )}
