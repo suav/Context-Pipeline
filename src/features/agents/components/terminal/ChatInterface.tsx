@@ -977,6 +977,71 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
 
   return (
     <div className="flex flex-col h-full bg-black text-green-400 font-mono text-sm" style={{ height: '100%' }}>
+      {/* Fixed Input Area at Top */}
+      <div className="flex-shrink-0 bg-black border-b border-gray-700">
+        
+        {/* Command Picker Dropdown */}
+        {showCommandInjector && (
+          <div className="border-b border-gray-700 bg-gray-900 p-2">
+            <CommandInjector
+              mode="reply"
+              workspaceContext={{
+                has_jira: true,
+                has_git: true,
+                has_files: true,
+                has_email: false
+              }}
+              onCommandSelect={(command) => {
+                setInputValue(command);
+                setShowCommandInjector(false);
+                // Send the command immediately with streaming
+                setTimeout(async () => {
+                  if (command.trim()) {
+                    await sendCommandWithStreaming(command.trim());
+                  }
+                }, 100);
+              }}
+            />
+          </div>
+        )}
+        
+        {/* Input Bar */}
+        <div className="p-2 flex items-center">
+          <span className="text-green-500 mr-2">{`>`}</span>
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={isProcessing ? "Processing..." : `Type your command...`}
+            className="flex-1 bg-transparent border-none outline-none text-green-400"
+            disabled={isProcessing}
+            autoFocus
+          />
+          <div className="flex items-center gap-2 ml-2">
+            <button
+              onClick={() => setShowCommandInjector(!showCommandInjector)}
+              className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors"
+              title="Quick Commands (Ctrl+Space)"
+            >
+              ⚡
+            </button>
+            <button
+              onClick={() => setSelectedModel(selectedModel === 'claude' ? 'gemini' : 'claude')}
+              className={`text-xs px-2 py-1 text-white rounded transition-colors ${
+                selectedModel === 'claude' 
+                  ? 'bg-purple-600 hover:bg-purple-500' 
+                  : 'bg-orange-600 hover:bg-orange-500'
+              }`}
+              title={`Switch to ${selectedModel === 'claude' ? 'Gemini' : 'Claude'}`}
+            >
+              {selectedModel === 'claude' ? '🧠 C' : '🔷 G'}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Scrollable Content Area */}
       <div 
         ref={terminalRef}
@@ -1223,81 +1288,6 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
             </div>
           </div>
         )}
-      </div>
-
-      {/* Fixed Input Area at Bottom */}
-      <div className="flex-shrink-0 bg-black border-t border-gray-700">
-        
-        {/* Command Picker Dropdown */}
-        {showCommandInjector && (
-          <div className="border-b border-gray-700 bg-gray-900 p-2">
-            <CommandInjector
-              mode="reply"
-              workspaceContext={{
-                has_jira: true,
-                has_git: true,
-                has_files: true,
-                has_email: false
-              }}
-              onCommandSelect={(command) => {
-                setInputValue(command);
-                setShowCommandInjector(false);
-                // Send the command immediately with streaming
-                setTimeout(async () => {
-                  if (command.trim()) {
-                    await sendCommandWithStreaming(command.trim());
-                  }
-                }, 50); // Small delay to ensure state updates
-                inputRef.current?.focus();
-              }}
-              className="mb-0"
-            />
-          </div>
-        )}
-        
-        {/* Input Line */}
-        <div className="px-4 py-2 flex items-center gap-2">
-          <span className="text-green-400">$</span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent outline-none text-white caret-green-400"
-            placeholder={isProcessing ? "Processing..." : "Type command or press Tab for command picker..."}
-            disabled={isProcessing}
-            autoComplete="off"
-            spellCheck={false}
-          />
-          <button
-            onClick={() => setShowCommandInjector(!showCommandInjector)}
-            className="text-gray-500 hover:text-green-400 px-2 py-1 text-xs border border-gray-700 rounded hover:bg-gray-800 transition-colors"
-            title="Command Library (Tab)"
-          >
-            📚
-          </button>
-          {isProcessing && (
-            <span className="text-yellow-400 text-xs animate-pulse">●</span>
-          )}
-        </div>
-        
-        {/* Status Line */}
-        <div className="px-4 py-1 bg-gray-900 border-t border-gray-700 text-xs text-gray-500 flex justify-between">
-          <div>
-            <span style={{ color: agentColor }}>{agentName}</span>
-            {agentTitle && <span className="text-blue-400"> ({agentTitle})</span>} |
-            {messages.length} msgs |
-            {commandHistory.length} history
-          </div>
-          <div className="flex items-center gap-2">
-            <span>{isProcessing ? 'BUSY' : 'READY'}</span>
-            <span>•</span>
-            <span>Tab: Commands</span>
-            <span>•</span>
-            <span>↑↓: History</span>
-          </div>
-        </div>
       </div>
     </div>
   );
