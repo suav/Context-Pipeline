@@ -1,12 +1,6 @@
-/**
- * Workspace Validation Utilities
- * Validates workspace integrity including git repo and context manifest
- */
-
 import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
-
 export interface WorkspaceValidationResult {
   isValid: boolean;
   issues: string[];
@@ -17,17 +11,12 @@ export interface WorkspaceValidationResult {
   missingContextFiles: string[];
   recommendedAction: 'none' | 'rebuild' | 'move_to_drafts';
 }
-
 export interface WorkspaceInfo {
   id: string;
   name: string;
   path: string;
   created_at?: string;
 }
-
-/**
- * Validates a workspace for integrity and proper setup
- */
 export async function validateWorkspace(workspacePath: string): Promise<WorkspaceValidationResult> {
   const result: WorkspaceValidationResult = {
     isValid: true,
@@ -39,7 +28,6 @@ export async function validateWorkspace(workspacePath: string): Promise<Workspac
     missingContextFiles: [],
     recommendedAction: 'none'
   };
-
   try {
     // Check if workspace directory exists
     try {
@@ -50,23 +38,18 @@ export async function validateWorkspace(workspacePath: string): Promise<Workspac
       result.recommendedAction = 'move_to_drafts';
       return result;
     }
-
     // Check for git repository in target/repo-clone subdirectories
     const targetPath = path.join(workspacePath, 'target');
     const repoClonePath = path.join(targetPath, 'repo-clone');
-    
     // Use synchronous operations for more reliable checking
     if (fsSync.existsSync(targetPath)) {
       if (fsSync.existsSync(repoClonePath)) {
         try {
           const repoCloneContents = fsSync.readdirSync(repoClonePath);
-          
           for (const item of repoCloneContents) {
             if (item.startsWith('.')) continue; // Skip hidden files
-            
             const itemPath = path.join(repoClonePath, item);
             const stat = fsSync.statSync(itemPath);
-            
             if (stat.isDirectory()) {
               const gitPath = path.join(itemPath, '.git');
               if (fsSync.existsSync(gitPath)) {
@@ -75,7 +58,6 @@ export async function validateWorkspace(workspacePath: string): Promise<Workspac
               }
             }
           }
-          
           if (!result.hasGitRepo) {
             result.issues.push('Repository clone directory exists but no git repository found');
             result.isValid = false;
@@ -92,17 +74,14 @@ export async function validateWorkspace(workspacePath: string): Promise<Workspac
       result.issues.push('No target directory found');
       result.isValid = false;
     }
-
     // Check for context manifest
     const manifestPath = path.join(workspacePath, 'context', 'context-manifest.json');
-    
     if (fsSync.existsSync(manifestPath)) {
       try {
         const manifestData = fsSync.readFileSync(manifestPath, 'utf-8');
         const manifest = JSON.parse(manifestData);
         result.hasContextManifest = true;
         result.contextItemsCount = manifest.context_items?.length || 0;
-
         // Validate context files exist
         if (manifest.context_items && manifest.context_items.length > 0) {
           for (const item of manifest.context_items) {
@@ -123,7 +102,6 @@ export async function validateWorkspace(workspacePath: string): Promise<Workspac
       result.issues.push('Context manifest missing or corrupted');
       result.isValid = false;
     }
-
     // Check for target files
     if (fsSync.existsSync(targetPath)) {
       try {
@@ -136,7 +114,6 @@ export async function validateWorkspace(workspacePath: string): Promise<Workspac
     } else {
       result.hasTargetFiles = false;
     }
-
     // Determine recommended action
     if (!result.hasGitRepo || !result.hasContextManifest) {
       result.recommendedAction = 'move_to_drafts';
@@ -145,19 +122,13 @@ export async function validateWorkspace(workspacePath: string): Promise<Workspac
       result.recommendedAction = 'rebuild';
       result.isValid = false;
     }
-
   } catch (error) {
     result.isValid = false;
     result.issues.push(`Validation error: ${(error as Error).message}`);
     result.recommendedAction = 'move_to_drafts';
   }
-
   return result;
 }
-
-/**
- * Validates multiple workspaces and returns summary
- */
 export async function validateAllWorkspaces(workspaceBaseDir: string): Promise<{
   valid: WorkspaceInfo[];
   invalid: Array<WorkspaceInfo & { validation: WorkspaceValidationResult }>;
@@ -168,24 +139,19 @@ export async function validateAllWorkspaces(workspaceBaseDir: string): Promise<{
     invalid: [] as Array<WorkspaceInfo & { validation: WorkspaceValidationResult }>,
     total: 0
   };
-
   try {
     const workspaceDirs = await fs.readdir(workspaceBaseDir);
-    
     for (const dir of workspaceDirs) {
       const workspacePath = path.join(workspaceBaseDir, dir);
       const stat = await fs.stat(workspacePath);
-      
       if (stat.isDirectory()) {
         result.total++;
-        
         const validation = await validateWorkspace(workspacePath);
         const workspaceInfo: WorkspaceInfo = {
           id: dir,
           name: dir,
           path: workspacePath
         };
-
         if (validation.isValid) {
           result.valid.push(workspaceInfo);
         } else {
@@ -199,15 +165,10 @@ export async function validateAllWorkspaces(workspaceBaseDir: string): Promise<{
   } catch (error) {
     console.error('Failed to validate workspaces:', error);
   }
-
   return result;
 }
-
-/**
- * Moves invalid workspace back to drafts
- */
 export async function moveWorkspaceToDrafts(
-  workspacePath: string, 
+  workspacePath: string,
   workspaceId: string,
   validation: WorkspaceValidationResult
 ): Promise<{ success: boolean; draftId?: string; error?: string }> {
@@ -223,7 +184,6 @@ export async function moveWorkspaceToDrafts(
       moved_from_workspace: true,
       moved_at: new Date().toISOString()
     };
-
     try {
       const manifestData = await fs.readFile(contextPath, 'utf-8');
       const manifest = JSON.parse(manifestData);
@@ -236,7 +196,6 @@ export async function moveWorkspaceToDrafts(
     } catch {
       // Use defaults if manifest can't be read
     }
-
     // Create draft with check engine status
     const draftId = `${workspaceId}-rebuild-${Date.now()}`;
     const draft = {
@@ -250,14 +209,11 @@ export async function moveWorkspaceToDrafts(
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
-
     // Archive the original workspace before removal
     const archiveDir = path.join(path.dirname(workspacePath), '..', 'workspace-archives');
     await fs.mkdir(archiveDir, { recursive: true });
-    
     const archiveFile = `workspace-${workspaceId}-archived-${Date.now()}.json`;
     const archivePath = path.join(archiveDir, archiveFile);
-    
     await fs.writeFile(archivePath, JSON.stringify({
       workspace_id: workspaceId,
       archived_at: new Date().toISOString(),
@@ -265,12 +221,10 @@ export async function moveWorkspaceToDrafts(
       validation_issues: validation.issues,
       original_data: workspaceData
     }, null, 2));
-
     return {
       success: true,
       draftId: draft.id
     };
-
   } catch (error) {
     return {
       success: false,

@@ -1,35 +1,28 @@
 /**
  * Archive Manager Component
- * 
+ *
  * Manages archived workspaces and drafts with restore capabilities
  */
-
 'use client';
-
 import React, { useState, useEffect } from 'react';
-
 interface ArchiveManagerProps {
     isOpen: boolean;
     onClose: () => void;
 }
-
 export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
     const [archives, setArchives] = useState<any>({ workspaces: [], drafts: [], removals: [], other: [] });
     const [loading, setLoading] = useState(false);
     const [selectedTab, setSelectedTab] = useState<'workspaces' | 'drafts' | 'removals' | 'other'>('workspaces');
-
     useEffect(() => {
         if (isOpen) {
             loadArchives();
         }
     }, [isOpen]);
-
     const loadArchives = async () => {
         setLoading(true);
         try {
             const response = await fetch('/api/context-workflow/archives');
             const result = await response.json();
-            
             if (result.success) {
                 setArchives(result.archives);
             } else {
@@ -41,7 +34,6 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
             setLoading(false);
         }
     };
-
     const restoreItem = async (archiveFile: string, targetType: 'draft' | 'published') => {
         try {
             const response = await fetch('/api/context-workflow/archives', {
@@ -53,9 +45,7 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
                     targetType
                 })
             });
-
             const result = await response.json();
-            
             if (result.success) {
                 alert(`✅ ${result.message}`);
                 loadArchives(); // Refresh the list
@@ -67,18 +57,15 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
             alert('❌ Failed to restore item');
         }
     };
-
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleString();
     };
-
     const tabs = [
         { key: 'workspaces', label: '🏗️ Workspaces', count: archives.workspaces.length },
         { key: 'drafts', label: '📝 Drafts', count: archives.drafts.length },
         { key: 'removals', label: '🗑️ Removals', count: archives.removals.length },
         { key: 'other', label: '📦 Other', count: archives.other.length }
     ];
-
     const renderArchiveItem = (archive: any) => {
         if (archive.action === 'force_remove_item') {
             return (
@@ -96,10 +83,8 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
                 </div>
             );
         }
-
         const originalData = archive.original_data;
         const isWorkspace = archive.type === 'workspace';
-
         return (
             <div key={archive.filename} className="border border-gray-200 rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors">
                 <div className="flex justify-between items-start mb-3">
@@ -136,7 +121,6 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
                         )}
                     </div>
                 </div>
-                
                 {/* Context Dependencies */}
                 {archive.restoration_info?.dependencies?.length > 0 && (
                     <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
@@ -146,17 +130,14 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
             </div>
         );
     };
-
     if (!isOpen) return null;
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
-            <div 
+            <div
                 className="absolute inset-0 bg-black bg-opacity-50"
                 onClick={onClose}
             />
-            
             {/* Modal */}
             <div className="relative bg-white rounded-lg shadow-2xl w-[95vw] h-[90vh] max-w-6xl flex flex-col">
                 {/* Header */}
@@ -169,7 +150,6 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
                         ✕
                     </button>
                 </div>
-
                 {/* Content */}
                 <div className="flex-1 overflow-hidden flex flex-col">
                     {/* Tabs */}
@@ -188,7 +168,6 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
                             </button>
                         ))}
                     </div>
-
                     {/* Tab Content */}
                     <div className="flex-1 overflow-y-auto p-6">
                         {loading ? (
@@ -214,7 +193,6 @@ export function ArchiveManager({ isOpen, onClose }: ArchiveManagerProps) {
                         )}
                     </div>
                 </div>
-
                 {/* Footer */}
                 <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
                     <div className="flex justify-between items-center text-sm text-gray-600">

@@ -1,0 +1,17 @@
+{
+  "workspaceId": "{{WORKSPACE_ID}}",
+  "version": "1.0",
+  "generated": "{{TIMESTAMP}}",
+  "permissions": {{PERMISSIONS_JSON}},
+  "metadata": {
+    "generatedBy": "WorkspaceDocumentGenerator",
+    "configVersion": "1.0",
+    "lastValidated": "{{TIMESTAMP}}",
+    "validationStatus": "valid"
+  },
+  "auditLog": {
+    "created": "{{TIMESTAMP}}",
+    "lastModified": "{{TIMESTAMP}}",
+    "modifications": []
+  }
+}

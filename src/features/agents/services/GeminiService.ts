@@ -1,33 +1,20 @@
-/**
- * Gemini Service - Handles Gemini-specific AI interactions
- */
-
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { BaseAIService, AIResponse } from './BaseAIService';
-
 export class GeminiService extends BaseAIService {
-  
   getServiceName(): string {
     return 'Gemini';
   }
-
-  /**
-   * Check if Gemini CLI is available and working
-   */
   async checkAvailability(): Promise<boolean> {
     try {
       console.log(`[Gemini] Checking availability with --version...`);
-      
       return new Promise((resolve) => {
         const { spawn } = require('child_process');
-        const child = spawn('gemini', ['--version'], { 
+        const child = spawn('gemini', ['--version'], {
           stdio: ['pipe', 'pipe', 'pipe'],
-          timeout: 5000 
+          timeout: 5000
         });
-        
         let hasOutput = false;
-        
         child.stdout?.on('data', (data: Buffer) => {
           const output = data.toString().trim();
           console.log(`[Gemini] Version output:`, output);
@@ -35,23 +22,19 @@ export class GeminiService extends BaseAIService {
             hasOutput = true;
           }
         });
-
         child.stderr?.on('data', (data: Buffer) => {
           const output = data.toString().trim();
           console.log(`[Gemini] Version stderr:`, output);
         });
-
         child.on('close', (code) => {
           console.log(`[Gemini] Version check exit code:`, code);
           // For Gemini, we consider it available if the CLI exists (even with quota errors)
           resolve(hasOutput || code === 0);
         });
-
         child.on('error', (error) => {
           console.log(`[Gemini] Availability check spawn error:`, error.message);
           resolve(false);
         });
-
         // Fallback timeout
         setTimeout(() => {
           child.kill();
@@ -64,10 +47,6 @@ export class GeminiService extends BaseAIService {
       return false;
     }
   }
-
-  /**
-   * Process a single message with Gemini
-   */
   async processMessage(
     systemPrompt: string,
     userMessage: string,
@@ -75,27 +54,20 @@ export class GeminiService extends BaseAIService {
     workspaceId: string
   ): Promise<AIResponse> {
     console.log(`[Gemini] Processing message for workspace: ${workspaceId}`);
-    
     try {
       const workspacePath = path.join(this.workspaceBasePath, workspaceId);
-
       // Build conversation context
       const conversationContext = conversationHistory
         .slice(-8) // Keep last 8 messages for context (Gemini might have different limits)
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n\n');
-
       const fullPrompt = `${systemPrompt}
-
 CONVERSATION HISTORY:
 ${conversationContext}
-
 USER: ${userMessage}`;
-
       // Write prompt to temporary file to avoid command line length limits
       const tempPromptFile = path.join(workspacePath, '.gemini-temp-prompt.txt');
       await fs.writeFile(tempPromptFile, fullPrompt);
-
       console.log(`[Gemini] Spawning Gemini CLI process`);
       const { process: childProcess, cleanup } = await this.spawnProcess('gemini', [], {
         cwd: workspacePath,
@@ -105,22 +77,18 @@ USER: ${userMessage}`;
         },
         timeout: 120000 // 2 minutes
       });
-
       // Send prompt via stdin
       childProcess.stdin?.write(fullPrompt);
       childProcess.stdin?.end();
-
       return new Promise((resolve, reject) => {
         let response = '';
         let hasError = false;
         let modelSwitchDetected = false;
-
         childProcess.stdout?.on('data', (data: Buffer) => {
           const chunk = data.toString();
           response += chunk;
-          
           // Detect model switching messages (these are informational, not errors)
-          if (chunk.includes('slow response times') || 
+          if (chunk.includes('slow response times') ||
               chunk.includes('generating with gemini-flash') ||
               chunk.includes('switching to')) {
             console.log(`[Gemini] Model switch detected:`, chunk.trim());
@@ -129,79 +97,65 @@ USER: ${userMessage}`;
             console.log(`[Gemini] Response chunk received:`, chunk.substring(0, 100) + '...');
           }
         });
-
         childProcess.stderr?.on('data', (data: Buffer) => {
           const error = data.toString();
           console.warn(`[Gemini] Stderr:`, error);
-          
           // Don't treat model switching as errors
-          if (!error.includes('slow response times') && 
+          if (!error.includes('slow response times') &&
               !error.includes('generating with') &&
               (error.includes('error') || error.includes('failed'))) {
             hasError = true;
           }
         });
-
         childProcess.on('close', async (code) => {
           cleanup();
-          
           // Clean up temporary file
           try {
             await fs.unlink(tempPromptFile);
           } catch (e) {
             // Ignore cleanup errors
           }
-          
           console.log(`[Gemini] Process closed with code:`, code);
-          
           // Handle Gemini's specific exit patterns
           if (hasError || (code !== 0 && code !== null)) {
             reject(new Error(`Gemini CLI failed with code ${code}`));
             return;
           }
-
           if (response.trim()) {
             // Clean up model switching messages from the response
             const cleanedResponse = response
               .split('\n')
-              .filter(line => 
+              .filter(line =>
                 !line.includes('slow response times') &&
                 !line.includes('generating with gemini-flash') &&
                 !line.includes('switching to')
               )
               .join('\n')
               .trim();
-
             resolve({
               content: cleanedResponse || response.trim(),
-              metadata: { 
-                backend: 'gemini-cli', 
-                success: true, 
+              metadata: {
+                backend: 'gemini-cli',
+                success: true,
                 workspaceId,
-                modelSwitchDetected 
+                modelSwitchDetected
               }
             });
           } else {
             reject(new Error('Gemini returned empty response'));
           }
         });
-
         childProcess.on('error', (error) => {
           cleanup();
           console.error(`[Gemini] Process error:`, error);
           reject(error);
         });
       });
-
     } catch (error) {
       console.error(`[Gemini] Message processing failed:`, error);
       throw error;
     }
   }
-
-  /**
-   * Create streaming response from Gemini
-   */
   async createStream(
     systemPrompt: string,
     userMessage: string,
@@ -209,7 +163,6 @@ USER: ${userMessage}`;
     workspaceId: string
   ): Promise<AsyncIterable<string>> {
     console.log(`[Gemini] Creating stream for workspace: ${workspaceId}`);
-
     try {
       // For now, use non-streaming and simulate streaming
       const response = await this.processMessage(systemPrompt, userMessage, conversationHistory, workspaceId);

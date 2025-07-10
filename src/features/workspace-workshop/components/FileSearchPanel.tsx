@@ -1,19 +1,15 @@
 /**
  * File Search Panel Component
- * 
+ *
  * VSCode-style file explorer with live search filtering
  * Width: 280px, positioned next to workspace cards
  * Features: search, file tree, agent-modified indicators
  */
-
 'use client';
-
 import { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { useRef } from 'react';
-
 // Lazy load heavy file tree component
 const LazyFileTree = lazy(() => import('./FileTree').then(m => ({ default: m.FileTree })));
-
 interface FileItem {
   path: string;
   name: string;
@@ -24,35 +20,30 @@ interface FileItem {
   size?: number;
   lastModified?: Date;
 }
-
 interface FileSearchPanelProps {
   workspaceId: string;
   onFileSelect: (filePath: string) => void;
   onToggleWorkspaceView?: () => void;
 }
-
 export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceView }: FileSearchPanelProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [files, setFiles] = useState<FileItem[]>([]);
   const [filteredFiles, setFilteredFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'modified' | 'agent'>('all');
-  
   const panelRef = useRef<HTMLDivElement>(null);
   const [isInViewport, setIsInViewport] = useState(true); // Assume visible for now
-
+  const [panelWidth, setPanelWidth] = useState(320); // Start wider for better filename visibility
   // Load files from workspace
   useEffect(() => {
     const loadFiles = async () => {
       if (!isInViewport) return; // Only load when in viewport
-      
       try {
         setLoading(true);
         const response = await fetch(`/api/workspaces/${workspaceId}/files`);
         if (response.ok) {
           const data = await response.json();
           const allFiles: FileItem[] = [];
-          
           // Convert nested file structure to flat list
           const processFiles = (items: any[], basePath: string = '') => {
             items.forEach(item => {
@@ -63,7 +54,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
                   name: item.name,
                   extension,
                   relativePath: item.path.substring(1), // Remove leading /
-                  isModified: false, // TODO: Get from actual git status
+                  isModified: false,
                   agentModified: item.path.includes('/agents/') || item.path.includes('/feedback/'),
                   size: item.size,
                   lastModified: item.modified ? new Date(item.modified) : undefined
@@ -73,14 +64,12 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
               }
             });
           };
-          
           // Process all main folders
           if (data.files.context) processFiles([data.files.context]);
           if (data.files.target) processFiles([data.files.target]);
           if (data.files.feedback) processFiles([data.files.feedback]);
           if (data.files.agents) processFiles([data.files.agents]);
           if (data.files.other) processFiles(data.files.other);
-          
           setFiles(allFiles);
         } else {
           // Fallback to workspace structure mock data
@@ -93,33 +82,28 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
         setLoading(false);
       }
     };
-
     loadFiles();
   }, [workspaceId, isInViewport]);
-
   // Listen for file modification events
   useEffect(() => {
     const handleFileModified = (event: CustomEvent) => {
       const { filePath, modified } = event.detail;
-      setFiles(prevFiles => 
-        prevFiles.map(file => 
-          file.path === filePath 
+      setFiles(prevFiles =>
+        prevFiles.map(file =>
+          file.path === filePath
             ? { ...file, isModified: modified }
             : file
         )
       );
     };
-
     window.addEventListener('fileModified', handleFileModified as EventListener);
     return () => {
       window.removeEventListener('fileModified', handleFileModified as EventListener);
     };
   }, []);
-
   // Filter files based on search term and active filter
   const filteredAndSearched = useMemo(() => {
     let filtered = files;
-
     // Apply filter
     switch (activeFilter) {
       case 'modified':
@@ -131,27 +115,22 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       default:
         filtered = files;
     }
-
     // Apply search
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(file => 
+      filtered = filtered.filter(file =>
         file.name.toLowerCase().includes(term) ||
         file.relativePath.toLowerCase().includes(term)
       );
     }
-
     return filtered;
   }, [files, searchTerm, activeFilter]);
-
   // Convert filtered files to hierarchical structure for search results
   const buildSearchTree = (files: FileItem[]) => {
     const tree: any = {};
-    
     files.forEach(file => {
       const pathParts = file.relativePath.split('/');
       let current = tree;
-      
       pathParts.forEach((part, index) => {
         if (!current[part]) {
           current[part] = {
@@ -163,14 +142,11 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
         current = current[part].children;
       });
     });
-    
     return tree;
   };
-
   useEffect(() => {
     setFilteredFiles(filteredAndSearched);
   }, [filteredAndSearched]);
-
   const getWorkspaceFiles = (): FileItem[] => [
     // Context folder - imported context documents
     {
@@ -184,7 +160,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
     {
       path: '/workspace/context/api-docs.json',
       name: 'api-docs.json',
-      extension: 'json', 
+      extension: 'json',
       relativePath: 'context/api-docs.json',
       isModified: false,
       agentModified: false,
@@ -197,7 +173,6 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       isModified: false,
       agentModified: false,
     },
-    
     // Target folder - the actual project files/repository
     {
       path: '/workspace/target/src/components/Dashboard.tsx',
@@ -231,7 +206,6 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       isModified: true,
       agentModified: false,
     },
-    
     // Feedback folder - agent work and outputs
     {
       path: '/workspace/feedback/analysis-report.md',
@@ -249,7 +223,6 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       isModified: false,
       agentModified: true,
     },
-    
     // Agents folder - agent configurations and memories
     {
       path: '/workspace/agents/dev-assistant/config.json',
@@ -276,26 +249,19 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: false,
     },
   ];
-
   const getFilterCounts = () => ({
     modified: files.filter(f => f.isModified).length,
     agent: files.filter(f => f.agentModified).length,
   });
-
   const handleFileClick = (file: FileItem) => {
     onFileSelect(file.path);
   };
-
   const handleNewFile = () => {
-    // TODO: Implement new file creation
     console.log('Create new file');
   };
-
   const handleNewFolder = () => {
-    // TODO: Implement new folder creation
     console.log('Create new folder');
   };
-
   const handleRefresh = () => {
     // Force reload files
     setLoading(true);
@@ -304,19 +270,39 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
     setSearchTerm(prev => prev + ' ');
     setTimeout(() => setSearchTerm(prev => prev.trim()), 100);
   };
-
+  // Handle panel resizing
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = panelWidth;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - startX;
+      const newWidth = Math.max(250, Math.min(600, startWidth + deltaX)); // Min 250px, max 600px
+      setPanelWidth(newWidth);
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+  
   const counts = getFilterCounts();
-
   return (
-    <div 
-      ref={panelRef}
-      className="border-r flex flex-col"
-      style={{
-        width: '280px',
-        backgroundColor: 'var(--color-surface)',
-        borderColor: 'var(--color-border)',
-      }}
-    >
+    <div className="flex">
+      <div
+        ref={panelRef}
+        className="border-r flex flex-col"
+        style={{
+          width: `${panelWidth}px`,
+          backgroundColor: 'var(--color-surface)',
+          borderColor: 'var(--color-border)',
+        }}
+      >
       {/* Search Header */}
       <div className="p-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
         {/* Header Controls */}
@@ -335,7 +321,6 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
             </button>
           )}
         </div>
-        
         <div className="relative mb-3">
           <input
             type="text"
@@ -350,7 +335,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
             }}
           />
           {searchTerm && (
-            <button 
+            <button
               onClick={() => setSearchTerm('')}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs"
               style={{ color: 'var(--color-text-muted)' }}
@@ -359,7 +344,6 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
             </button>
           )}
         </div>
-        
         {/* Filter Buttons */}
         <div className="flex gap-1">
           <button
@@ -394,13 +378,12 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
           </button>
         </div>
       </div>
-
       {/* File List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="p-3 space-y-2">
             {[1, 2, 3, 4, 5].map(i => (
-              <div 
+              <div
                 key={i}
                 className="animate-pulse flex items-center gap-2"
               >
@@ -420,7 +403,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
                 </p>
               </div>
             ) : (
-              <SearchTreeView 
+              <SearchTreeView
                 tree={buildSearchTree(filteredFiles)}
                 searchTerm={searchTerm}
                 onFileSelect={handleFileClick}
@@ -437,14 +420,15 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
               ))}
             </div>
           }>
-            <LazyFileTree 
+            <LazyFileTree
               files={filteredFiles}
               onFileSelect={handleFileClick}
+              searchTerm={searchTerm}
+              workspaceId={workspaceId}
             />
           </Suspense>
         )}
       </div>
-
       {/* Quick Actions */}
       <div className="p-3 border-t space-y-2" style={{ borderColor: 'var(--color-border)' }}>
         <div className="flex gap-2">
@@ -483,15 +467,24 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
           </button>
         </div>
       </div>
+      </div>
+      {/* Resize Handle */}
+      <div
+        className="w-1 hover:w-2 cursor-col-resize bg-transparent hover:bg-blue-400 transition-all opacity-0 hover:opacity-100"
+        onMouseDown={handleResizeStart}
+        title="Drag to resize file explorer"
+        style={{
+          borderRight: '1px solid var(--color-border)',
+        }}
+      />
     </div>
   );
 }
-
 // File Search Result Component
-function FileSearchResult({ 
-  file, 
-  searchTerm, 
-  onSelect 
+function FileSearchResult({
+  file,
+  searchTerm,
+  onSelect
 }: {
   file: FileItem;
   searchTerm: string;
@@ -500,7 +493,7 @@ function FileSearchResult({
   const highlightMatch = (text: string, term: string) => {
     if (!term) return text;
     const regex = new RegExp(`(${term})`, 'gi');
-    return text.split(regex).map((part, i) => 
+    return text.split(regex).map((part, i) =>
       regex.test(part) ? (
         <mark key={i} style={{ backgroundColor: 'var(--color-accent-background, #fef3c7)', color: 'var(--color-accent, #d97706)' }}>
           {part}
@@ -508,7 +501,6 @@ function FileSearchResult({
       ) : part
     );
   };
-
   return (
     <div
       onClick={() => onSelect(file)}
@@ -526,7 +518,6 @@ function FileSearchResult({
           </div>
         </div>
       </div>
-      
       <div className="flex items-center gap-1">
         {file.agentModified && <span className="text-xs">🤖</span>}
         {file.isModified && <span className="text-xs text-orange-500">●</span>}
@@ -534,14 +525,13 @@ function FileSearchResult({
     </div>
   );
 }
-
 // Search Tree View Component
-function SearchTreeView({ 
-  tree, 
-  searchTerm, 
-  onFileSelect, 
-  expandedFolders, 
-  depth = 0 
+function SearchTreeView({
+  tree,
+  searchTerm,
+  onFileSelect,
+  expandedFolders,
+  depth = 0
 }: {
   tree: any;
   searchTerm: string;
@@ -550,7 +540,6 @@ function SearchTreeView({
   depth?: number;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
   const toggleExpanded = (path: string) => {
     setExpanded(prev => {
       const newSet = new Set(prev);
@@ -562,11 +551,10 @@ function SearchTreeView({
       return newSet;
     });
   };
-
   const highlightMatch = (text: string, term: string) => {
     if (!term) return text;
     const regex = new RegExp(`(${term})`, 'gi');
-    return text.split(regex).map((part, i) => 
+    return text.split(regex).map((part, i) =>
       regex.test(part) ? (
         <mark key={i} style={{ backgroundColor: 'var(--color-accent-background, #fef3c7)', color: 'var(--color-accent, #d97706)' }}>
           {part}
@@ -574,7 +562,6 @@ function SearchTreeView({
       ) : part
     );
   };
-
   return (
     <div className="space-y-1">
       {Object.entries(tree).map(([name, node]: [string, any]) => {
@@ -582,14 +569,13 @@ function SearchTreeView({
         const hasChildren = Object.keys(node.children).length > 0;
         const itemPath = `${depth}-${name}`;
         const isExpanded = expanded.has(itemPath) || searchTerm.length > 0; // Auto-expand during search
-
         return (
           <div key={itemPath}>
             <div
               className={`flex items-center gap-1 px-2 py-1 rounded cursor-pointer transition-colors ${
                 isFile ? 'hover:bg-opacity-80' : ''
               }`}
-              style={{ 
+              style={{
                 paddingLeft: `${8 + depth * 16}px`,
                 backgroundColor: isFile ? 'transparent' : 'var(--color-surface-elevated)',
               }}
@@ -609,12 +595,11 @@ function SearchTreeView({
                   {hasChildren ? (isExpanded ? '📂' : '📁') : '📁'}
                 </span>
               )}
-              
               {/* Expand/Collapse Arrow for folders */}
               {!isFile && hasChildren && (
-                <span 
+                <span
                   className="text-xs cursor-pointer transition-transform"
-                  style={{ 
+                  style={{
                     transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
                     color: 'var(--color-text-muted)'
                   }}
@@ -622,7 +607,6 @@ function SearchTreeView({
                   ▶
                 </span>
               )}
-              
               {/* Name */}
               <div className="flex-1 min-w-0">
                 <div className="text-sm truncate" style={{ color: 'var(--color-text-primary)' }}>
@@ -634,7 +618,6 @@ function SearchTreeView({
                   </div>
                 )}
               </div>
-              
               {/* File indicators */}
               {isFile && node.file && (
                 <div className="flex items-center gap-1">
@@ -643,7 +626,6 @@ function SearchTreeView({
                 </div>
               )}
             </div>
-            
             {/* Children */}
             {!isFile && hasChildren && isExpanded && (
               <SearchTreeView
@@ -660,7 +642,6 @@ function SearchTreeView({
     </div>
   );
 }
-
 // File Icon Component
 function FileIcon({ extension }: { extension: string }) {
   const getIcon = (ext: string) => {
@@ -682,6 +663,5 @@ function FileIcon({ extension }: { extension: string }) {
         return '📄';
     }
   };
-
   return <span className="text-sm">{getIcon(extension)}</span>;
 }

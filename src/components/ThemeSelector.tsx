@@ -1,22 +1,17 @@
 'use client';
-
 import React, { useState } from 'react';
 import { useTheme } from '@/lib/theme-context';
-
 interface ThemeSelectorProps {
   className?: string;
   compact?: boolean;
 }
-
 export function ThemeSelector({ className = '', compact = false }: ThemeSelectorProps) {
   const { currentTheme, setTheme, availableThemes } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-
   const handleThemeChange = (themeId: string) => {
     setTheme(themeId);
     setIsOpen(false);
   };
-
   if (compact) {
     return (
       <div className={`relative ${className}`}>
@@ -33,7 +28,6 @@ export function ThemeSelector({ className = '', compact = false }: ThemeSelector
           <span className="text-sm font-medium">{currentTheme.name}</span>
           <span className="text-xs">▼</span>
         </button>
-
         {isOpen && (
           <div
             className="absolute top-full left-0 mt-2 min-w-full bg-white border rounded-lg shadow-lg z-50"
@@ -63,8 +57,8 @@ export function ThemeSelector({ className = '', compact = false }: ThemeSelector
                   />
                   <div>
                     <div className="font-medium">{theme.name}</div>
-                    <div 
-                      className="text-xs" 
+                    <div
+                      className="text-xs"
                       style={{ color: 'var(--color-text-muted)' }}
                     >
                       {theme.description}
@@ -81,17 +75,15 @@ export function ThemeSelector({ className = '', compact = false }: ThemeSelector
       </div>
     );
   }
-
   // Full theme selector (for settings pages)
   return (
     <div className={`space-y-4 ${className}`}>
-      <h3 
+      <h3
         className="text-lg font-semibold"
         style={{ color: 'var(--color-text-primary)' }}
       >
         Choose Theme
       </h3>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.values(availableThemes).map((theme) => (
           <button
@@ -110,28 +102,28 @@ export function ThemeSelector({ className = '', compact = false }: ThemeSelector
             <div className="space-y-3">
               {/* Theme preview */}
               <div className="flex items-center gap-2">
-                <div 
+                <div
                   className="w-6 h-6 rounded border"
                   style={{
                     backgroundColor: theme.colors.primary,
                     borderColor: theme.colors.border,
                   }}
                 />
-                <div 
+                <div
                   className="w-6 h-6 rounded border"
                   style={{
                     backgroundColor: theme.colors.success,
                     borderColor: theme.colors.border,
                   }}
                 />
-                <div 
+                <div
                   className="w-6 h-6 rounded border"
                   style={{
                     backgroundColor: theme.colors.warning,
                     borderColor: theme.colors.border,
                   }}
                 />
-                <div 
+                <div
                   className="w-6 h-6 rounded border"
                   style={{
                     backgroundColor: theme.colors.error,
@@ -139,10 +131,9 @@ export function ThemeSelector({ className = '', compact = false }: ThemeSelector
                   }}
                 />
               </div>
-
               {/* Theme info */}
               <div>
-                <div 
+                <div
                   className="font-semibold text-base"
                   style={{ color: theme.colors.textPrimary }}
                 >
@@ -151,17 +142,16 @@ export function ThemeSelector({ className = '', compact = false }: ThemeSelector
                     <span className="ml-2 text-sm">✓ Active</span>
                   )}
                 </div>
-                <div 
+                <div
                   className="text-sm mt-1"
                   style={{ color: theme.colors.textSecondary }}
                 >
                   {theme.description}
                 </div>
               </div>
-
               {/* Sample UI elements */}
               <div className="space-y-2">
-                <div 
+                <div
                   className="text-xs px-2 py-1 rounded"
                   style={{
                     backgroundColor: theme.colors.primary,
@@ -170,7 +160,7 @@ export function ThemeSelector({ className = '', compact = false }: ThemeSelector
                 >
                   Primary Button
                 </div>
-                <div 
+                <div
                   className="text-xs px-2 py-1 rounded border"
                   style={{
                     backgroundColor: theme.colors.buttonSecondary,
@@ -185,35 +175,32 @@ export function ThemeSelector({ className = '', compact = false }: ThemeSelector
           </button>
         ))}
       </div>
-
       {/* Current theme details */}
-      <div 
+      <div
         className="p-4 rounded-lg border"
         style={{
           backgroundColor: 'var(--color-surface)',
           borderColor: 'var(--color-border)',
         }}
       >
-        <h4 
+        <h4
           className="font-medium mb-2"
           style={{ color: 'var(--color-text-primary)' }}
         >
           Current Theme: {currentTheme.name}
         </h4>
-        <p 
+        <p
           className="text-sm"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {currentTheme.description}
         </p>
-        
         {/* Theme-specific features */}
         {currentTheme.id === 'space-invaders' && (
           <div className="mt-2 text-xs text-green-400 font-mono">
             &gt; RETRO_TERMINAL_MODE.ENABLED
           </div>
         )}
-        
         {currentTheme.id === 'cerulean-city' && (
           <div className="mt-2 text-xs" style={{ color: 'var(--color-text-muted)' }}>
             🎮 Game Boy aesthetic activated

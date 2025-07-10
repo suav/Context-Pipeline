@@ -1,0 +1,857 @@
+{
+  "timestamp": "2025-07-10T05:40:05.317Z",
+  "totalFiles": 133,
+  "orphanedFiles": 84,
+  "orphans": [
+    {
+      "path": "src/app/api/credentials/test/route.ts",
+      "type": "test",
+      "safetyLevel": "SAFE",
+      "size": 9988,
+      "imports": 1,
+      "evidence": [
+        "✅ Test file - safe to remove if not needed"
+      ]
+    },
+    {
+      "path": "src/app/test/page.tsx",
+      "type": "test",
+      "safetyLevel": "SAFE",
+      "size": 204,
+      "imports": 0,
+      "evidence": [
+        "✅ Test file - safe to remove if not needed",
+        "⚠️ Has default export - might be dynamically imported"
+      ]
+    },
+    {
+      "path": "src/features/agents/services/AgentService.old.ts",
+      "type": "backup",
+      "safetyLevel": "SAFE",
+      "size": 53153,
+      "imports": 0,
+      "evidence": [
+        "✅ Clear backup file (.old extension)",
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/context-import/queries/query-templates.ts",
+      "type": "module",
+      "safetyLevel": "PROBABLY_SAFE",
+      "size": 9900,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/context-import/templates/jira-advanced-templates.ts",
+      "type": "module",
+      "safetyLevel": "PROBABLY_SAFE",
+      "size": 8918,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported",
+        "⚠️ Comments mention future/planned use"
+      ]
+    },
+    {
+      "path": "src/app/api/checkpoints/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 1367,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/commands/[id]/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 1423,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/commands/role-templates/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 652,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/commands/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 2981,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/config/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 9388,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/context-workflow/archives/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 9529,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/context-workflow/import/file/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 4871,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/context-workflow/import/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 3839,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/context-workflow/library/refresh/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 1568,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/context-workflow/library/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 15877,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/context-workflow/queries/[source]/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 1518,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/context-workflow/workspaces/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 2167,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/credentials/[id]/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 844,
+      "imports": 1,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/force-clear/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 7779,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/health/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 231,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/setup/env/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 9473,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspace-drafts/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 6591,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/[agentId]/checkpoints/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 6783,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 9691,
+      "imports": 1,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 13523,
+      "imports": 1,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/[agentId]/history/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 3007,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 5536,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/[agentId]/session-restore/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 4253,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/[agentId]/tool-approval/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 4221,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally",
+        "⚠️ Comments mention future/planned use"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 7999,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/agents/status/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 4823,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/feedback/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 8543,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/files/content/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 2961,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/files/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 4250,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/files/save/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 1816,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/git/branch/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 9151,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/git/diff/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 8915,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/git/status/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 7497,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/open-editor/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 2433,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/path/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 2867,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 2465,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/status/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 3824,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 12933,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 47683,
+      "imports": 0,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/api/workspaces/validate/route.ts",
+      "type": "api-route",
+      "safetyLevel": "RISKY",
+      "size": 4217,
+      "imports": 1,
+      "evidence": [
+        "⚠️ API route - might be called externally"
+      ]
+    },
+    {
+      "path": "src/app/layout.tsx",
+      "type": "next-page",
+      "safetyLevel": "RISKY",
+      "size": 502,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Next.js page - might be accessed via URL",
+        "⚠️ Has default export - might be dynamically imported",
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/app/page.tsx",
+      "type": "next-page",
+      "safetyLevel": "RISKY",
+      "size": 344,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Next.js page - might be accessed via URL",
+        "⚠️ Has default export - might be dynamically imported"
+      ]
+    },
+    {
+      "path": "src/app/workspace/[workspaceId]/agent/[agentId]/history/page.tsx",
+      "type": "next-page",
+      "safetyLevel": "RISKY",
+      "size": 10722,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Next.js page - might be accessed via URL",
+        "⚠️ Has default export - might be dynamically imported"
+      ]
+    },
+    {
+      "path": "src/app/workspace/[workspaceId]/feedback/page.tsx",
+      "type": "next-page",
+      "safetyLevel": "RISKY",
+      "size": 3317,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Next.js page - might be accessed via URL",
+        "⚠️ Has default export - might be dynamically imported"
+      ]
+    },
+    {
+      "path": "src/features/agents/components/terminal/TerminalModal.tsx",
+      "type": "component",
+      "safetyLevel": "RISKY",
+      "size": 22642,
+      "imports": 3,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/agents/types/commands.ts",
+      "type": "types",
+      "safetyLevel": "RISKY",
+      "size": 2299,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/features/agents/types/permissions.ts",
+      "type": "types",
+      "safetyLevel": "RISKY",
+      "size": 6995,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/features/context-import/components/ImportModal.tsx",
+      "type": "component",
+      "safetyLevel": "RISKY",
+      "size": 50105,
+      "imports": 1,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/context-import/types/email-types.ts",
+      "type": "types",
+      "safetyLevel": "RISKY",
+      "size": 6941,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/context-import/types/index.ts",
+      "type": "types",
+      "safetyLevel": "RISKY",
+      "size": 3199,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/components/CredentialsManager.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 28225,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/components/LazyWrapper.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 756,
+      "imports": 1,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/components/SetupWizard.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 21548,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/components/ThemeSelector.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 7424,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/agents/components/AgentOverlay.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 18160,
+      "imports": 1,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/agents/components/AgentStatusIndicator.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 3035,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/agents/components/CommandEditor.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 21590,
+      "imports": 1,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/agents/components/terminal/ToolApprovalOverlay.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 6760,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/agents/components/terminal/ToolExecutionTracker.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 5968,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/context-import/importers/EmailImporter.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 12665,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/features/context-import/importers/GitImporter.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 11775,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/features/context-import/importers/JiraImporter.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 15557,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/features/context-import/services/EmailProcessor.ts",
+      "type": "service",
+      "safetyLevel": "KEEP",
+      "size": 12083,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/features/context-library/components/LibraryStage.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 40586,
+      "imports": 3,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/git/components/GitDiffViewer.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 14884,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has default export - might be dynamically imported"
+      ]
+    },
+    {
+      "path": "src/features/git/services/BranchManager.ts",
+      "type": "service",
+      "safetyLevel": "KEEP",
+      "size": 13852,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/features/remote-deployment/services/DavinGitManager.ts",
+      "type": "service",
+      "safetyLevel": "KEEP",
+      "size": 18244,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/features/workspace-workshop/components/WorkspaceWorkshop.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 14380,
+      "imports": 6,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/workspaces/components/WorkspaceDrafts.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 20079,
+      "imports": 3,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported",
+        "⚠️ Comments mention future/planned use"
+      ]
+    },
+    {
+      "path": "src/features/workspaces/components/WorkspaceStage.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 12765,
+      "imports": 3,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/features/workspaces/services/WorkspaceDocumentGenerator.ts",
+      "type": "service",
+      "safetyLevel": "KEEP",
+      "size": 16148,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has default export - might be dynamically imported"
+      ]
+    },
+    {
+      "path": "src/lib/api-cache.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 1288,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/lib/config.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 569,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/lib/context-processor.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 4316,
+      "imports": 0,
+      "evidence": [
+        "❓ No clear evidence either way"
+      ]
+    },
+    {
+      "path": "src/lib/davin-deployment-config.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 5423,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/lib/global-config.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 12172,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has default export - might be dynamically imported"
+      ]
+    },
+    {
+      "path": "src/lib/loading-utils.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 4530,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/lib/theme-context.tsx",
+      "type": "component",
+      "safetyLevel": "KEEP",
+      "size": 10815,
+      "imports": 0,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    },
+    {
+      "path": "src/lib/validation-middleware.ts",
+      "type": "module",
+      "safetyLevel": "KEEP",
+      "size": 4522,
+      "imports": 1,
+      "evidence": [
+        "⚠️ Has named exports - might be selectively imported"
+      ]
+    }
+  ]
+}

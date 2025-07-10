@@ -1,0 +1,307 @@
+{
+  "timestamp": "2025-07-08T02:55:42.684Z",
+  "branches": {
+    "feature/permissions-system": {
+      "branch": "feature/permissions-system",
+      "patchesApplied": 7,
+      "issuesFixed": 5,
+      "filesModified": [
+        "scripts/analyze-app-simple.js",
+        "scripts/test-comprehensive.js",
+        "src/features/agents/storage/AgentStorageManager.ts",
+        "src/features/context-import/components/ImportModal.tsx",
+        "src/features/context-import/importers/JiraImporter.ts"
+      ],
+      "securityImprovements": [
+        {
+          "file": "scripts/analyze-app-simple.js",
+          "patch": "sensitiveConsoleLog",
+          "description": "Remove sensitive data from console logs",
+          "changes": [
+            "Removed sensitive console.log statement"
+          ]
+        },
+        {
+          "file": "scripts/test-comprehensive.js",
+          "patch": "sensitiveConsoleLog",
+          "description": "Remove sensitive data from console logs",
+          "changes": [
+            "Removed sensitive console.log statement",
+            "Removed sensitive console.log statement"
+          ]
+        },
+        {
+          "file": "src/features/agents/storage/AgentStorageManager.ts",
+          "patch": "unsafeRandom",
+          "description": "Replace Math.random() with crypto-secure alternatives",
+          "changes": [
+            "Replaced Math.random() with crypto.randomBytes()",
+            "Added crypto import"
+          ]
+        },
+        {
+          "file": "src/features/context-import/components/ImportModal.tsx",
+          "patch": "sensitiveConsoleLog",
+          "description": "Remove sensitive data from console logs",
+          "changes": [
+            "Removed sensitive console.log statement",
+            "Removed sensitive console.log statement"
+          ]
+        },
+        {
+          "file": "src/features/context-import/importers/JiraImporter.ts",
+          "patch": "sensitiveConsoleLog",
+          "description": "Remove sensitive data from console logs",
+          "changes": [
+            "Removed sensitive console.log statement"
+          ]
+        },
+        {
+          "file": "src/lib/security-config.ts",
+          "patch": "security-config",
+          "description": "Added comprehensive security configuration",
+          "changes": [
+            "Created centralized security configuration"
+          ]
+        },
+        {
+          "file": "src/lib/validation-middleware.ts",
+          "patch": "input-validation",
+          "description": "Added comprehensive input validation middleware",
+          "changes": [
+            "Created input validation system with sanitization"
+          ]
+        }
+      ],
+      "warnings": []
+    },
+    "feature/checkpoint-system": {
+      "branch": "feature/checkpoint-system",
+      "patchesApplied": 2,
+      "issuesFixed": 0,
+      "filesModified": [],
+      "securityImprovements": [
+        {
+          "file": "src/lib/security-config.ts",
+          "patch": "security-config",
+          "description": "Added comprehensive security configuration",
+          "changes": [
+            "Created centralized security configuration"
+          ]
+        },
+        {
+          "file": "src/lib/validation-middleware.ts",
+          "patch": "input-validation",
+          "description": "Added comprehensive input validation middleware",
+          "changes": [
+            "Created input validation system with sanitization"
+          ]
+        }
+      ],
+      "warnings": []
+    },
+    "feature/git-operations": {
+      "branch": "feature/git-operations",
+      "patchesApplied": 2,
+      "issuesFixed": 0,
+      "filesModified": [],
+      "securityImprovements": [
+        {
+          "file": "src/lib/security-config.ts",
+          "patch": "security-config",
+          "description": "Added comprehensive security configuration",
+          "changes": [
+            "Created centralized security configuration"
+          ]
+        },
+        {
+          "file": "src/lib/validation-middleware.ts",
+          "patch": "input-validation",
+          "description": "Added comprehensive input validation middleware",
+          "changes": [
+            "Created input validation system with sanitization"
+          ]
+        }
+      ],
+      "warnings": []
+    },
+    "feature/context-import": {
+      "branch": "feature/context-import",
+      "patchesApplied": 2,
+      "issuesFixed": 0,
+      "filesModified": [],
+      "securityImprovements": [
+        {
+          "file": "src/lib/security-config.ts",
+          "patch": "security-config",
+          "description": "Added comprehensive security configuration",
+          "changes": [
+            "Created centralized security configuration"
+          ]
+        },
+        {
+          "file": "src/lib/validation-middleware.ts",
+          "patch": "input-validation",
+          "description": "Added comprehensive input validation middleware",
+          "changes": [
+            "Created input validation system with sanitization"
+          ]
+        }
+      ],
+      "warnings": []
+    },
+    "feature/ui-improvements": {
+      "branch": "feature/ui-improvements",
+      "patchesApplied": 2,
+      "issuesFixed": 0,
+      "filesModified": [],
+      "securityImprovements": [
+        {
+          "file": "src/lib/security-config.ts",
+          "patch": "security-config",
+          "description": "Added comprehensive security configuration",
+          "changes": [
+            "Created centralized security configuration"
+          ]
+        },
+        {
+          "file": "src/lib/validation-middleware.ts",
+          "patch": "input-validation",
+          "description": "Added comprehensive input validation middleware",
+          "changes": [
+            "Created input validation system with sanitization"
+          ]
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "patchesApplied": 15,
+  "issuesFixed": 5,
+  "securityImprovements": [
+    {
+      "file": "scripts/analyze-app-simple.js",
+      "patch": "sensitiveConsoleLog",
+      "description": "Remove sensitive data from console logs",
+      "changes": [
+        "Removed sensitive console.log statement"
+      ]
+    },
+    {
+      "file": "scripts/test-comprehensive.js",
+      "patch": "sensitiveConsoleLog",
+      "description": "Remove sensitive data from console logs",
+      "changes": [
+        "Removed sensitive console.log statement",
+        "Removed sensitive console.log statement"
+      ]
+    },
+    {
+      "file": "src/features/agents/storage/AgentStorageManager.ts",
+      "patch": "unsafeRandom",
+      "description": "Replace Math.random() with crypto-secure alternatives",
+      "changes": [
+        "Replaced Math.random() with crypto.randomBytes()",
+        "Added crypto import"
+      ]
+    },
+    {
+      "file": "src/features/context-import/components/ImportModal.tsx",
+      "patch": "sensitiveConsoleLog",
+      "description": "Remove sensitive data from console logs",
+      "changes": [
+        "Removed sensitive console.log statement",
+        "Removed sensitive console.log statement"
+      ]
+    },
+    {
+      "file": "src/features/context-import/importers/JiraImporter.ts",
+      "patch": "sensitiveConsoleLog",
+      "description": "Remove sensitive data from console logs",
+      "changes": [
+        "Removed sensitive console.log statement"
+      ]
+    },
+    {
+      "file": "src/lib/security-config.ts",
+      "patch": "security-config",
+      "description": "Added comprehensive security configuration",
+      "changes": [
+        "Created centralized security configuration"
+      ]
+    },
+    {
+      "file": "src/lib/validation-middleware.ts",
+      "patch": "input-validation",
+      "description": "Added comprehensive input validation middleware",
+      "changes": [
+        "Created input validation system with sanitization"
+      ]
+    },
+    {
+      "file": "src/lib/security-config.ts",
+      "patch": "security-config",
+      "description": "Added comprehensive security configuration",
+      "changes": [
+        "Created centralized security configuration"
+      ]
+    },
+    {
+      "file": "src/lib/validation-middleware.ts",
+      "patch": "input-validation",
+      "description": "Added comprehensive input validation middleware",
+      "changes": [
+        "Created input validation system with sanitization"
+      ]
+    },
+    {
+      "file": "src/lib/security-config.ts",
+      "patch": "security-config",
+      "description": "Added comprehensive security configuration",
+      "changes": [
+        "Created centralized security configuration"
+      ]
+    },
+    {
+      "file": "src/lib/validation-middleware.ts",
+      "patch": "input-validation",
+      "description": "Added comprehensive input validation middleware",
+      "changes": [
+        "Created input validation system with sanitization"
+      ]
+    },
+    {
+      "file": "src/lib/security-config.ts",
+      "patch": "security-config",
+      "description": "Added comprehensive security configuration",
+      "changes": [
+        "Created centralized security configuration"
+      ]
+    },
+    {
+      "file": "src/lib/validation-middleware.ts",
+      "patch": "input-validation",
+      "description": "Added comprehensive input validation middleware",
+      "changes": [
+        "Created input validation system with sanitization"
+      ]
+    },
+    {
+      "file": "src/lib/security-config.ts",
+      "patch": "security-config",
+      "description": "Added comprehensive security configuration",
+      "changes": [
+        "Created centralized security configuration"
+      ]
+    },
+    {
+      "file": "src/lib/validation-middleware.ts",
+      "patch": "input-validation",
+      "description": "Added comprehensive input validation middleware",
+      "changes": [
+        "Created input validation system with sanitization"
+      ]
+    }
+  ],
+  "warnings": []
+}

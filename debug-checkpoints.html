@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Checkpoints</title>
+</head>
+<body>
+    <h1>Debug Checkpoints Loading</h1>
+    <div id="output"></div>
+    <script>
+        async function testCheckpoints() {
+            const output = document.getElementById('output');
+            
+            try {
+                output.innerHTML += '<p>Testing checkpoints API...</p>';
+                
+                const response = await fetch('/api/checkpoints');
+                output.innerHTML += `<p>Response status: ${response.status}</p>`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    output.innerHTML += `<p>Success: ${data.success}</p>`;
+                    output.innerHTML += `<p>Checkpoints count: ${data.checkpoints?.length || 0}</p>`;
+                    output.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    output.innerHTML += '<p>Response not OK</p>';
+                }
+            } catch (error) {
+                output.innerHTML += `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        testCheckpoints();
+    </script>
+</body>
+</html>

@@ -1,17 +1,10 @@
-/**
- * Workspace Validation API Route
- * Syncs draft workspace with published workspace and updates dynamic content
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-
 const execAsync = promisify(exec);
 const WORKSPACE_BASE_DIR = path.join(process.cwd(), 'storage', 'workspaces');
-
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ workspaceId: string }> }
@@ -19,7 +12,6 @@ export async function POST(
     try {
         const { workspaceId } = await params;
         const workspacePath = path.join(WORKSPACE_BASE_DIR, workspaceId);
-        
         // Check if workspace exists
         try {
             await fs.access(workspacePath);
@@ -29,13 +21,10 @@ export async function POST(
                 { status: 404 }
             );
         }
-        
         console.log(`🔄 Validating workspace: ${workspaceId}`);
-        
         // 1. Load draft workspace manifest from localStorage backup
         const draftsDir = path.join(process.cwd(), 'storage', 'workspace-drafts');
         let draftManifest = null;
-        
         try {
             // Look for the most recent draft file for this workspace
             const draftFiles = await fs.readdir(draftsDir);
@@ -43,7 +32,6 @@ export async function POST(
                 .filter(f => f.includes(workspaceId) && f.endsWith('.json'))
                 .sort()
                 .reverse();
-                
             if (workspaceDraftFiles.length > 0) {
                 const latestDraftFile = path.join(draftsDir, workspaceDraftFiles[0]);
                 const draftData = await fs.readFile(latestDraftFile, 'utf-8');
@@ -53,36 +41,30 @@ export async function POST(
         } catch (error) {
             console.warn('Could not load draft manifest:', error);
         }
-        
         if (!draftManifest) {
             return NextResponse.json(
                 { error: 'No draft manifest found for validation' },
                 { status: 400 }
             );
         }
-        
         // 2. Load current published workspace manifest
         const publishedManifestPath = path.join(workspacePath, 'context', 'context-manifest.json');
         let publishedManifest = null;
-        
         try {
             const manifestData = await fs.readFile(publishedManifestPath, 'utf-8');
             publishedManifest = JSON.parse(manifestData);
         } catch (error) {
             console.warn('Could not load published manifest:', error);
         }
-        
         // 3. Check for unauthorized changes (agent modifications)
         let unauthorizedChanges = [];
         if (publishedManifest) {
             // Compare context file count and check for unexpected modifications
             const expectedContextCount = draftManifest.context_items?.length || 0;
             const actualContextCount = publishedManifest.total_items || 0;
-            
             if (actualContextCount !== expectedContextCount) {
                 unauthorizedChanges.push(`Context item count mismatch: expected ${expectedContextCount}, found ${actualContextCount}`);
             }
-            
             // Check if context files have been modified (they should be read-only)
             for (const contextDir of ['tickets', 'files', 'data']) {
                 try {
@@ -101,8 +83,6 @@ export async function POST(
                 }
             }
         }
-        
-        // 4. Update dynamic context items in library (TODO: implement actual refresh logic)
         const dynamicUpdates = [];
         for (const item of draftManifest.context_items || []) {
             if (['jira', 'git', 'email'].includes(item.source)) {
@@ -113,10 +93,8 @@ export async function POST(
                 });
             }
         }
-        
         // 5. Copy updated draft context to published workspace
         const contextCopyResults = [];
-        
         // Clear existing context files
         for (const contextDir of ['tickets', 'files', 'data']) {
             const contextDirPath = path.join(workspacePath, 'context', contextDir);
@@ -131,12 +109,10 @@ export async function POST(
                 // Directory might not exist
             }
         }
-        
         // Copy context items from draft
         for (const item of draftManifest.context_items || []) {
             const fileName = `${item.source}-${item.id.replace(/[^a-zA-Z0-9]/g, '-')}-validated.json`;
             let contextDir = '';
-            
             if (item.source === 'jira') {
                 contextDir = 'tickets';
             } else if (item.source === 'git') {
@@ -144,9 +120,7 @@ export async function POST(
             } else {
                 contextDir = 'files';
             }
-            
             const itemPath = path.join(workspacePath, 'context', contextDir, fileName);
-            
             // Add validation metadata
             const itemWithValidation = {
                 ...item,
@@ -154,34 +128,28 @@ export async function POST(
                 validation_source: 'draft_sync',
                 workspace_id: workspaceId
             };
-            
             await fs.writeFile(itemPath, JSON.stringify(itemWithValidation, null, 2));
-            
             // Set read-only permissions
             try {
                 await fs.chmod(itemPath, 0o444);
             } catch (error) {
                 console.warn('Could not set read-only permissions:', error);
             }
-            
             contextCopyResults.push({
                 item_id: item.id,
                 file: fileName,
                 status: 'copied'
             });
         }
-        
         // 6. Handle writeable repositories - create workspace branches
         const repositoryResults = [];
-        const writeableItems = draftManifest.context_items?.filter((item: any) => 
+        const writeableItems = draftManifest.context_items?.filter((item: any) =>
             item.library_metadata?.clone_mode === 'writeable'
         ) || [];
-        
         for (const repoItem of writeableItems) {
             if (repoItem.source === 'git' && repoItem.content?.clone_url) {
                 const repoClonePath = path.join(workspacePath, 'target', 'repo-clone');
                 const workspaceBranch = `workspace-${workspaceId}`;
-                
                 try {
                     // Clone repository if not already cloned
                     try {
@@ -191,14 +159,11 @@ export async function POST(
                         console.log('Cloning repository...');
                         await execAsync(`git clone ${repoItem.content.clone_url} "${repoClonePath}"`);
                     }
-                    
                     // Create and switch to workspace branch
                     process.chdir(repoClonePath);
-                    
                     try {
                         // Fetch latest changes
                         await execAsync('git fetch origin');
-                        
                         // Check if workspace branch already exists
                         try {
                             await execAsync(`git checkout ${workspaceBranch}`);
@@ -209,14 +174,12 @@ export async function POST(
                             await execAsync(`git checkout -b ${workspaceBranch} origin/${mainBranch}`);
                             console.log(`Created new branch: ${workspaceBranch} from ${mainBranch}`);
                         }
-                        
                         repositoryResults.push({
                             repo_url: repoItem.content.clone_url,
                             workspace_branch: workspaceBranch,
                             status: 'ready',
                             clone_path: repoClonePath
                         });
-                        
                     } catch (branchError) {
                         console.error('Branch operation failed:', branchError);
                         repositoryResults.push({
@@ -226,7 +189,6 @@ export async function POST(
                             error: (branchError as Error).message
                         });
                     }
-                    
                 } catch (cloneError) {
                     console.error('Repository clone failed:', cloneError);
                     repositoryResults.push({
@@ -241,7 +203,6 @@ export async function POST(
                 }
             }
         }
-        
         // 7. Update workspace manifests
         const newContextManifest = {
             workspace_id: workspaceId,
@@ -269,9 +230,7 @@ export async function POST(
                 repositories_processed: repositoryResults.length
             }
         };
-        
         await fs.writeFile(publishedManifestPath, JSON.stringify(newContextManifest, null, 2));
-        
         // Update workspace metadata
         const workspaceMetadataPath = path.join(workspacePath, 'workspace.json');
         try {
@@ -283,7 +242,6 @@ export async function POST(
         } catch (error) {
             console.warn('Could not update workspace metadata:', error);
         }
-        
         return NextResponse.json({
             success: true,
             workspace_id: workspaceId,
@@ -302,7 +260,6 @@ export async function POST(
                 repository_results: repositoryResults
             }
         });
-        
     } catch (error) {
         console.error('Workspace validation failed:', error);
         return NextResponse.json(

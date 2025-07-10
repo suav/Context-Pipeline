@@ -1,18 +1,13 @@
 /**
  * Simple lazy loading wrapper for testing
  */
-
 'use client';
-
 import React, { Suspense, lazy } from 'react';
-
 // Lazy load our test component
 const LazyTestComponent = lazy(() => import('./LazyTestComponent'));
-
 interface LazyWrapperProps {
   show: boolean;
 }
-
 export function LazyWrapper({ show }: LazyWrapperProps) {
   if (!show) {
     return (
@@ -21,7 +16,6 @@ export function LazyWrapper({ show }: LazyWrapperProps) {
       </div>
     );
   }
-
   return (
     <Suspense fallback={
       <div className="p-4 border border-blue-300 rounded animate-pulse">

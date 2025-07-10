@@ -2,24 +2,19 @@
  * Terminal Modal Component
  * Main terminal interface for agent conversations
  */
-
 'use client';
-
 import { useState, useEffect } from 'react';
 import { ChatInterface } from './ChatInterface';
 import { CommandPalette } from '../CommandPalette';
 import { CommandInjector } from '../CommandInjector';
-
 // Feature flag - set to false to disable agents
 const AGENTS_ENABLED = true;
-
 interface TerminalModalProps {
   isOpen: boolean;
   workspaceId: string;
   selectedAgentId?: string;
   onClose: () => void;
 }
-
 interface AgentTab {
   agentId: string;
   name: string;
@@ -30,7 +25,6 @@ interface AgentTab {
   isCloseable: boolean;
   model?: 'claude' | 'gemini';
 }
-
 export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }: TerminalModalProps) {
   const [agentTabs, setAgentTabs] = useState<AgentTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(selectedAgentId || null);
@@ -40,22 +34,18 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
   const [showAgentCreator, setShowAgentCreator] = useState(false);
   const [agentTitle, setAgentTitle] = useState('');
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini'>('claude');
-
   useEffect(() => {
     if (isOpen && AGENTS_ENABLED) {
       loadAgentTabs();
     }
   }, [isOpen, workspaceId]);
-
   useEffect(() => {
     if (selectedAgentId) {
       setActiveTabId(selectedAgentId);
     }
   }, [selectedAgentId]);
-
   const loadAgentTabs = async () => {
     if (!AGENTS_ENABLED) return;
-    
     setIsLoading(true);
     try {
       const response = await fetch(`/api/workspaces/${workspaceId}/agents`);
@@ -67,12 +57,11 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
           title: agent.title,
           color: agent.color,
           status: agent.status,
-          unreadCount: 0, // TODO: Implement unread message counting
+          unreadCount: 0,
           isCloseable: true,
           model: agent.preferred_model || 'claude'
         }));
         setAgentTabs(tabs);
-        
         if (tabs.length > 0 && !activeTabId) {
           setActiveTabId(tabs[0].agentId);
         }
@@ -83,38 +72,30 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
       setIsLoading(false);
     }
   };
-
   const handleTabSelect = (agentId: string) => {
     setActiveTabId(agentId);
   };
-
   const handleTabClose = (agentId: string) => {
     if (!AGENTS_ENABLED) return;
-    
     const updatedTabs = agentTabs.filter(tab => tab.agentId !== agentId);
     setAgentTabs(updatedTabs);
-    
     if (activeTabId === agentId) {
       setActiveTabId(updatedTabs.length > 0 ? updatedTabs[0].agentId : null);
     }
   };
-
   const handleNewAgent = () => {
     if (!AGENTS_ENABLED) {
       alert('🚧 Agent system coming soon!');
       return;
     }
-    
     // Show agent creator dialog
     setAgentTitle('');
     setSelectedModel('claude');
     setShowAgentCreator(true);
   };
-
   const handleCommandSelect = async (command: string) => {
     console.log('Creating agent with startup command:', command);
     setShowCommandInjector(false);
-    
     try {
       // Create the agent
       const agentName = agentTitle.trim() || `Agent ${Date.now().toString().slice(-4)}`;
@@ -129,22 +110,18 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
           preferredModel: selectedModel
         })
       });
-
       if (response.ok) {
         const data = await response.json();
         const newAgentId = data.agent.id;
-        
         // Reload agent tabs
         await loadAgentTabs();
-        
         // Switch to the new agent tab
         setActiveTabId(newAgentId);
-        
         // Inject the startup command after a delay
         setTimeout(() => {
           const event = new CustomEvent('injectCommand', {
-            detail: { 
-              command, 
+            detail: {
+              command,
               autoSend: true,
               targetAgentId: newAgentId
             }
@@ -158,7 +135,6 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
           const errorJson = JSON.parse(errorData);
           errorMessage = errorJson.error || errorData;
         } catch {}
-        
         if (errorMessage.includes('Maximum of')) {
           alert(`${errorMessage}\n\nPlease close an existing agent tab before creating a new one.`);
         } else {
@@ -170,34 +146,28 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
       alert('Failed to create agent');
     }
   };
-
   const handleClose = () => {
     onClose();
   };
-
   const handleAgentNameUpdate = (agentId: string, newName: string) => {
-    setAgentTabs(prev => prev.map(tab => 
-      tab.agentId === agentId 
+    setAgentTabs(prev => prev.map(tab =>
+      tab.agentId === agentId
         ? { ...tab, name: newName }
         : tab
     ));
   };
-
   const handleOpenVSCode = async (agentId: string) => {
     try {
       const workspacePath = `/mnt/c/Users/EnricoPatarini/Development Projects/Second-Rebuild/context-pipeline/storage/workspaces/${workspaceId}`;
-      
       // Show the user the workspace path and give them options
       const message = `Workspace Path:\n${workspacePath}\n\nChoose how to open:`;
       const options = [
         'Copy path to clipboard',
-        'Try VS Code protocol', 
+        'Try VS Code protocol',
         'Try code-server (localhost:8080)',
         'Cancel'
       ];
-      
       const choice = prompt(`${message}\n\n${options.map((opt, i) => `${i + 1}. ${opt}`).join('\n')}\n\nEnter choice (1-4):`);
-      
       switch (choice) {
         case '1':
           await navigator.clipboard.writeText(workspacePath);
@@ -219,50 +189,41 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
       alert(`Workspace path:\n${workspacePath}\n\nOpen this folder in your preferred editor.`);
     }
   };
-
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!isOpen) return;
-      
       // Escape to close
       if (event.key === 'Escape') {
         handleClose();
       }
-      
       // Ctrl+T for new agent
       if (event.ctrlKey && event.key === 't') {
         event.preventDefault();
         handleNewAgent();
       }
-      
       // Ctrl+W to close active tab
       if (event.ctrlKey && event.key === 'w' && activeTabId) {
         event.preventDefault();
         handleTabClose(activeTabId);
       }
-      
       // Ctrl+P for command palette
       if (event.ctrlKey && event.key === 'p') {
         event.preventDefault();
         setShowCommandPalette(true);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, activeTabId]);
-
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black bg-opacity-50"
         onClick={handleClose}
       />
-      
       {/* Modal - Terminal Style */}
       <div className="relative terminal-modal rounded shadow-2xl w-[90vw] h-[80vh] max-h-[800px] flex flex-col">
         {/* Header - Terminal Style */}
@@ -281,37 +242,50 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
             </button>
           </div>
         </div>
-
         {/* Tab Bar - Terminal Style - Fixed at top */}
         <div className="flex-shrink-0 flex items-center gap-1 px-2 py-1 border-b terminal-container">
           {agentTabs.map((tab, index) => (
             <div
               key={tab.agentId}
-              className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors font-mono text-xs min-h-[48px] ${
+              className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors font-mono text-xs min-h-[48px] border`}
+              style={
                 activeTabId === tab.agentId
-                  ? 'bg-gray-700 text-green-400 border border-gray-600'
-                  : 'bg-gray-900 hover:bg-gray-700 text-gray-400 border border-gray-700'
-              }`}
+                  ? {
+                      backgroundColor: 'var(--color-primary-alpha)',
+                      color: 'var(--color-text-primary)',
+                      borderColor: 'var(--color-primary)'
+                    }
+                  : {
+                      backgroundColor: 'var(--color-surface)',
+                      color: 'var(--color-text-secondary)',
+                      borderColor: 'var(--color-border)'
+                    }
+              }
               onClick={() => handleTabSelect(tab.agentId)}
             >
-              <span className="text-gray-500">{index + 1}:</span>
+              <span style={{ color: 'var(--color-text-muted)' }}>{index + 1}:</span>
               <div className="flex-1 min-w-0">
                 <div className="max-w-[120px] truncate font-medium">
                   {tab.name}
-                  {tab.title && <span className="text-blue-400 ml-1">({tab.title})</span>}
+                  {tab.title && <span style={{ color: 'var(--color-primary)' }} className="ml-1">({tab.title})</span>}
                 </div>
-                <div className="text-[10px] text-gray-500 ml-1">
+                <div className="text-[10px] ml-1" style={{ color: 'var(--color-text-muted)' }}>
                   {tab.model === 'claude' ? '🧠 Claude' : '💎 Gemini'}
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <div className={`w-1.5 h-1.5 rounded-full ${
-                  tab.status === 'active' ? 'bg-green-400 animate-pulse' :
-                  tab.status === 'error' ? 'bg-red-400' :
-                  'bg-gray-600'
-                }`} />
+                <div 
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    backgroundColor: 
+                      tab.status === 'active' ? 'var(--color-success)' :
+                      tab.status === 'error' ? 'var(--color-danger)' :
+                      'var(--color-text-muted)',
+                    animation: tab.status === 'active' ? 'pulse 2s infinite' : 'none'
+                  }}
+                />
                 {tab.unreadCount > 0 && (
-                  <span className="text-yellow-400">({tab.unreadCount})</span>
+                  <span style={{ color: 'var(--color-warning)' }}>({tab.unreadCount})</span>
                 )}
                 {tab.isCloseable && (
                   <button
@@ -319,7 +293,10 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
                       e.stopPropagation();
                       handleTabClose(tab.agentId);
                     }}
-                    className="text-gray-500 hover:text-red-400 ml-1"
+                    className="ml-1 transition-colors"
+                    style={{ color: 'var(--color-text-muted)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-danger)'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
                   >
                     x
                   </button>
@@ -327,21 +304,45 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
               </div>
             </div>
           ))}
-          
           <button
             onClick={handleNewAgent}
-            className="flex items-center gap-1 px-3 py-1 text-xs font-mono text-gray-500 hover:text-green-400 hover:bg-gray-700 border border-gray-700 transition-colors"
+            className="flex items-center gap-1 px-3 py-1 text-xs font-mono transition-colors border"
+            style={{
+              color: 'var(--color-text-secondary)',
+              borderColor: 'var(--color-border)',
+              backgroundColor: 'var(--color-surface)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--color-success)';
+              e.currentTarget.style.backgroundColor = 'var(--color-surface-elevated)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--color-text-secondary)';
+              e.currentTarget.style.backgroundColor = 'var(--color-surface)';
+            }}
             title="New Agent (Ctrl+T)"
           >
             <span>[+]</span>
             {!AGENTS_ENABLED && <span className="text-xs">🚧</span>}
           </button>
-          
           {/* VS Code Web Button */}
           {activeTabId && (
             <button
               onClick={() => handleOpenVSCode(activeTabId)}
-              className="flex items-center gap-1 px-3 py-1 text-xs font-mono text-gray-500 hover:text-blue-400 hover:bg-gray-700 border border-gray-700 transition-colors"
+              className="flex items-center gap-1 px-3 py-1 text-xs font-mono transition-colors border"
+              style={{
+                color: 'var(--color-text-secondary)',
+                borderColor: 'var(--color-border)',
+                backgroundColor: 'var(--color-surface)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-primary)';
+                e.currentTarget.style.backgroundColor = 'var(--color-surface-elevated)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-secondary)';
+                e.currentTarget.style.backgroundColor = 'var(--color-surface)';
+              }}
               title="Open VS Code Web in Workspace"
             >
               <span>📝</span>
@@ -349,7 +350,6 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
             </button>
           )}
         </div>
-
         {/* Content Area - Flexible container */}
         <div className="flex-1 flex flex-col min-h-0">
           {!AGENTS_ENABLED ? (
@@ -422,10 +422,15 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
             </div>
           )}
         </div>
-
         {/* Footer with keyboard shortcuts - Terminal Style */}
-        <div className="px-4 py-1 border-t border-gray-700 bg-gray-800">
-          <div className="text-xs text-gray-500 font-mono flex justify-center gap-4">
+        <div 
+          className="px-4 py-1 border-t" 
+          style={{ 
+            borderColor: 'var(--color-border)', 
+            backgroundColor: 'var(--color-surface-elevated)' 
+          }}
+        >
+          <div className="text-xs font-mono flex justify-center gap-4" style={{ color: 'var(--color-text-muted)' }}>
             <span>^T: New Agent</span>
             <span>^W: Close Tab</span>
             <span>^L: Clear</span>
@@ -434,7 +439,6 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
           </div>
         </div>
       </div>
-
       {/* Command Palette */}
       {showCommandPalette && (
         <CommandPalette
@@ -442,11 +446,10 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
           onClose={() => setShowCommandPalette(false)}
         />
       )}
-
       {/* Agent Creator Dialog - Always show name/model box */}
       {showAgentCreator && (
         <div className="absolute inset-0 z-60 flex items-center justify-center command-popup">
-          <div 
+          <div
             className="absolute inset-0 bg-black bg-opacity-75"
             onClick={() => setShowAgentCreator(false)}
           />
@@ -514,11 +517,10 @@ export function TerminalModal({ isOpen, workspaceId, selectedAgentId, onClose }:
           </div>
         </div>
       )}
-
       {/* Command Injector for New Agent - Terminal Style */}
       {showCommandInjector && (
         <div className="absolute inset-0 z-60 flex items-center justify-center command-container">
-          <div 
+          <div
             className="absolute inset-0 bg-black bg-opacity-75"
             onClick={() => setShowCommandInjector(false)}
           />

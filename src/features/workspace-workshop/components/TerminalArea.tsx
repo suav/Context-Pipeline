@@ -1,45 +1,41 @@
 /**
  * Terminal Area Component
- * 
+ *
  * Multi-tab terminal interface (33-50% height)
  * Features: Agent chat, system terminal, git interface
  */
-
 'use client';
-
 import { useState, useEffect, Suspense, lazy } from 'react';
-
 // Lazy load existing terminal components
 const LazyChatInterface = lazy(() => import('@/features/agents/components/terminal/ChatInterface').then(m => ({ default: m.ChatInterface })));
-
 interface Agent {
   id: string;
   name: string;
   color: string;
   status: 'active' | 'idle' | 'offline';
 }
-
 interface TerminalAreaProps {
   workspaceId: string;
   agents: Agent[];
   activeAgent: string;
   onAgentSelect: (agentId: string) => void;
 }
-
-export function TerminalArea({ workspaceId, agents, activeAgent, onAgentSelect }: TerminalAreaProps) {
+export function TerminalArea({ 
+  workspaceId, 
+  agents, 
+  activeAgent, 
+  onAgentSelect
+}: TerminalAreaProps) {
   const [activeTab, setActiveTab] = useState<string>(activeAgent);
-
   // Update local tab when activeAgent changes
   useEffect(() => {
     setActiveTab(activeAgent);
   }, [activeAgent]);
-
   const currentAgent = agents.find(agent => agent.id === activeTab);
-
   return (
-    <div className="h-full flex flex-col">
-      {/* Terminal Content */}
-      <div className="flex-1 overflow-hidden">
+    <div className="h-full w-full flex flex-col">
+      {/* Terminal Content - Header removed, toggle buttons now in FileTabs */}
+      <div className="flex-1 w-full overflow-hidden">
         {agents.some(agent => agent.id === activeTab) && currentAgent && (
           <Suspense fallback={
             <div className="h-full flex items-center justify-center">
@@ -49,7 +45,7 @@ export function TerminalArea({ workspaceId, agents, activeAgent, onAgentSelect }
               </div>
             </div>
           }>
-            <LazyChatInterface 
+            <LazyChatInterface
               agentId={currentAgent.id}
               workspaceId={workspaceId}
               agentName={currentAgent.name}
@@ -58,11 +54,9 @@ export function TerminalArea({ workspaceId, agents, activeAgent, onAgentSelect }
             />
           </Suspense>
         )}
-        
         {activeTab === 'system' && (
           <SystemTerminal />
         )}
-        
         {activeTab === 'git' && (
           <GitInterface workspaceId={workspaceId} />
         )}
@@ -70,7 +64,6 @@ export function TerminalArea({ workspaceId, agents, activeAgent, onAgentSelect }
     </div>
   );
 }
-
 // System Terminal Component
 function SystemTerminal() {
   const [command, setCommand] = useState('');
@@ -85,7 +78,6 @@ function SystemTerminal() {
     'drwxr-xr-x  4 user user  128 Jan  1 12:00 src',
     '$ ',
   ]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (command.trim()) {
@@ -93,9 +85,8 @@ function SystemTerminal() {
       setCommand('');
     }
   };
-
   return (
-    <div 
+    <div
       className="h-full p-4 font-mono text-sm"
       style={{
         backgroundColor: '#000000',
@@ -110,7 +101,6 @@ function SystemTerminal() {
             </div>
           ))}
         </div>
-        
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <span>$</span>
           <input
@@ -127,7 +117,6 @@ function SystemTerminal() {
     </div>
   );
 }
-
 // Git Interface Component
 function GitInterface({ workspaceId }: { workspaceId: string }) {
   const [gitData, setGitData] = useState({
@@ -143,9 +132,8 @@ function GitInterface({ workspaceId }: { workspaceId: string }) {
       { hash: 'ghi789', message: 'Initial commit', author: 'Developer', time: '1d ago' },
     ],
   });
-
   return (
-    <div 
+    <div
       className="h-full p-4 overflow-y-auto"
       style={{
         backgroundColor: 'var(--color-surface)',
@@ -161,7 +149,6 @@ function GitInterface({ workspaceId }: { workspaceId: string }) {
             <span>{gitData.branch}</span>
           </div>
         </div>
-
         {/* Status */}
         <div>
           <h3 className="text-sm font-medium mb-2">Working Directory Status</h3>
@@ -177,7 +164,6 @@ function GitInterface({ workspaceId }: { workspaceId: string }) {
                 ))}
               </div>
             )}
-            
             {gitData.status.untracked.length > 0 && (
               <div>
                 <div className="font-medium text-red-500">Untracked files:</div>
@@ -190,9 +176,8 @@ function GitInterface({ workspaceId }: { workspaceId: string }) {
               </div>
             )}
           </div>
-          
           <div className="flex gap-2 mt-3">
-            <button 
+            <button
               className="px-3 py-1 text-xs rounded"
               style={{
                 backgroundColor: 'var(--color-primary)',
@@ -201,7 +186,7 @@ function GitInterface({ workspaceId }: { workspaceId: string }) {
             >
               Stage All
             </button>
-            <button 
+            <button
               className="px-3 py-1 text-xs rounded"
               style={{
                 backgroundColor: 'var(--color-surface-elevated)',
@@ -212,13 +197,12 @@ function GitInterface({ workspaceId }: { workspaceId: string }) {
             </button>
           </div>
         </div>
-
         {/* Recent Commits */}
         <div>
           <h3 className="text-sm font-medium mb-2">Recent Commits</h3>
           <div className="space-y-2">
             {gitData.commits.map(commit => (
-              <div 
+              <div
                 key={commit.hash}
                 className="p-2 rounded text-sm"
                 style={{ backgroundColor: 'var(--color-surface-elevated)' }}

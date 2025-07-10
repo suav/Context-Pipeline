@@ -1,38 +1,27 @@
-/**
- * Global Command Library
- * Predefined commands with context-aware prompting
- */
-
 export interface Command {
   id: string;
   name: string;                   // Display name (e.g., "Investigate")
   keyword: string;               // Dropdown keyword (e.g., "investigate")
   category: string;              // "analysis", "development", "testing", etc.
-  
   // Context-aware prompting
   base_prompt: string;           // Core command prompt
   context_adaptations: {
     [context_type: string]: string;  // Additional context for jira, git, etc.
   };
-  
   // Command configuration
   requires_approval: boolean;
   estimated_duration: string;    // "5-10 minutes", "30+ minutes"
   follow_up_commands: string[];  // Suggested next commands
-  
   // Usage tracking
   usage_count: number;
   success_rate: number;
   average_completion_time_ms: number;
-  
   // Permissions required
   required_permissions: string[];
-  
   // User customization
   user_modified: boolean;
   custom_prompt_additions?: string[];
 }
-
 export interface CommandCategory {
   id: string;
   name: string;
@@ -41,12 +30,11 @@ export interface CommandCategory {
   commands: string[];            // Command IDs in this category
   recommended_for: string[];     // Context types this category works well for
 }
-
 export interface CommandLibrary {
-  commands: Record<string, Command>;
   categories: CommandCategory[];
-  user_custom_commands: Record<string, Command>;
-  workspace_command_overrides: Record<string, Partial<Command>>;
+  commands: Command[];
+  startup_commands: string[];
+  quick_access: string[];
 }
 
 // Startup Commands (for new agents)
@@ -129,9 +117,28 @@ export const STARTUP_COMMANDS: Command[] = [
     average_completion_time_ms: 1200000,
     required_permissions: ["read_context", "read_target", "write_target"],
     user_modified: false
+  },
+  {
+    id: "security_audit",
+    name: "Security Audit",
+    keyword: "security_audit", 
+    category: "analysis",
+    base_prompt: "Perform a comprehensive security audit of this codebase, identifying potential vulnerabilities, security best practices violations, and recommendations for improvement.",
+    context_adaptations: {
+      git: "Focus on code patterns, dependency security, and authentication mechanisms.",
+      jira: "Consider security requirements mentioned in tickets.",
+      files: "Review configuration files for security misconfigurations."
+    },
+    requires_approval: false,
+    estimated_duration: "15-25 minutes",
+    follow_up_commands: ["implement", "document", "test"],
+    usage_count: 0,
+    success_rate: 0.92,
+    average_completion_time_ms: 1200000,
+    required_permissions: ["read_context", "read_target"],
+    user_modified: false
   }
 ];
-
 // Reply Commands (for ongoing conversations)
 export const REPLY_COMMANDS: Command[] = [
   {
@@ -247,9 +254,27 @@ export const REPLY_COMMANDS: Command[] = [
     average_completion_time_ms: 600000,
     required_permissions: ["read_context", "read_target"],
     user_modified: false
+  },
+  {
+    id: "optimize_performance",
+    name: "Optimize Performance",
+    keyword: "optimize",
+    category: "development",
+    base_prompt: "Analyze and optimize the performance of the code we've been working on, identifying bottlenecks and implementing improvements.",
+    context_adaptations: {
+      git: "Consider performance patterns in the existing codebase.",
+      jira: "Focus on performance requirements mentioned in tickets."
+    },
+    requires_approval: true,
+    estimated_duration: "25-35 minutes",
+    follow_up_commands: ["test", "benchmark", "review"],
+    usage_count: 0,
+    success_rate: 0.85,
+    average_completion_time_ms: 1600000,
+    required_permissions: ["read_context", "read_target", "write_target"],
+    user_modified: false
   }
 ];
-
 // Command Categories
 export const COMMAND_CATEGORIES: CommandCategory[] = [
   {
@@ -277,7 +302,6 @@ export const COMMAND_CATEGORIES: CommandCategory[] = [
     recommended_for: ["jira", "git", "files"]
   }
 ];
-
 // Build the complete command library
 export const COMMAND_LIBRARY: CommandLibrary = {
   commands: [...STARTUP_COMMANDS, ...REPLY_COMMANDS].reduce((acc, cmd) => {

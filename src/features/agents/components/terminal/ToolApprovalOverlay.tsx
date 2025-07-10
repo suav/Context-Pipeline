@@ -1,17 +1,14 @@
 /**
  * Tool Approval Overlay Component
- * 
+ *
  * Provides Claude Code-like tool approval interface with:
  * - Command synopsis showing what will happen
- * - Approval/denial controls  
+ * - Approval/denial controls
  * - Risk assessment
  * - Tool execution feedback
  */
-
 'use client';
-
 import { useState, useEffect } from 'react';
-
 interface ToolUse {
   id: string;
   name: string;
@@ -19,7 +16,6 @@ interface ToolUse {
   description?: string;
   riskLevel?: 'low' | 'medium' | 'high';
 }
-
 interface ToolApprovalOverlayProps {
   toolUse: ToolUse | null;
   onApprove: (toolId: string, remember?: boolean) => void;
@@ -27,18 +23,15 @@ interface ToolApprovalOverlayProps {
   onClose: () => void;
   isVisible: boolean;
 }
-
-export function ToolApprovalOverlay({ 
-  toolUse, 
-  onApprove, 
-  onDeny, 
-  onClose, 
-  isVisible 
+export function ToolApprovalOverlay({
+  toolUse,
+  onApprove,
+  onDeny,
+  onClose,
+  isVisible
 }: ToolApprovalOverlayProps) {
   const [rememberChoice, setRememberChoice] = useState(false);
-
   if (!isVisible || !toolUse) return null;
-
   const getRiskColor = (risk: string = 'medium') => {
     switch (risk) {
       case 'low': return 'var(--color-success)';
@@ -46,7 +39,6 @@ export function ToolApprovalOverlay({
       default: return 'var(--color-warning)';
     }
   };
-
   const getRiskDescription = (toolName: string, input: any) => {
     switch (toolName) {
       case 'bash':
@@ -58,7 +50,6 @@ export function ToolApprovalOverlay({
         return 'This tool will perform actions on your system';
     }
   };
-
   const getToolSynopsis = (toolName: string, input: any) => {
     switch (toolName) {
       case 'bash':
@@ -78,17 +69,15 @@ export function ToolApprovalOverlay({
         return `Tool use: ${toolName}`;
     }
   };
-
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 z-50"
         onClick={onClose}
       />
-      
       {/* Modal */}
-      <div 
+      <div
         className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-w-[90vw] rounded-lg border shadow-2xl"
         style={{
           backgroundColor: 'var(--color-surface-elevated)',
@@ -96,12 +85,12 @@ export function ToolApprovalOverlay({
         }}
       >
         {/* Header */}
-        <div 
+        <div
           className="px-4 py-3 border-b flex items-center justify-between"
           style={{ borderColor: 'var(--color-border)' }}
         >
           <div className="flex items-center gap-2">
-            <span 
+            <span
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: getRiskColor(toolUse.riskLevel) }}
             />
@@ -117,7 +106,6 @@ export function ToolApprovalOverlay({
             ✕
           </button>
         </div>
-        
         {/* Content */}
         <div className="p-4 space-y-4">
           {/* Tool Info */}
@@ -129,11 +117,10 @@ export function ToolApprovalOverlay({
               {getRiskDescription(toolUse.name, toolUse.input)}
             </div>
           </div>
-          
           {/* Synopsis */}
-          <div 
+          <div
             className="p-3 rounded border"
-            style={{ 
+            style={{
               backgroundColor: 'var(--color-surface)',
               borderColor: 'var(--color-border)'
             }}
@@ -145,19 +132,18 @@ export function ToolApprovalOverlay({
               {getToolSynopsis(toolUse.name, toolUse.input)}
             </div>
           </div>
-          
           {/* Input Details */}
           {Object.keys(toolUse.input).length > 0 && (
             <details className="text-sm">
-              <summary 
+              <summary
                 className="cursor-pointer font-medium mb-2"
                 style={{ color: 'var(--color-text-primary)' }}
               >
                 📄 Tool Parameters
               </summary>
-              <pre 
+              <pre
                 className="text-xs p-3 rounded border overflow-auto max-h-32"
-                style={{ 
+                style={{
                   backgroundColor: 'var(--color-surface)',
                   borderColor: 'var(--color-border)',
                   color: 'var(--color-text-secondary)'
@@ -167,7 +153,6 @@ export function ToolApprovalOverlay({
               </pre>
             </details>
           )}
-          
           {/* Remember Choice */}
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input
@@ -181,9 +166,8 @@ export function ToolApprovalOverlay({
             </span>
           </label>
         </div>
-        
         {/* Actions */}
-        <div 
+        <div
           className="px-4 py-3 border-t flex gap-2 justify-end"
           style={{ borderColor: 'var(--color-border)' }}
         >

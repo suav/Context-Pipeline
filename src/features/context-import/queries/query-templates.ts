@@ -1,13 +1,5 @@
-/**
- * Pre-made Query Templates for Context Import
- * 
- * Provides default queries for each source type that users can select from
- */
-
 import { QueryTemplate, QueryCategory, ContextSource } from '@/features/context-import/types';
-
 export const QueryTemplates: Record<ContextSource, QueryTemplate[]> = {
-    
     jira: [
         {
             id: 'my-open-tickets',
@@ -66,7 +58,6 @@ export const QueryTemplates: Record<ContextSource, QueryTemplate[]> = {
             popular: false
         }
     ],
-    
     email: [
         {
             id: 'recent-support',
@@ -101,7 +92,6 @@ export const QueryTemplates: Record<ContextSource, QueryTemplate[]> = {
             popular: true
         }
     ],
-    
     slack: [
         {
             id: 'recent-discussions',
@@ -144,7 +134,6 @@ export const QueryTemplates: Record<ContextSource, QueryTemplate[]> = {
             popular: true
         }
     ],
-    
     git: [
         {
             id: 'grab-repo',
@@ -195,10 +184,8 @@ export const QueryTemplates: Record<ContextSource, QueryTemplate[]> = {
             popular: true
         }
     ],
-    
     file: []
 };
-
 // Categories for organizing queries
 export const QueryCategories: Record<string, QueryCategory> = {
     personal: { id: 'personal', name: 'Personal', icon: '👤', description: 'Items assigned to you' },
@@ -220,46 +207,26 @@ export const QueryCategories: Record<string, QueryCategory> = {
     config: { id: 'config', name: 'Configuration', icon: '⚙️', description: 'Config files' },
     api: { id: 'api', name: 'API', icon: '🔌', description: 'API documentation' }
 };
-
-/**
- * Get query templates for a specific source
- */
 export function getTemplatesForSource(source: ContextSource): QueryTemplate[] {
     return QueryTemplates[source] || [];
 }
-
-/**
- * Get popular templates for a source
- */
 export function getPopularTemplates(source: ContextSource): QueryTemplate[] {
     const templates = QueryTemplates[source] || [];
     return templates.filter(template => template.popular);
 }
-
-/**
- * Get templates by category
- */
 export function getTemplatesByCategory(source: ContextSource, category: string): QueryTemplate[] {
     const templates = QueryTemplates[source] || [];
     return templates.filter(template => template.category === category);
 }
-
-/**
- * Get all categories used by a source
- */
 export function getCategoriesForSource(source: ContextSource): QueryCategory[] {
     const templates = QueryTemplates[source] || [];
     const categories = [...new Set(templates.map(t => t.category))];
     return categories.map(cat => QueryCategories[cat]).filter(cat => cat && cat.name); // Only return categories we have metadata for
 }
-
-/**
- * Search templates by name or description
- */
 export function searchTemplates(source: ContextSource, searchTerm: string): QueryTemplate[] {
     const templates = QueryTemplates[source] || [];
     const term = searchTerm.toLowerCase();
-    return templates.filter(template => 
+    return templates.filter(template =>
         template.name.toLowerCase().includes(term) ||
         template.description.toLowerCase().includes(term) ||
         template.category.toLowerCase().includes(term)

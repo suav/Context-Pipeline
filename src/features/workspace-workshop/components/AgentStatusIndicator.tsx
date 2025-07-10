@@ -1,23 +1,20 @@
 /**
  * Agent Status Indicator Component
- * 
+ *
  * Shows agent status with color-coded indicators and count
  */
-
 'use client';
-
 interface AgentStatusIndicatorProps {
   status: 'active' | 'idle' | 'offline';
   count: number;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
 }
-
-export function AgentStatusIndicator({ 
-  status, 
-  count, 
-  size = 'md', 
-  showLabel = false 
+export function AgentStatusIndicator({
+  status,
+  count,
+  size = 'md',
+  showLabel = false
 }: AgentStatusIndicatorProps) {
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -55,7 +52,6 @@ export function AgentStatusIndicator({
         };
     }
   };
-
   const sizeConfig = {
     sm: {
       containerClass: 'text-xs',
@@ -76,12 +72,10 @@ export function AgentStatusIndicator({
       padding: 'px-3 py-1.5',
     },
   };
-
   const statusConfig = getStatusConfig(status);
   const sizes = sizeConfig[size];
-
   return (
-    <div 
+    <div
       className={`inline-flex items-center gap-1.5 rounded-full ${sizes.containerClass} ${sizes.padding}`}
       style={{
         backgroundColor: statusConfig.bgColor,
@@ -90,7 +84,7 @@ export function AgentStatusIndicator({
     >
       {/* Status Dot */}
       <div className="flex items-center gap-1">
-        <div 
+        <div
           className={`rounded-full ${statusConfig.pulse ? 'animate-pulse' : ''}`}
           style={{
             width: sizes.dotSize,
@@ -98,18 +92,15 @@ export function AgentStatusIndicator({
             backgroundColor: statusConfig.color,
           }}
         />
-        
         {/* Agent Icon */}
         <span style={{ fontSize: sizes.iconSize }}>
           {statusConfig.icon}
         </span>
-        
         {/* Agent Count */}
         <span className="font-medium">
           {count}
         </span>
       </div>
-
       {/* Optional Label */}
       {showLabel && (
         <span className="font-medium">

@@ -1,0 +1,5108 @@
+{
+  "timestamp": "2025-07-08T02:55:46.914Z",
+  "branches": {
+    "feature/permissions-system": {
+      "branch": "feature/permissions-system",
+      "filesAnalyzed": 657,
+      "obsoleteFilesRemoved": 8,
+      "deadCodeRemoved": 285,
+      "duplicatesRemoved": 49,
+      "filesModified": [
+        "./storage/workspaces/test-workspace-1751939628018/README.md",
+        "./storage/workspaces/test-workspace-1751938627446/README.md",
+        "./storage/workspaces/test-workspace-1751938480559/README.md",
+        "./storage/workspaces/test-workspace-1751934925664/README.md",
+        "./storage/workspaces/test-workspace-1751934999428/README.md",
+        "./storage/workspaces/test-workspace-1751939240827/README.md",
+        "./storage/workspaces/test-workspace-1751938013406/README.md",
+        "./storage/workspaces/test-workspace-1751938841364/README.md",
+        "./server-management-when-testing.md",
+        "./PROJECT_MANAGER_BRIEFING.md",
+        "./package.json",
+        "./DOCUMENTATION_SUMMARY.md",
+        "./README.md",
+        "./VALIDATION_REPORT.md",
+        "./DEVELOPMENT_WORKFLOW.md",
+        "./AGENT_WORK_PACKAGES.md",
+        "./WSL_OPTIMIZATION_SUMMARY.md",
+        "./CONCEPT.md",
+        "./tailwind.config.js",
+        "./test/import/file-import.test.js",
+        "./test/checkpoints/save-restore.test.js",
+        "./test/checkpoints/basic-functionality.test.js",
+        "./SLOW_BUILD_ANALYSIS.md",
+        "./package-lock.json",
+        "./src/features/context-library/components/LibraryStage.tsx",
+        "./src/features/context-library/components/ArchiveManager.tsx",
+        "./src/features/context-library/components/LibraryCard.tsx",
+        "./src/features/context-library/types/index.ts",
+        "./src/features/workspaces/utils/workspaceValidator.ts",
+        "./src/features/workspaces/services/WorkspaceDocumentGenerator.ts",
+        "./src/features/workspaces/components/WorkspaceStage.tsx",
+        "./src/features/workspaces/components/WorkspaceValidationAlert.tsx",
+        "./src/features/workspaces/components/WorkspaceDrafts.tsx",
+        "./src/features/workspaces/components/WorkspaceDraftCard.tsx",
+        "./src/features/workspaces/components/WorkspaceCard.tsx",
+        "./src/features/workspaces/types/index.ts",
+        "./src/features/workspaces/templates/claude-md-template.md",
+        "./src/features/agents/storage/CheckpointStorage.ts",
+        "./src/features/agents/storage/AgentStorageManager.ts",
+        "./src/features/agents/services/AgentService.ts",
+        "./src/features/agents/services/CheckpointManager.ts",
+        "./src/features/agents/services/ClaudeService.ts",
+        "./src/features/agents/services/BaseAIService.ts",
+        "./src/features/agents/services/AgentService.old.ts",
+        "./src/features/agents/services/GeminiService.ts",
+        "./src/features/agents/hooks/useCommandInjection.ts",
+        "./src/features/agents/components/CommandInjector.tsx",
+        "./src/features/agents/components/CommandPalette.tsx",
+        "./src/features/agents/components/terminal/ChatInterface.tsx",
+        "./src/features/agents/components/terminal/ToolExecutionTracker.tsx",
+        "./src/features/agents/components/terminal/ToolApprovalOverlay.tsx",
+        "./src/features/agents/components/terminal/TerminalModal.tsx",
+        "./src/features/agents/components/AgentStatusIndicator.tsx",
+        "./src/features/agents/components/AgentOverlay.tsx",
+        "./src/features/agents/types/checkpoints.ts",
+        "./src/features/agents/types/conversation.ts",
+        "./src/features/agents/types/permissions.ts",
+        "./src/features/agents/types/commands.ts",
+        "./src/features/agents/types/index.ts",
+        "./src/features/agents/data/commandLibrary.ts",
+        "./src/features/workspace-workshop/themes/editor-themes.ts",
+        "./src/features/workspace-workshop/services/EditorConfigManager.ts",
+        "./src/features/workspace-workshop/services/FileIconService.ts",
+        "./src/features/workspace-workshop/components/WorkspaceHeader.tsx",
+        "./src/features/workspace-workshop/components/LibraryView.tsx",
+        "./src/features/workspace-workshop/components/AgentStatusIndicator.tsx",
+        "./src/features/workspace-workshop/components/AgentManagementModal.tsx",
+        "./src/features/workspace-workshop/components/FileContextMenu.tsx",
+        "./src/features/workspace-workshop/components/FileSearchPanel.tsx",
+        "./src/features/workspace-workshop/components/WorkspaceSelectionView.tsx",
+        "./src/features/workspace-workshop/components/WorkspaceSidebar.tsx",
+        "./src/features/workspace-workshop/components/CompactWorkspaceCard.tsx",
+        "./src/features/workspace-workshop/components/TerminalArea.tsx",
+        "./src/features/workspace-workshop/components/ActiveWorkspaceView.tsx",
+        "./src/features/workspace-workshop/components/TriggersModal.tsx",
+        "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+        "./src/features/workspace-workshop/components/FileTree.tsx",
+        "./src/features/workspace-workshop/components/WorkspaceWorkshop.tsx",
+        "./src/features/context-import/services/EmailProcessor.ts",
+        "./src/features/context-import/importers/TextImporter.ts",
+        "./src/features/context-import/importers/FileImporter.ts",
+        "./src/features/context-import/importers/EmailImporter.ts",
+        "./src/features/context-import/importers/JiraImporter.ts",
+        "./src/features/context-import/importers/GitImporter.ts",
+        "./src/features/context-import/queries/query-templates.ts",
+        "./src/features/context-import/components/ImportModal.tsx",
+        "./src/features/context-import/types/email-types.ts",
+        "./src/features/context-import/types/index.ts",
+        "./src/features/context-import/templates/jira-advanced-templates.ts",
+        "./src/features/remote-deployment/services/DavinGitManager.ts",
+        "./src/app/layout.tsx",
+        "./src/app/api/force-clear/route.ts",
+        "./src/app/api/clear-storage/route.ts",
+        "./src/app/api/config/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/history/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/session-restore/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/tool-approval/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/agents/status/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/path/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/status/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/feedback/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/files/content/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/files/save/route.ts",
+        "./src/app/api/workspaces/[workspaceId]/files/route.ts",
+        "./src/app/api/workspaces/validate/route.ts",
+        "./src/app/api/workspaces/route.ts",
+        "./src/app/api/context-workflow/archives/route.ts",
+        "./src/app/api/context-workflow/library/refresh/route.ts",
+        "./src/app/api/context-workflow/library/route.ts",
+        "./src/app/api/context-workflow/queries/[source]/route.ts",
+        "./src/app/api/context-workflow/import/file/route.ts",
+        "./src/app/api/context-workflow/import/route.ts",
+        "./src/app/api/context-workflow/workspaces/route.ts",
+        "./src/app/api/health/route.ts",
+        "./src/app/api/workspace-drafts/route.ts",
+        "./src/app/page.tsx",
+        "./src/app/workspace/[workspaceId]/agent/[agentId]/history/page.tsx",
+        "./src/app/workspace/[workspaceId]/feedback/page.tsx",
+        "./src/components/LazyWrapper.tsx",
+        "./src/components/CredentialsManager.tsx",
+        "./src/components/ThemeSelector.tsx",
+        "./src/components/LazyTestComponent.tsx",
+        "./src/lib/davin-deployment-config.ts",
+        "./src/lib/security-config.ts",
+        "./src/lib/theme-context.tsx",
+        "./src/lib/global-config.ts",
+        "./src/lib/config.ts",
+        "./src/lib/validation-middleware.ts",
+        "./src/lib/api-cache.ts",
+        "./src/lib/context-processor.ts",
+        "./src/lib/loading-utils.tsx",
+        "./EFFICIENCY_EVALUATOR.md",
+        "./docs/AGENT_BUILD_PLAN.md",
+        "./docs/OPTIMIZATION_GUIDE.md",
+        "./docs/DYNAMIC_CONTEXT_TRIGGER_TOUCHPOINTS.md",
+        "./docs/CHECKPOINT_SYSTEM_IMPLEMENTATION.md",
+        "./docs/PERMISSIONS_COMMANDS_IMPLEMENTATION_GUIDE.md",
+        "./docs/DAVIN_REMOTE_DEPLOYMENT_FEATURE.md",
+        "./docs/AGENT_DATA_STRUCTURES.md",
+        "./docs/README.md",
+        "./docs/PERFORMANCE_OPTIMIZATION_COMPLETE.md",
+        "./docs/WORKSPACE_VERSION_CONTROL.md",
+        "./docs/WORKSPACE_4_COMPONENT_DESIGN.md",
+        "./docs/API_CACHING_SYSTEM.md",
+        "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+        "./docs/TERMINAL_UI_REQUIREMENTS.md",
+        "./docs/PARALLEL_WORKSPACE_TESTING_SYSTEM.md",
+        "./docs/DYNAMIC_CONTEXT_TRIGGER_FLOW_DIAGRAMS.md",
+        "./docs/TYPESCRIPT_VALIDATION_SUMMARY.md",
+        "./docs/CONTEXT_PIPELINE_CURRENT_STATE.md",
+        "./docs/DYNAMIC_CONTEXT_TRIGGER_DESIGN.md",
+        "./docs/TESTING_STRATEGY_IMPLEMENTATION.md",
+        "./docs/BUILD_OPTIMIZATION_GUIDE.md",
+        "./docs/CONTEXT_PIPELINE_DESIGN.md",
+        "./docs/GIT_INTEGRATION_IMPLEMENTATION.md",
+        "./docs/LAZY_LOADING_FRAMEWORK.md",
+        "./docs/WSL_PERFORMANCE_OPTIMIZATION.md",
+        "./docs/AGENT_PERMISSION_SYSTEM.md",
+        "./docs/DYNAMIC_CONTEXT_TRIGGER_IMPLEMENTATION_GUIDE.md",
+        "./docs/REACT_SERVER_DEBUGGING_GUIDE.md",
+        "./OWNERSHIP.md",
+        "./tsconfig.json",
+        "./CLAUDE.md",
+        "./scripts/master-evaluator.js",
+        "./scripts/performance-monitor.js",
+        "./scripts/analyze-app-simple.js",
+        "./scripts/ui-evaluator.js",
+        "./scripts/security-patch-agent.js",
+        "./scripts/setup-puppeteer-alternative.js",
+        "./scripts/setup-puppeteer-testing.js",
+        "./scripts/analyze-app-without-browser.js",
+        "./scripts/security-evaluator.js",
+        "./scripts/test-full-workflow.js",
+        "./scripts/test-comprehensive.js",
+        "./scripts/capture-app-screenshots.js",
+        "./scripts/cleanup-agent.js",
+        "./scripts/functionality-evaluator.js",
+        "./TESTING_FRAMEWORK_COMPLETE.md",
+        "./analysis/TESTING_GUIDE.md",
+        "./analysis/NAVIGATION_GUIDE.md",
+        "./analysis/SECURITY_PATCH_REPORT.md",
+        "./analysis/FUNCTIONALITY_EVALUATION_REPORT.md",
+        "./analysis/SECURITY_EVALUATION_REPORT.md"
+      ],
+      "filesRemoved": [
+        "./storage/workspaces/test-workspace-1751939628018/target/workspace/README.md",
+        "./storage/workspaces/test-workspace-1751938627446/target/workspace/README.md",
+        "./storage/workspaces/test-workspace-1751938480559/target/workspace/README.md",
+        "./storage/workspaces/test-workspace-1751934925664/target/workspace/README.md",
+        "./storage/workspaces/test-workspace-1751934999428/target/workspace/README.md",
+        "./storage/workspaces/test-workspace-1751939240827/target/workspace/README.md",
+        "./storage/workspaces/test-workspace-1751938013406/target/workspace/README.md",
+        "./storage/workspaces/test-workspace-1751938841364/target/workspace/README.md"
+      ],
+      "cleanupActions": [
+        {
+          "type": "file_removal",
+          "file": "./storage/workspaces/test-workspace-1751939628018/target/workspace/README.md",
+          "reason": "Empty or near-empty file",
+          "spaceSaved": 67
+        },
+        {
+          "type": "file_removal",
+          "file": "./storage/workspaces/test-workspace-1751938627446/target/workspace/README.md",
+          "reason": "Empty or near-empty file",
+          "spaceSaved": 67
+        },
+        {
+          "type": "file_removal",
+          "file": "./storage/workspaces/test-workspace-1751938480559/target/workspace/README.md",
+          "reason": "Empty or near-empty file",
+          "spaceSaved": 67
+        },
+        {
+          "type": "file_removal",
+          "file": "./storage/workspaces/test-workspace-1751934925664/target/workspace/README.md",
+          "reason": "Empty or near-empty file",
+          "spaceSaved": 67
+        },
+        {
+          "type": "file_removal",
+          "file": "./storage/workspaces/test-workspace-1751934999428/target/workspace/README.md",
+          "reason": "Empty or near-empty file",
+          "spaceSaved": 67
+        },
+        {
+          "type": "file_removal",
+          "file": "./storage/workspaces/test-workspace-1751939240827/target/workspace/README.md",
+          "reason": "Empty or near-empty file",
+          "spaceSaved": 67
+        },
+        {
+          "type": "file_removal",
+          "file": "./storage/workspaces/test-workspace-1751938013406/target/workspace/README.md",
+          "reason": "Empty or near-empty file",
+          "spaceSaved": 67
+        },
+        {
+          "type": "file_removal",
+          "file": "./storage/workspaces/test-workspace-1751938841364/target/workspace/README.md",
+          "reason": "Empty or near-empty file",
+          "spaceSaved": 67
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./storage/workspaces/test-workspace-1751939628018/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./storage/workspaces/test-workspace-1751938627446/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./storage/workspaces/test-workspace-1751938480559/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./storage/workspaces/test-workspace-1751934925664/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./storage/workspaces/test-workspace-1751934999428/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./storage/workspaces/test-workspace-1751939240827/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./storage/workspaces/test-workspace-1751938013406/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./storage/workspaces/test-workspace-1751938841364/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./server-management-when-testing.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 48
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./PROJECT_MANAGER_BRIEFING.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 65
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./package.json",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./DOCUMENTATION_SUMMARY.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 39
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 36
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./VALIDATION_REPORT.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 24
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./DEVELOPMENT_WORKFLOW.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 48
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./AGENT_WORK_PACKAGES.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 192
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./WSL_OPTIMIZATION_SUMMARY.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 14
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./CONCEPT.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 45
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./tailwind.config.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 43
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./tailwind.config.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./test/import/file-import.test.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 93
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./test/import/file-import.test.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 439
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./test/checkpoints/save-restore.test.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 104
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./test/checkpoints/save-restore.test.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 335
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./test/checkpoints/basic-functionality.test.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 115
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./test/checkpoints/basic-functionality.test.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 247
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./SLOW_BUILD_ANALYSIS.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 33
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./package-lock.json",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-library/components/LibraryStage.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1252
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-library/components/ArchiveManager.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 76
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-library/components/LibraryCard.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 89
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-library/components/LibraryCard.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 66
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-library/types/index.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 33
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-library/types/index.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 4
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspaces/utils/workspaceValidator.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 287
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/utils/workspaceValidator.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 115
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspaces/services/WorkspaceDocumentGenerator.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 565
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/services/WorkspaceDocumentGenerator.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 309
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/components/WorkspaceStage.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 240
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspaces/components/WorkspaceValidationAlert.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 4036
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/components/WorkspaceValidationAlert.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 7
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/components/WorkspaceDrafts.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 329
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspaces/components/WorkspaceDraftCard.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 42
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/components/WorkspaceDraftCard.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 119
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/components/WorkspaceCard.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 301
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspaces/types/index.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 33
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/types/index.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 5
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspaces/templates/claude-md-template.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 15
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/storage/CheckpointStorage.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 439
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/storage/CheckpointStorage.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 388
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/storage/AgentStorageManager.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 412
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/storage/AgentStorageManager.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 465
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/services/AgentService.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 842
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/services/AgentService.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 41
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/services/AgentService.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 385
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/services/CheckpointManager.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 544
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/services/CheckpointManager.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 284
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/services/CheckpointManager.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 428
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/services/ClaudeService.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 539
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/services/ClaudeService.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 381
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/services/BaseAIService.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 496
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/services/BaseAIService.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 127
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/services/AgentService.old.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 1015
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/services/AgentService.old.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1191
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/services/GeminiService.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 230
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/services/GeminiService.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 131
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/hooks/useCommandInjection.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 63
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/hooks/useCommandInjection.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 3
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/components/CommandInjector.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 83
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/components/CommandPalette.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 44
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/components/terminal/ChatInterface.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 919
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/components/terminal/ToolExecutionTracker.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 69
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/components/terminal/ToolApprovalOverlay.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 87
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/components/terminal/TerminalModal.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 42
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/components/terminal/TerminalModal.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 184
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/components/AgentStatusIndicator.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 54
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/components/AgentOverlay.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 42
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/components/AgentOverlay.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 201
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/types/checkpoints.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 35
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/types/checkpoints.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 107
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/types/conversation.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 44
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/types/conversation.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 18
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/types/permissions.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 284
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/types/permissions.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 49
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/types/commands.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 32
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/types/commands.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 29
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/types/index.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 36
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/agents/data/commandLibrary.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 86
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/agents/data/commandLibrary.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 22
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspace-workshop/themes/editor-themes.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 127
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/themes/editor-themes.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 154
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspace-workshop/services/EditorConfigManager.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 122
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/services/EditorConfigManager.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 141
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspace-workshop/services/FileIconService.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 558
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/services/FileIconService.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 170
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspace-workshop/components/WorkspaceHeader.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 31
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/WorkspaceHeader.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 134
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/LibraryView.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 149
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/AgentStatusIndicator.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 33
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/AgentManagementModal.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 38
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/FileContextMenu.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 75
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspace-workshop/components/FileSearchPanel.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 109
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/FileSearchPanel.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 230
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/workspace-workshop/components/WorkspaceSelectionView.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 63
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/WorkspaceSelectionView.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 88
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/WorkspaceSidebar.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 54
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/CompactWorkspaceCard.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 34
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/TerminalArea.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 74
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/ActiveWorkspaceView.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 238
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/TriggersModal.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 24
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 139
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/FileTree.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 76
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/workspace-workshop/components/WorkspaceWorkshop.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 138
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/services/EmailProcessor.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 1175
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/services/EmailProcessor.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 610
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/importers/TextImporter.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 933
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/importers/TextImporter.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 212
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/importers/FileImporter.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 630
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/importers/FileImporter.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 144
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/importers/EmailImporter.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 919
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/importers/EmailImporter.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 480
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/importers/JiraImporter.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 719
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/importers/JiraImporter.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 898
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/importers/GitImporter.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 513
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/importers/GitImporter.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 522
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/queries/query-templates.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 364
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/queries/query-templates.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 39
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/components/ImportModal.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1491
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/types/email-types.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 85
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/types/email-types.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 17
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/types/index.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 91
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/types/index.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 34
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/context-import/templates/jira-advanced-templates.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 266
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/context-import/templates/jira-advanced-templates.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 17
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/features/remote-deployment/services/DavinGitManager.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 3971
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/features/remote-deployment/services/DavinGitManager.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 279
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/layout.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 3
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/force-clear/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 75
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/force-clear/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 425
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/clear-storage/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 68
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/clear-storage/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 204
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/config/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 108
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/config/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 243
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 120
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 84
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 460
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 156
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 623
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 85
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 283
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/history/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 94
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/history/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 91
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/session-restore/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 101
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/session-restore/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 157
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 98
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 221
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/tool-approval/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 87
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/tool-approval/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 141
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/status/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 105
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/status/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 128
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 94
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 244
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/path/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 94
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/path/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 75
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/status/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 99
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/status/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 111
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/feedback/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 84
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/feedback/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 206
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/files/content/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 72
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/files/save/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 56
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/[workspaceId]/files/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 82
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/validate/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 109
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/validate/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 172
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspaces/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 86
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspaces/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 889
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/context-workflow/archives/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 111
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/context-workflow/archives/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 279
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/context-workflow/library/refresh/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 108
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/context-workflow/library/refresh/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 181
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/context-workflow/library/refresh/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 131
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/context-workflow/library/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 104
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/context-workflow/library/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 372
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/context-workflow/queries/[source]/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 40
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/context-workflow/queries/[source]/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 55
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/context-workflow/import/file/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 230
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/context-workflow/import/file/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 161
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/context-workflow/import/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 101
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/context-workflow/import/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 143
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/context-workflow/workspaces/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 102
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/context-workflow/workspaces/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 39
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/health/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/app/api/workspace-drafts/route.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 88
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/api/workspace-drafts/route.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 317
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/page.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 4
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/workspace/[workspaceId]/agent/[agentId]/history/page.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 137
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/app/workspace/[workspaceId]/feedback/page.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 78
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/components/LazyWrapper.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 6
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/components/CredentialsManager.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 132
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/components/ThemeSelector.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 49
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/components/LazyTestComponent.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 2
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/lib/davin-deployment-config.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 188
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/davin-deployment-config.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 69
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/lib/security-config.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 237
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/security-config.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 29
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/theme-context.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 206
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/lib/global-config.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 5326
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/global-config.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 95
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/lib/config.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 53
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/config.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 11
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/lib/validation-middleware.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 77
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/validation-middleware.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 170
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/lib/api-cache.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 115
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/api-cache.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 35
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/lib/context-processor.ts",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 159
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/context-processor.ts",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 104
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./src/lib/loading-utils.tsx",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 120
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./src/lib/loading-utils.tsx",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 47
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./EFFICIENCY_EVALUATOR.md",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 40
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./EFFICIENCY_EVALUATOR.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 119
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/AGENT_BUILD_PLAN.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 57
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/OPTIMIZATION_GUIDE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 58
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/DYNAMIC_CONTEXT_TRIGGER_TOUCHPOINTS.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 125
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/CHECKPOINT_SYSTEM_IMPLEMENTATION.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 63
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/PERMISSIONS_COMMANDS_IMPLEMENTATION_GUIDE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 72
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/DAVIN_REMOTE_DEPLOYMENT_FEATURE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 256
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 80
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/README.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 69
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/PERFORMANCE_OPTIMIZATION_COMPLETE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 78
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/WORKSPACE_VERSION_CONTROL.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 27
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/WORKSPACE_4_COMPONENT_DESIGN.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 17
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/API_CACHING_SYSTEM.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 196
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 34
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/TERMINAL_UI_REQUIREMENTS.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 146
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/PARALLEL_WORKSPACE_TESTING_SYSTEM.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 179
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/DYNAMIC_CONTEXT_TRIGGER_FLOW_DIAGRAMS.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 321
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/TYPESCRIPT_VALIDATION_SUMMARY.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 26
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/CONTEXT_PIPELINE_CURRENT_STATE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 47
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/DYNAMIC_CONTEXT_TRIGGER_DESIGN.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 76
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/TESTING_STRATEGY_IMPLEMENTATION.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 320
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/BUILD_OPTIMIZATION_GUIDE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 98
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/CONTEXT_PIPELINE_DESIGN.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 31
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/GIT_INTEGRATION_IMPLEMENTATION.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 468
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/LAZY_LOADING_FRAMEWORK.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 208
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/WSL_PERFORMANCE_OPTIMIZATION.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 200
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/AGENT_PERMISSION_SYSTEM.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 129
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/DYNAMIC_CONTEXT_TRIGGER_IMPLEMENTATION_GUIDE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 728
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./docs/REACT_SERVER_DEBUGGING_GUIDE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 92
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./OWNERSHIP.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 12
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./tsconfig.json",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./CLAUDE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 64
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/master-evaluator.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 105
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/master-evaluator.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 536
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/performance-monitor.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 105
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/performance-monitor.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 270
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/analyze-app-simple.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 62
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/ui-evaluator.js",
+          "category": "unusedUtilities",
+          "reason": "Removed obsolete unusedUtilities",
+          "spaceSaved": 43
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/ui-evaluator.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 114
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/ui-evaluator.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 802
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/security-patch-agent.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 437
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/security-patch-agent.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 70
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/security-patch-agent.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 714
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/setup-puppeteer-alternative.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 440
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/setup-puppeteer-alternative.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 93
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/setup-puppeteer-testing.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 251
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/setup-puppeteer-testing.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 158
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/analyze-app-without-browser.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 49
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/security-evaluator.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 99
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/security-evaluator.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 409
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/test-full-workflow.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 107
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/test-comprehensive.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 104
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/capture-app-screenshots.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 61
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/cleanup-agent.js",
+          "category": "unusedUtilities",
+          "reason": "Removed obsolete unusedUtilities",
+          "spaceSaved": 121
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/cleanup-agent.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 113
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/cleanup-agent.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 39
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/cleanup-agent.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 17
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/cleanup-agent.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 16
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/cleanup-agent.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 831
+        },
+        {
+          "type": "code_cleanup",
+          "file": "./scripts/functionality-evaluator.js",
+          "category": "commentedCode",
+          "reason": "Removed obsolete commentedCode",
+          "spaceSaved": 104
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./scripts/functionality-evaluator.js",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 1095
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./TESTING_FRAMEWORK_COMPLETE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 57
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./analysis/TESTING_GUIDE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 33
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./analysis/NAVIGATION_GUIDE.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 26
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./analysis/SECURITY_PATCH_REPORT.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 44
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./analysis/FUNCTIONALITY_EVALUATION_REPORT.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 56
+        },
+        {
+          "type": "whitespace_cleanup",
+          "file": "./analysis/SECURITY_EVALUATION_REPORT.md",
+          "reason": "Removed excessive whitespace",
+          "spaceSaved": 39
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./test/checkpoints/basic-functionality.test.js",
+          "reason": "Removed duplicate function: colorLog",
+          "original": "./test/checkpoints/save-restore.test.js",
+          "spaceSaved": 77
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./test/checkpoints/basic-functionality.test.js",
+          "reason": "Removed duplicate function: assert",
+          "original": "./test/checkpoints/save-restore.test.js",
+          "spaceSaved": 154
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/workspaces/components/WorkspaceCard.tsx",
+          "reason": "Removed duplicate function: getCloneModeIcon",
+          "original": "./src/features/workspaces/components/WorkspaceDraftCard.tsx",
+          "spaceSaved": 218
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/agents/services/AgentService.old.ts",
+          "reason": "Removed duplicate type: ConversationMessage",
+          "original": "./src/features/agents/services/AgentService.ts",
+          "spaceSaved": 146
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/agents/components/CommandPalette.tsx",
+          "reason": "Removed duplicate type: CommandPaletteProps",
+          "original": "./src/features/context-library/components/ArchiveManager.tsx",
+          "spaceSaved": 75
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/agents/components/AgentOverlay.tsx",
+          "reason": "Removed duplicate function: handleAgentClick",
+          "original": "./src/features/agents/components/terminal/TerminalModal.tsx",
+          "spaceSaved": 139
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/agents/types/conversation.ts",
+          "reason": "Removed duplicate type: ConversationMessage",
+          "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+          "spaceSaved": 266
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/agents/data/commandLibrary.ts",
+          "reason": "Removed duplicate type: CommandLibrary",
+          "original": "./src/features/agents/types/commands.ts",
+          "spaceSaved": 212
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/workspace-workshop/components/LibraryView.tsx",
+          "reason": "Removed duplicate function: clearSelection",
+          "original": "./src/features/context-library/components/LibraryStage.tsx",
+          "spaceSaved": 67
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/workspace-workshop/components/AgentManagementModal.tsx",
+          "reason": "Removed duplicate type: AgentManagementModalProps",
+          "original": "./src/features/context-library/components/ArchiveManager.tsx",
+          "spaceSaved": 81
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/workspace-workshop/components/CompactWorkspaceCard.tsx",
+          "reason": "Removed duplicate type: Workspace",
+          "original": "./src/features/workspace-workshop/components/WorkspaceSidebar.tsx",
+          "spaceSaved": 217
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/workspace-workshop/components/TriggersModal.tsx",
+          "reason": "Removed duplicate type: TriggersModalProps",
+          "original": "./src/features/context-library/components/ArchiveManager.tsx",
+          "spaceSaved": 74
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/features/workspace-workshop/components/WorkspaceWorkshop.tsx",
+          "reason": "Removed duplicate function: WorkspaceWorkshop",
+          "original": "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+          "spaceSaved": 97
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 170
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+          "reason": "Removed duplicate function: POST",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 171
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/history/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 170
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/session-restore/route.ts",
+          "reason": "Removed duplicate function: POST",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 171
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 170
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+          "reason": "Removed duplicate function: PATCH",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 172
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+          "reason": "Removed duplicate function: DELETE",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 173
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/tool-approval/route.ts",
+          "reason": "Removed duplicate function: POST",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 171
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/status/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 144
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 144
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+          "reason": "Removed duplicate function: POST",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 145
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/path/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 144
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/status/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 144
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/feedback/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 144
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/files/content/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 125
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/files/save/route.ts",
+          "reason": "Removed duplicate function: POST",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 126
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/files/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 125
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/validate/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/config/route.ts",
+          "spaceSaved": 77
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/components/CredentialsManager.tsx",
+          "reason": "Removed duplicate function: CredentialsManager",
+          "original": "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+          "spaceSaved": 100
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/components/CredentialsManager.tsx",
+          "reason": "Removed duplicate type: CredentialsManagerProps",
+          "original": "./src/features/context-library/components/ArchiveManager.tsx",
+          "spaceSaved": 79
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/lib/global-config.ts",
+          "reason": "Removed duplicate type: PermissionSet",
+          "original": "./AGENT_WORK_PACKAGES.md",
+          "spaceSaved": 109
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/PERMISSIONS_COMMANDS_IMPLEMENTATION_GUIDE.md",
+          "reason": "Removed duplicate type: GlobalConfig",
+          "original": "./AGENT_WORK_PACKAGES.md",
+          "spaceSaved": 120
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: ConversationMessage",
+          "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+          "spaceSaved": 266
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandExecution",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 244
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: WorkspaceContextSnapshot",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 190
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandLibrary",
+          "original": "./src/features/agents/types/commands.ts",
+          "spaceSaved": 212
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: Command",
+          "original": "./src/features/agents/data/commandLibrary.ts",
+          "spaceSaved": 452
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandCategory",
+          "original": "./src/features/agents/data/commandLibrary.ts",
+          "spaceSaved": 242
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/API_CACHING_SYSTEM.md",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 144
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+          "reason": "Removed duplicate type: ConversationIndex",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 228
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+          "reason": "Removed duplicate type: CommandExecutionRecord",
+          "original": "./src/features/agents/types/commands.ts",
+          "spaceSaved": 254
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_PERMISSION_SYSTEM.md",
+          "reason": "Removed duplicate type: PermissionResult",
+          "original": "./src/features/agents/types/permissions.ts",
+          "spaceSaved": 172
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./scripts/security-patch-agent.js",
+          "reason": "Removed duplicate function: withValidation",
+          "original": "./src/lib/validation-middleware.ts",
+          "spaceSaved": 252
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./scripts/security-patch-agent.js",
+          "reason": "Removed duplicate type: ValidationRule",
+          "original": "./src/lib/validation-middleware.ts",
+          "spaceSaved": 177
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./scripts/analyze-app-without-browser.js",
+          "reason": "Removed duplicate function: analyzeApp",
+          "original": "./scripts/analyze-app-simple.js",
+          "spaceSaved": 132
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./scripts/test-comprehensive.js",
+          "reason": "Removed duplicate function: makeRequest",
+          "original": "./scripts/test-full-workflow.js",
+          "spaceSaved": 381
+        },
+        {
+          "type": "unused_dependencies",
+          "file": "./package.json",
+          "reason": "Potentially unused dependencies found",
+          "dependencies": [
+            "@types/uuid",
+            "autoprefixer",
+            "postcss",
+            "react-dom",
+            "tailwindcss"
+          ]
+        }
+      ],
+      "spaceSaved": 75722
+    },
+    "feature/checkpoint-system": {
+      "branch": "feature/checkpoint-system",
+      "filesAnalyzed": 649,
+      "obsoleteFilesRemoved": 0,
+      "deadCodeRemoved": 0,
+      "duplicatesRemoved": 13,
+      "filesModified": [],
+      "filesRemoved": [],
+      "cleanupActions": [
+        {
+          "type": "duplicate_removal",
+          "file": "./test/checkpoints/basic-functionality.test.js",
+          "reason": "Removed duplicate function: colorLog",
+          "original": "./test/checkpoints/save-restore.test.js",
+          "spaceSaved": 77
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 170
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 170
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+          "reason": "Removed duplicate function: PATCH",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 172
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+          "spaceSaved": 144
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./src/components/CredentialsManager.tsx",
+          "reason": "Removed duplicate function: CredentialsManager",
+          "original": "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+          "spaceSaved": 100
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: ConversationMessage",
+          "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+          "spaceSaved": 266
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandExecution",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 244
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: WorkspaceContextSnapshot",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 190
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandLibrary",
+          "original": "./src/features/agents/types/commands.ts",
+          "spaceSaved": 212
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: Command",
+          "original": "./src/features/agents/data/commandLibrary.ts",
+          "spaceSaved": 452
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+          "reason": "Removed duplicate type: ConversationIndex",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 228
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./scripts/security-patch-agent.js",
+          "reason": "Removed duplicate function: withValidation",
+          "original": "./src/lib/validation-middleware.ts",
+          "spaceSaved": 252
+        },
+        {
+          "type": "unused_dependencies",
+          "file": "./package.json",
+          "reason": "Potentially unused dependencies found",
+          "dependencies": [
+            "@types/uuid",
+            "autoprefixer",
+            "postcss",
+            "react-dom",
+            "tailwindcss"
+          ]
+        }
+      ],
+      "spaceSaved": 2677
+    },
+    "feature/git-operations": {
+      "branch": "feature/git-operations",
+      "filesAnalyzed": 649,
+      "obsoleteFilesRemoved": 0,
+      "deadCodeRemoved": 0,
+      "duplicatesRemoved": 5,
+      "filesModified": [],
+      "filesRemoved": [],
+      "cleanupActions": [
+        {
+          "type": "duplicate_removal",
+          "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+          "reason": "Removed duplicate function: GET",
+          "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+          "spaceSaved": 170
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: ConversationMessage",
+          "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+          "spaceSaved": 266
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandExecution",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 244
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: WorkspaceContextSnapshot",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 190
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandLibrary",
+          "original": "./src/features/agents/types/commands.ts",
+          "spaceSaved": 212
+        },
+        {
+          "type": "unused_dependencies",
+          "file": "./package.json",
+          "reason": "Potentially unused dependencies found",
+          "dependencies": [
+            "@types/uuid",
+            "autoprefixer",
+            "postcss",
+            "react-dom",
+            "tailwindcss"
+          ]
+        }
+      ],
+      "spaceSaved": 1082
+    },
+    "feature/context-import": {
+      "branch": "feature/context-import",
+      "filesAnalyzed": 649,
+      "obsoleteFilesRemoved": 0,
+      "deadCodeRemoved": 0,
+      "duplicatesRemoved": 3,
+      "filesModified": [],
+      "filesRemoved": [],
+      "cleanupActions": [
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: ConversationMessage",
+          "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+          "spaceSaved": 266
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandExecution",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 244
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: WorkspaceContextSnapshot",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 190
+        },
+        {
+          "type": "unused_dependencies",
+          "file": "./package.json",
+          "reason": "Potentially unused dependencies found",
+          "dependencies": [
+            "@types/uuid",
+            "autoprefixer",
+            "postcss",
+            "react-dom",
+            "tailwindcss"
+          ]
+        }
+      ],
+      "spaceSaved": 700
+    },
+    "feature/ui-improvements": {
+      "branch": "feature/ui-improvements",
+      "filesAnalyzed": 649,
+      "obsoleteFilesRemoved": 0,
+      "deadCodeRemoved": 0,
+      "duplicatesRemoved": 2,
+      "filesModified": [],
+      "filesRemoved": [],
+      "cleanupActions": [
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: ConversationMessage",
+          "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+          "spaceSaved": 266
+        },
+        {
+          "type": "duplicate_removal",
+          "file": "./docs/AGENT_DATA_STRUCTURES.md",
+          "reason": "Removed duplicate type: CommandExecution",
+          "original": "./src/features/agents/types/conversation.ts",
+          "spaceSaved": 244
+        },
+        {
+          "type": "unused_dependencies",
+          "file": "./package.json",
+          "reason": "Potentially unused dependencies found",
+          "dependencies": [
+            "@types/uuid",
+            "autoprefixer",
+            "postcss",
+            "react-dom",
+            "tailwindcss"
+          ]
+        }
+      ],
+      "spaceSaved": 510
+    }
+  },
+  "totalFilesAnalyzed": 3253,
+  "obsoleteFilesRemoved": 8,
+  "deadCodeRemoved": 285,
+  "duplicatesRemoved": 72,
+  "spaceSaved": 80691,
+  "cleanupActions": [
+    {
+      "type": "file_removal",
+      "file": "./storage/workspaces/test-workspace-1751939628018/target/workspace/README.md",
+      "reason": "Empty or near-empty file",
+      "spaceSaved": 67
+    },
+    {
+      "type": "file_removal",
+      "file": "./storage/workspaces/test-workspace-1751938627446/target/workspace/README.md",
+      "reason": "Empty or near-empty file",
+      "spaceSaved": 67
+    },
+    {
+      "type": "file_removal",
+      "file": "./storage/workspaces/test-workspace-1751938480559/target/workspace/README.md",
+      "reason": "Empty or near-empty file",
+      "spaceSaved": 67
+    },
+    {
+      "type": "file_removal",
+      "file": "./storage/workspaces/test-workspace-1751934925664/target/workspace/README.md",
+      "reason": "Empty or near-empty file",
+      "spaceSaved": 67
+    },
+    {
+      "type": "file_removal",
+      "file": "./storage/workspaces/test-workspace-1751934999428/target/workspace/README.md",
+      "reason": "Empty or near-empty file",
+      "spaceSaved": 67
+    },
+    {
+      "type": "file_removal",
+      "file": "./storage/workspaces/test-workspace-1751939240827/target/workspace/README.md",
+      "reason": "Empty or near-empty file",
+      "spaceSaved": 67
+    },
+    {
+      "type": "file_removal",
+      "file": "./storage/workspaces/test-workspace-1751938013406/target/workspace/README.md",
+      "reason": "Empty or near-empty file",
+      "spaceSaved": 67
+    },
+    {
+      "type": "file_removal",
+      "file": "./storage/workspaces/test-workspace-1751938841364/target/workspace/README.md",
+      "reason": "Empty or near-empty file",
+      "spaceSaved": 67
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./storage/workspaces/test-workspace-1751939628018/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./storage/workspaces/test-workspace-1751938627446/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./storage/workspaces/test-workspace-1751938480559/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./storage/workspaces/test-workspace-1751934925664/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./storage/workspaces/test-workspace-1751934999428/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./storage/workspaces/test-workspace-1751939240827/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./storage/workspaces/test-workspace-1751938013406/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./storage/workspaces/test-workspace-1751938841364/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./server-management-when-testing.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 48
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./PROJECT_MANAGER_BRIEFING.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 65
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./package.json",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./DOCUMENTATION_SUMMARY.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 39
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 36
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./VALIDATION_REPORT.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 24
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./DEVELOPMENT_WORKFLOW.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 48
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./AGENT_WORK_PACKAGES.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 192
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./WSL_OPTIMIZATION_SUMMARY.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 14
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./CONCEPT.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 45
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./tailwind.config.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 43
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./tailwind.config.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./test/import/file-import.test.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 93
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./test/import/file-import.test.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 439
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./test/checkpoints/save-restore.test.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 104
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./test/checkpoints/save-restore.test.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 335
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./test/checkpoints/basic-functionality.test.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 115
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./test/checkpoints/basic-functionality.test.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 247
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./SLOW_BUILD_ANALYSIS.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 33
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./package-lock.json",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-library/components/LibraryStage.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1252
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-library/components/ArchiveManager.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 76
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-library/components/LibraryCard.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 89
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-library/components/LibraryCard.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 66
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-library/types/index.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 33
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-library/types/index.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 4
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspaces/utils/workspaceValidator.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 287
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/utils/workspaceValidator.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 115
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspaces/services/WorkspaceDocumentGenerator.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 565
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/services/WorkspaceDocumentGenerator.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 309
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/components/WorkspaceStage.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 240
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspaces/components/WorkspaceValidationAlert.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 4036
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/components/WorkspaceValidationAlert.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 7
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/components/WorkspaceDrafts.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 329
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspaces/components/WorkspaceDraftCard.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 42
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/components/WorkspaceDraftCard.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 119
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/components/WorkspaceCard.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 301
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspaces/types/index.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 33
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/types/index.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 5
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspaces/templates/claude-md-template.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 15
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/storage/CheckpointStorage.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 439
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/storage/CheckpointStorage.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 388
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/storage/AgentStorageManager.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 412
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/storage/AgentStorageManager.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 465
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/services/AgentService.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 842
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/services/AgentService.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 41
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/services/AgentService.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 385
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/services/CheckpointManager.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 544
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/services/CheckpointManager.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 284
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/services/CheckpointManager.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 428
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/services/ClaudeService.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 539
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/services/ClaudeService.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 381
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/services/BaseAIService.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 496
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/services/BaseAIService.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 127
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/services/AgentService.old.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 1015
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/services/AgentService.old.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1191
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/services/GeminiService.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 230
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/services/GeminiService.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 131
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/hooks/useCommandInjection.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 63
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/hooks/useCommandInjection.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 3
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/components/CommandInjector.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 83
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/components/CommandPalette.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 44
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/components/terminal/ChatInterface.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 919
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/components/terminal/ToolExecutionTracker.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 69
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/components/terminal/ToolApprovalOverlay.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 87
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/components/terminal/TerminalModal.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 42
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/components/terminal/TerminalModal.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 184
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/components/AgentStatusIndicator.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 54
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/components/AgentOverlay.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 42
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/components/AgentOverlay.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 201
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/types/checkpoints.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 35
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/types/checkpoints.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 107
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/types/conversation.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 44
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/types/conversation.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 18
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/types/permissions.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 284
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/types/permissions.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 49
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/types/commands.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 32
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/types/commands.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 29
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/types/index.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 36
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/agents/data/commandLibrary.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 86
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/agents/data/commandLibrary.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 22
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspace-workshop/themes/editor-themes.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 127
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/themes/editor-themes.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 154
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspace-workshop/services/EditorConfigManager.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 122
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/services/EditorConfigManager.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 141
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspace-workshop/services/FileIconService.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 558
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/services/FileIconService.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 170
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspace-workshop/components/WorkspaceHeader.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 31
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/WorkspaceHeader.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 134
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/LibraryView.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 149
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/AgentStatusIndicator.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 33
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/AgentManagementModal.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 38
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/FileContextMenu.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 75
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspace-workshop/components/FileSearchPanel.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 109
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/FileSearchPanel.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 230
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/workspace-workshop/components/WorkspaceSelectionView.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 63
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/WorkspaceSelectionView.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 88
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/WorkspaceSidebar.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 54
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/CompactWorkspaceCard.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 34
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/TerminalArea.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 74
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/ActiveWorkspaceView.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 238
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/TriggersModal.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 24
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 139
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/FileTree.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 76
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/workspace-workshop/components/WorkspaceWorkshop.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 138
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/services/EmailProcessor.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 1175
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/services/EmailProcessor.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 610
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/importers/TextImporter.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 933
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/importers/TextImporter.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 212
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/importers/FileImporter.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 630
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/importers/FileImporter.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 144
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/importers/EmailImporter.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 919
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/importers/EmailImporter.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 480
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/importers/JiraImporter.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 719
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/importers/JiraImporter.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 898
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/importers/GitImporter.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 513
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/importers/GitImporter.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 522
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/queries/query-templates.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 364
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/queries/query-templates.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 39
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/components/ImportModal.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1491
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/types/email-types.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 85
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/types/email-types.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 17
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/types/index.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 91
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/types/index.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 34
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/context-import/templates/jira-advanced-templates.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 266
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/context-import/templates/jira-advanced-templates.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 17
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/features/remote-deployment/services/DavinGitManager.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 3971
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/features/remote-deployment/services/DavinGitManager.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 279
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/layout.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 3
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/force-clear/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 75
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/force-clear/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 425
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/clear-storage/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 68
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/clear-storage/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 204
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/config/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 108
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/config/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 243
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 120
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 84
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 460
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 156
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 623
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 85
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 283
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/history/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 94
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/history/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 91
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/session-restore/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 101
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/session-restore/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 157
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 98
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 221
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/tool-approval/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 87
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/tool-approval/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 141
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/status/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 105
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/status/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 128
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 94
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 244
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/path/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 94
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/path/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 75
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/status/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 99
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/status/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 111
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/feedback/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 84
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/feedback/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 206
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/files/content/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 72
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/files/save/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 56
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/[workspaceId]/files/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 82
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/validate/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 109
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/validate/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 172
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspaces/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 86
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspaces/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 889
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/context-workflow/archives/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 111
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/context-workflow/archives/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 279
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/context-workflow/library/refresh/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 108
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/context-workflow/library/refresh/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 181
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/context-workflow/library/refresh/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 131
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/context-workflow/library/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 104
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/context-workflow/library/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 372
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/context-workflow/queries/[source]/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 40
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/context-workflow/queries/[source]/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 55
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/context-workflow/import/file/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 230
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/context-workflow/import/file/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 161
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/context-workflow/import/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 101
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/context-workflow/import/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 143
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/context-workflow/workspaces/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 102
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/context-workflow/workspaces/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 39
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/health/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/app/api/workspace-drafts/route.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 88
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/api/workspace-drafts/route.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 317
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/page.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 4
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/workspace/[workspaceId]/agent/[agentId]/history/page.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 137
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/app/workspace/[workspaceId]/feedback/page.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 78
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/components/LazyWrapper.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 6
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/components/CredentialsManager.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 132
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/components/ThemeSelector.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 49
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/components/LazyTestComponent.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 2
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/lib/davin-deployment-config.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 188
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/davin-deployment-config.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 69
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/lib/security-config.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 237
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/security-config.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 29
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/theme-context.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 206
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/lib/global-config.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 5326
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/global-config.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 95
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/lib/config.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 53
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/config.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 11
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/lib/validation-middleware.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 77
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/validation-middleware.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 170
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/lib/api-cache.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 115
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/api-cache.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 35
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/lib/context-processor.ts",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 159
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/context-processor.ts",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 104
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./src/lib/loading-utils.tsx",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 120
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./src/lib/loading-utils.tsx",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 47
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./EFFICIENCY_EVALUATOR.md",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 40
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./EFFICIENCY_EVALUATOR.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 119
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/AGENT_BUILD_PLAN.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 57
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/OPTIMIZATION_GUIDE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 58
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/DYNAMIC_CONTEXT_TRIGGER_TOUCHPOINTS.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 125
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/CHECKPOINT_SYSTEM_IMPLEMENTATION.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 63
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/PERMISSIONS_COMMANDS_IMPLEMENTATION_GUIDE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 72
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/DAVIN_REMOTE_DEPLOYMENT_FEATURE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 256
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 80
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/README.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 69
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/PERFORMANCE_OPTIMIZATION_COMPLETE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 78
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/WORKSPACE_VERSION_CONTROL.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 27
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/WORKSPACE_4_COMPONENT_DESIGN.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 17
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/API_CACHING_SYSTEM.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 196
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 34
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/TERMINAL_UI_REQUIREMENTS.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 146
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/PARALLEL_WORKSPACE_TESTING_SYSTEM.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 179
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/DYNAMIC_CONTEXT_TRIGGER_FLOW_DIAGRAMS.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 321
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/TYPESCRIPT_VALIDATION_SUMMARY.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 26
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/CONTEXT_PIPELINE_CURRENT_STATE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 47
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/DYNAMIC_CONTEXT_TRIGGER_DESIGN.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 76
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/TESTING_STRATEGY_IMPLEMENTATION.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 320
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/BUILD_OPTIMIZATION_GUIDE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 98
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/CONTEXT_PIPELINE_DESIGN.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 31
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/GIT_INTEGRATION_IMPLEMENTATION.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 468
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/LAZY_LOADING_FRAMEWORK.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 208
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/WSL_PERFORMANCE_OPTIMIZATION.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 200
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/AGENT_PERMISSION_SYSTEM.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 129
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/DYNAMIC_CONTEXT_TRIGGER_IMPLEMENTATION_GUIDE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 728
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./docs/REACT_SERVER_DEBUGGING_GUIDE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 92
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./OWNERSHIP.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 12
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./tsconfig.json",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./CLAUDE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 64
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/master-evaluator.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 105
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/master-evaluator.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 536
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/performance-monitor.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 105
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/performance-monitor.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 270
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/analyze-app-simple.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 62
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/ui-evaluator.js",
+      "category": "unusedUtilities",
+      "reason": "Removed obsolete unusedUtilities",
+      "spaceSaved": 43
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/ui-evaluator.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 114
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/ui-evaluator.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 802
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/security-patch-agent.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 437
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/security-patch-agent.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 70
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/security-patch-agent.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 714
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/setup-puppeteer-alternative.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 440
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/setup-puppeteer-alternative.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 93
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/setup-puppeteer-testing.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 251
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/setup-puppeteer-testing.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 158
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/analyze-app-without-browser.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 49
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/security-evaluator.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 99
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/security-evaluator.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 409
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/test-full-workflow.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 107
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/test-comprehensive.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 104
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/capture-app-screenshots.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 61
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/cleanup-agent.js",
+      "category": "unusedUtilities",
+      "reason": "Removed obsolete unusedUtilities",
+      "spaceSaved": 121
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/cleanup-agent.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 113
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/cleanup-agent.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 39
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/cleanup-agent.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 17
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/cleanup-agent.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 16
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/cleanup-agent.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 831
+    },
+    {
+      "type": "code_cleanup",
+      "file": "./scripts/functionality-evaluator.js",
+      "category": "commentedCode",
+      "reason": "Removed obsolete commentedCode",
+      "spaceSaved": 104
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./scripts/functionality-evaluator.js",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 1095
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./TESTING_FRAMEWORK_COMPLETE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 57
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./analysis/TESTING_GUIDE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 33
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./analysis/NAVIGATION_GUIDE.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 26
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./analysis/SECURITY_PATCH_REPORT.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 44
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./analysis/FUNCTIONALITY_EVALUATION_REPORT.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 56
+    },
+    {
+      "type": "whitespace_cleanup",
+      "file": "./analysis/SECURITY_EVALUATION_REPORT.md",
+      "reason": "Removed excessive whitespace",
+      "spaceSaved": 39
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./test/checkpoints/basic-functionality.test.js",
+      "reason": "Removed duplicate function: colorLog",
+      "original": "./test/checkpoints/save-restore.test.js",
+      "spaceSaved": 77
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./test/checkpoints/basic-functionality.test.js",
+      "reason": "Removed duplicate function: assert",
+      "original": "./test/checkpoints/save-restore.test.js",
+      "spaceSaved": 154
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/workspaces/components/WorkspaceCard.tsx",
+      "reason": "Removed duplicate function: getCloneModeIcon",
+      "original": "./src/features/workspaces/components/WorkspaceDraftCard.tsx",
+      "spaceSaved": 218
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/agents/services/AgentService.old.ts",
+      "reason": "Removed duplicate type: ConversationMessage",
+      "original": "./src/features/agents/services/AgentService.ts",
+      "spaceSaved": 146
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/agents/components/CommandPalette.tsx",
+      "reason": "Removed duplicate type: CommandPaletteProps",
+      "original": "./src/features/context-library/components/ArchiveManager.tsx",
+      "spaceSaved": 75
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/agents/components/AgentOverlay.tsx",
+      "reason": "Removed duplicate function: handleAgentClick",
+      "original": "./src/features/agents/components/terminal/TerminalModal.tsx",
+      "spaceSaved": 139
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/agents/types/conversation.ts",
+      "reason": "Removed duplicate type: ConversationMessage",
+      "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+      "spaceSaved": 266
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/agents/data/commandLibrary.ts",
+      "reason": "Removed duplicate type: CommandLibrary",
+      "original": "./src/features/agents/types/commands.ts",
+      "spaceSaved": 212
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/workspace-workshop/components/LibraryView.tsx",
+      "reason": "Removed duplicate function: clearSelection",
+      "original": "./src/features/context-library/components/LibraryStage.tsx",
+      "spaceSaved": 67
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/workspace-workshop/components/AgentManagementModal.tsx",
+      "reason": "Removed duplicate type: AgentManagementModalProps",
+      "original": "./src/features/context-library/components/ArchiveManager.tsx",
+      "spaceSaved": 81
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/workspace-workshop/components/CompactWorkspaceCard.tsx",
+      "reason": "Removed duplicate type: Workspace",
+      "original": "./src/features/workspace-workshop/components/WorkspaceSidebar.tsx",
+      "spaceSaved": 217
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/workspace-workshop/components/TriggersModal.tsx",
+      "reason": "Removed duplicate type: TriggersModalProps",
+      "original": "./src/features/context-library/components/ArchiveManager.tsx",
+      "spaceSaved": 74
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/features/workspace-workshop/components/WorkspaceWorkshop.tsx",
+      "reason": "Removed duplicate function: WorkspaceWorkshop",
+      "original": "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+      "spaceSaved": 97
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 170
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+      "reason": "Removed duplicate function: POST",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 171
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/history/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 170
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/session-restore/route.ts",
+      "reason": "Removed duplicate function: POST",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 171
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 170
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "reason": "Removed duplicate function: PATCH",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 172
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "reason": "Removed duplicate function: DELETE",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 173
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/tool-approval/route.ts",
+      "reason": "Removed duplicate function: POST",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 171
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/status/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 144
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 144
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+      "reason": "Removed duplicate function: POST",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 145
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/path/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 144
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/status/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 144
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/feedback/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 144
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/files/content/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 125
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/files/save/route.ts",
+      "reason": "Removed duplicate function: POST",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 126
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/files/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 125
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/validate/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/config/route.ts",
+      "spaceSaved": 77
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/components/CredentialsManager.tsx",
+      "reason": "Removed duplicate function: CredentialsManager",
+      "original": "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+      "spaceSaved": 100
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/components/CredentialsManager.tsx",
+      "reason": "Removed duplicate type: CredentialsManagerProps",
+      "original": "./src/features/context-library/components/ArchiveManager.tsx",
+      "spaceSaved": 79
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/lib/global-config.ts",
+      "reason": "Removed duplicate type: PermissionSet",
+      "original": "./AGENT_WORK_PACKAGES.md",
+      "spaceSaved": 109
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/PERMISSIONS_COMMANDS_IMPLEMENTATION_GUIDE.md",
+      "reason": "Removed duplicate type: GlobalConfig",
+      "original": "./AGENT_WORK_PACKAGES.md",
+      "spaceSaved": 120
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: ConversationMessage",
+      "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+      "spaceSaved": 266
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandExecution",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 244
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: WorkspaceContextSnapshot",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 190
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandLibrary",
+      "original": "./src/features/agents/types/commands.ts",
+      "spaceSaved": 212
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: Command",
+      "original": "./src/features/agents/data/commandLibrary.ts",
+      "spaceSaved": 452
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandCategory",
+      "original": "./src/features/agents/data/commandLibrary.ts",
+      "spaceSaved": 242
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/API_CACHING_SYSTEM.md",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 144
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+      "reason": "Removed duplicate type: ConversationIndex",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 228
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+      "reason": "Removed duplicate type: CommandExecutionRecord",
+      "original": "./src/features/agents/types/commands.ts",
+      "spaceSaved": 254
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_PERMISSION_SYSTEM.md",
+      "reason": "Removed duplicate type: PermissionResult",
+      "original": "./src/features/agents/types/permissions.ts",
+      "spaceSaved": 172
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./scripts/security-patch-agent.js",
+      "reason": "Removed duplicate function: withValidation",
+      "original": "./src/lib/validation-middleware.ts",
+      "spaceSaved": 252
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./scripts/security-patch-agent.js",
+      "reason": "Removed duplicate type: ValidationRule",
+      "original": "./src/lib/validation-middleware.ts",
+      "spaceSaved": 177
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./scripts/analyze-app-without-browser.js",
+      "reason": "Removed duplicate function: analyzeApp",
+      "original": "./scripts/analyze-app-simple.js",
+      "spaceSaved": 132
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./scripts/test-comprehensive.js",
+      "reason": "Removed duplicate function: makeRequest",
+      "original": "./scripts/test-full-workflow.js",
+      "spaceSaved": 381
+    },
+    {
+      "type": "unused_dependencies",
+      "file": "./package.json",
+      "reason": "Potentially unused dependencies found",
+      "dependencies": [
+        "@types/uuid",
+        "autoprefixer",
+        "postcss",
+        "react-dom",
+        "tailwindcss"
+      ]
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./test/checkpoints/basic-functionality.test.js",
+      "reason": "Removed duplicate function: colorLog",
+      "original": "./test/checkpoints/save-restore.test.js",
+      "spaceSaved": 77
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 170
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 170
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "reason": "Removed duplicate function: PATCH",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 172
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/validate/route.ts",
+      "spaceSaved": 144
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/components/CredentialsManager.tsx",
+      "reason": "Removed duplicate function: CredentialsManager",
+      "original": "./src/features/workspace-workshop/components/MonacoEditorArea.tsx",
+      "spaceSaved": 100
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: ConversationMessage",
+      "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+      "spaceSaved": 266
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandExecution",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 244
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: WorkspaceContextSnapshot",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 190
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandLibrary",
+      "original": "./src/features/agents/types/commands.ts",
+      "spaceSaved": 212
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: Command",
+      "original": "./src/features/agents/data/commandLibrary.ts",
+      "spaceSaved": 452
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_STORAGE_ARCHITECTURE.md",
+      "reason": "Removed duplicate type: ConversationIndex",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 228
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./scripts/security-patch-agent.js",
+      "reason": "Removed duplicate function: withValidation",
+      "original": "./src/lib/validation-middleware.ts",
+      "spaceSaved": 252
+    },
+    {
+      "type": "unused_dependencies",
+      "file": "./package.json",
+      "reason": "Potentially unused dependencies found",
+      "dependencies": [
+        "@types/uuid",
+        "autoprefixer",
+        "postcss",
+        "react-dom",
+        "tailwindcss"
+      ]
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/route.ts",
+      "reason": "Removed duplicate function: GET",
+      "original": "./src/app/api/workspaces/[workspaceId]/agents/[agentId]/conversation/stream/route.ts",
+      "spaceSaved": 170
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: ConversationMessage",
+      "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+      "spaceSaved": 266
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandExecution",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 244
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: WorkspaceContextSnapshot",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 190
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandLibrary",
+      "original": "./src/features/agents/types/commands.ts",
+      "spaceSaved": 212
+    },
+    {
+      "type": "unused_dependencies",
+      "file": "./package.json",
+      "reason": "Potentially unused dependencies found",
+      "dependencies": [
+        "@types/uuid",
+        "autoprefixer",
+        "postcss",
+        "react-dom",
+        "tailwindcss"
+      ]
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: ConversationMessage",
+      "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+      "spaceSaved": 266
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandExecution",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 244
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: WorkspaceContextSnapshot",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 190
+    },
+    {
+      "type": "unused_dependencies",
+      "file": "./package.json",
+      "reason": "Potentially unused dependencies found",
+      "dependencies": [
+        "@types/uuid",
+        "autoprefixer",
+        "postcss",
+        "react-dom",
+        "tailwindcss"
+      ]
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: ConversationMessage",
+      "original": "./src/features/agents/components/terminal/ChatInterface.tsx",
+      "spaceSaved": 266
+    },
+    {
+      "type": "duplicate_removal",
+      "file": "./docs/AGENT_DATA_STRUCTURES.md",
+      "reason": "Removed duplicate type: CommandExecution",
+      "original": "./src/features/agents/types/conversation.ts",
+      "spaceSaved": 244
+    },
+    {
+      "type": "unused_dependencies",
+      "file": "./package.json",
+      "reason": "Potentially unused dependencies found",
+      "dependencies": [
+        "@types/uuid",
+        "autoprefixer",
+        "postcss",
+        "react-dom",
+        "tailwindcss"
+      ]
+    }
+  ]
+}

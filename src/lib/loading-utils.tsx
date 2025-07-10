@@ -1,10 +1,4 @@
-/**
- * Multi-stage loading utilities and components
- * Provides progressive loading patterns for better performance
- */
-
 import React, { Suspense, lazy, ComponentType } from 'react';
-
 // Loading states
 export const LoadingStates = {
   skeleton: (height = 'h-32', text = 'Loading...') => (
@@ -12,14 +6,12 @@ export const LoadingStates = {
       <span className="text-gray-500 text-sm">{text}</span>
     </div>
   ),
-  
   spinner: (text = 'Loading...') => (
     <div className="flex items-center justify-center p-8">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
       <span className="text-gray-600">{text}</span>
     </div>
   ),
-  
   stageShell: (stageName: string) => (
     <div className="space-y-4">
       <div className="h-8 bg-gray-200 rounded animate-pulse w-1/3"></div>
@@ -33,14 +25,12 @@ export const LoadingStates = {
     </div>
   )
 };
-
 // Lazy loading wrapper with error boundary
 export function createLazyComponent<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   fallback?: React.ReactNode
 ) {
   const LazyComponent = lazy(importFn);
-  
   return function LazyWrapper(props: React.ComponentProps<T>) {
     return (
       <Suspense fallback={fallback || LoadingStates.spinner()}>
@@ -49,7 +39,6 @@ export function createLazyComponent<T extends ComponentType<any>>(
     );
   };
 }
-
 // Progressive data loader hook
 export function useProgressiveData<T>(
   fetchFn: () => Promise<T>,
@@ -66,12 +55,9 @@ export function useProgressiveData<T>(
     error: null,
     stage: 'initial'
   });
-
   React.useEffect(() => {
     let cancelled = false;
-    
     setState(prev => ({ ...prev, loading: true, stage: 'loading' }));
-    
     fetchFn()
       .then(data => {
         if (!cancelled) {
@@ -93,19 +79,15 @@ export function useProgressiveData<T>(
           }));
         }
       });
-    
     return () => { cancelled = true; };
   }, deps);
-
   return state;
 }
-
 // Intersection observer for viewport-based loading
 export function useInViewport(threshold = 0.1) {
   const [isInView, setIsInView] = React.useState(false);
   const [hasBeenInView, setHasBeenInView] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
-
   React.useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -117,34 +99,26 @@ export function useInViewport(threshold = 0.1) {
       },
       { threshold }
     );
-
     if (ref.current) {
       observer.observe(ref.current);
     }
-
     return () => observer.disconnect();
   }, [threshold, hasBeenInView]);
-
   return { ref, isInView, hasBeenInView };
 }
-
 // Stage-based loading manager
 export class StageLoader {
   private loadedStages = new Set<string>();
   private loadingStages = new Set<string>();
   private prefetchQueue: string[] = [];
-
   async loadStage(stageKey: string, loader: () => Promise<any>) {
     if (this.loadedStages.has(stageKey)) {
       return; // Already loaded
     }
-
     if (this.loadingStages.has(stageKey)) {
       return; // Already loading
     }
-
     this.loadingStages.add(stageKey);
-    
     try {
       await loader();
       this.loadedStages.add(stageKey);
@@ -152,13 +126,11 @@ export class StageLoader {
       this.loadingStages.delete(stageKey);
     }
   }
-
   queuePrefetch(stageKey: string) {
     if (!this.loadedStages.has(stageKey) && !this.prefetchQueue.includes(stageKey)) {
       this.prefetchQueue.push(stageKey);
     }
   }
-
   async processPrefetchQueue(loaders: Record<string, () => Promise<any>>) {
     // Process prefetch queue when browser is idle
     if ('requestIdleCallback' in window) {
@@ -173,5 +145,4 @@ export class StageLoader {
     }
   }
 }
-
 export const stageLoader = new StageLoader();

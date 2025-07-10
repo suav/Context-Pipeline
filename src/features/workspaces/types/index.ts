@@ -1,9 +1,4 @@
-/**
- * Workspace Draft Types
- */
-
 import { LibraryItem } from '@/features/context-library/types';
-
 export interface WorkspaceDraft {
     id: string;
     name: string;
@@ -19,17 +14,17 @@ export interface WorkspaceDraft {
     };
     agent_configs: AgentConfig[];
 }
-
 export interface AgentConfig {
     id: string;
     name: string;
     role: string;
     permissions: string[];
     commands: string[];
+    command_triggers?: Record<string, 'startup' | 'reply'>; // Maps command ID to trigger type
     model?: string;
     priority?: number;
+    checkpoint_id?: string;
 }
-
 export interface ContextManifest {
     workspace_id: string;
     created: string;
@@ -38,7 +33,6 @@ export interface ContextManifest {
     context_items: ContextManifestItem[];
     context_summary: string;
 }
-
 export interface ContextManifestItem {
     id: string;
     type: string;

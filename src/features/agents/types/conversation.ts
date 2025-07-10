@@ -1,43 +1,24 @@
-/**
- * Conversation and Messaging Types
- */
-
 export interface ConversationThread {
   id: string;
   agent_id: string;
   workspace_id: string;
   created_at: string;
   updated_at: string;
-  
   // Conversation data
   messages: ConversationMessage[];
   context_snapshot: WorkspaceContextSnapshot;
-  
   // Checkpoint system
   is_checkpoint: boolean;
   checkpoint_title?: string;
   checkpoint_description?: string;
   parent_checkpoint?: string;
-  
   // Performance tracking
   total_tokens_used: number;
   commands_executed: CommandExecution[];
   status: 'active' | 'paused' | 'completed' | 'checkpointed';
 }
-
-export interface ConversationMessage {
-  id: string;
-  timestamp: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  metadata?: {
-    command_id?: string;
-    file_changes?: string[];
-    approval_required?: boolean;
-    human_intervention?: boolean;
-  };
+export // Duplicate type removed: ConversationMessage (see ./src/features/agents/components/terminal/ChatInterface.tsx);
 }
-
 export interface CommandExecution {
   id: string;
   command_id: string;
@@ -49,7 +30,6 @@ export interface CommandExecution {
   human_approved: boolean;
   execution_time_ms: number;
 }
-
 export interface WorkspaceContextSnapshot {
   timestamp: string;
   workspace_structure: {
@@ -65,7 +45,6 @@ export interface WorkspaceContextSnapshot {
   };
   context_description: string;
 }
-
 export interface ContextItem {
   id: string;
   type: 'jira_ticket' | 'git_repository' | 'file' | 'email' | 'documentation';
@@ -74,7 +53,6 @@ export interface ContextItem {
   context_value: string;
   metadata: Record<string, any>;
 }
-
 export interface FileTreeNode {
   path: string;
   type: 'file' | 'directory';
@@ -82,14 +60,12 @@ export interface FileTreeNode {
   modified?: string;
   children?: FileTreeNode[];
 }
-
 export interface FeedbackFile {
   path: string;
   type: 'status' | 'progress' | 'log' | 'result';
   content: any;
   last_modified: string;
 }
-
 // Conversation indexing for fast retrieval
 export interface ConversationIndex {
   conversation_id: string;
@@ -101,7 +77,6 @@ export interface ConversationIndex {
   total_tokens: number;
   checkpoints: string[];
 }
-
 // Message file storage for streaming efficiency
 export interface MessageFile {
   id: string;

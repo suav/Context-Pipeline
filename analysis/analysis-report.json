@@ -1,0 +1,42 @@
+{
+  "timestamp": "2025-07-08T00:33:11.553Z",
+  "homepage": {
+    "hasWorkspaceWorkshop": true,
+    "hasContextPipeline": true,
+    "hasWorkspaceSidebar": true,
+    "hasSettings": true,
+    "hasCreateWorkspace": true,
+    "hasImportButton": true,
+    "hasLibraryElements": true,
+    "hasAgentElements": true,
+    "hasMonacoEditor": false,
+    "hasTerminalElements": false,
+    "hasFileExplorer": false,
+    "hasLoadingStates": false,
+    "totalSize": 9033,
+    "hasReactElements": true,
+    "hasNextJS": true
+  },
+  "features": {
+    "workspaceManagement": true,
+    "contextImport": true,
+    "agentIntegration": true,
+    "fileOperations": true,
+    "settings": true,
+    "library": true,
+    "monacoEditor": false,
+    "terminal": false,
+    "gitIntegration": false,
+    "permissions": false
+  },
+  "apis": {
+    "health": true,
+    "workspaces": true,
+    "library": true,
+    "queries": true
+  },
+  "recommendations": [
+    "Monaco editor not detected - check if it loads after workspace selection",
+    "Homepage seems too small - possible rendering issue"
+  ]
+}
