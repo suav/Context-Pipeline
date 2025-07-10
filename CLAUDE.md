@@ -34,7 +34,7 @@ Context Pipeline is a **context engineering and agent deployment tool** designed
 **Key Files**:
 - `src/features/agents/components/terminal/ToolApprovalOverlay.tsx` - Approval UI exists
 - `src/features/agents/data/commandLibrary.ts` - Command structure ready
-- `docs/AGENT_PERMISSION_SYSTEM.md` - Full design specification
+- `docs/agents/AGENT_PERMISSION_SYSTEM.md` - Full design specification
 ### 2. **Agent Checkpoint System**
 **Goal**: Save and restore agent expertise/context across sessions
 **Current State**:
@@ -48,7 +48,7 @@ Context Pipeline is a **context engineering and agent deployment tool** designed
 **Key Files**:
 - `src/features/agents/types/checkpoints.ts` - Type definitions exist
 - `src/features/agents/services/AgentService.ts` - Add checkpoint methods
-- `docs/AGENT_BUILD_PLAN.md` - Full checkpoint system design
+- `docs/agents/AGENT_BUILD_PLAN.md` - Full checkpoint system design
 ### 3. **Git Flow Integration**
 **Goal**: Each workspace operates like a developer with standard git workflows
 **Vision**:
@@ -60,7 +60,7 @@ Context Pipeline is a **context engineering and agent deployment tool** designed
 **Key Components**:
 - `src/app/api/workspaces/[workspaceId]/git/diff/route.ts` - Diff viewing exists
 - Need: Branch management, commit creation, PR workflows
-- Reference: `docs/GIT_INTEGRATION_IMPLEMENTATION.md`
+- Reference: `docs/implementation/GIT_INTEGRATION_IMPLEMENTATION.md`
 ### 4. **Dynamic Context Triggers**
 **Goal**: Automate workspace creation and agent deployment based on events
 **Planned Triggers**:
@@ -74,8 +74,8 @@ Context Pipeline is a **context engineering and agent deployment tool** designed
 3. Add git hook integration
 4. Build trigger → workspace creation pipeline
 **Key Files**:
-- `docs/DYNAMIC_CONTEXT_TRIGGER_DESIGN.md` - Full design
-- `docs/DYNAMIC_CONTEXT_TRIGGER_IMPLEMENTATION_GUIDE.md` - Implementation steps
+- `docs/implementation/DYNAMIC_CONTEXT_TRIGGER_DESIGN.md` - Full design
+- `docs/implementation/DYNAMIC_CONTEXT_TRIGGER_IMPLEMENTATION_GUIDE.md` - Implementation steps
 ## 🗺️ Code Navigation
 ### Core Application Structure
 ```
@@ -239,23 +239,23 @@ export async function POST(request: Request, { params }: { params: { workspaceId
 5. **Think Git Flow**: How does this fit into developer workflows?
 ## 📚 Essential Documentation
 **Priority Reading**:
-1. `docs/AGENT_PERMISSION_SYSTEM.md` - Critical for next phase
-2. `docs/AGENT_BUILD_PLAN.md` - Checkpoint system design
-3. `docs/GIT_INTEGRATION_IMPLEMENTATION.md` - Git workflow vision
-4. `docs/DYNAMIC_CONTEXT_TRIGGER_DESIGN.md` - Automation goals
+1. `docs/agents/AGENT_PERMISSION_SYSTEM.md` - Critical for next phase
+2. `docs/agents/AGENT_BUILD_PLAN.md` - Checkpoint system design
+3. `docs/implementation/GIT_INTEGRATION_IMPLEMENTATION.md` - Git workflow vision
+4. `docs/implementation/DYNAMIC_CONTEXT_TRIGGER_DESIGN.md` - Automation goals
 **Testing & Validation** (REQUIRED):
-- `analysis/TESTING_GUIDE.md` - **Comprehensive testing requirements**
-- `analysis/NAVIGATION_GUIDE.md` - **UI interaction patterns**
+- `docs/testing/TESTING_GUIDE.md` - **Comprehensive testing requirements**
+- `docs/testing/NAVIGATION_GUIDE.md` - **UI interaction patterns**
 - `analysis/feature-matrix.json` - **Current feature status**
 - `analysis/comprehensive-test-results.json` - **Latest test results**
 **Architecture**:
-- `docs/CONTEXT_PIPELINE_DESIGN.md` - Original vision (partially outdated)
-- `docs/AGENT_DATA_STRUCTURES.md` - Type definitions
-- `docs/WORKSPACE_4_COMPONENT_DESIGN.md` - UI architecture
+- `docs/architecture/CONTEXT_PIPELINE_DESIGN.md` - Original vision (partially outdated)
+- `docs/agents/AGENT_DATA_STRUCTURES.md` - Type definitions
+- `docs/architecture/WORKSPACE_4_COMPONENT_DESIGN.md` - UI architecture
 **Performance** (if needed):
-- `docs/PERFORMANCE_OPTIMIZATION_COMPLETE.md` - How we fixed performance
-- `docs/API_CACHING_SYSTEM.md` - Caching implementation
-- `docs/WSL_PERFORMANCE_OPTIMIZATION.md` - WSL-specific optimizations
+- `docs/performance/PERFORMANCE_OPTIMIZATION_COMPLETE.md` - How we fixed performance
+- `docs/performance/API_CACHING_SYSTEM.md` - Caching implementation
+- `docs/performance/WSL_PERFORMANCE_OPTIMIZATION.md` - WSL-specific optimizations
 ## 🎯 Remember the Vision
 This tool empowers developers to:
 1. Quickly create workspaces for tickets
