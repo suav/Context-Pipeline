@@ -45,8 +45,8 @@ next-env.d.ts
 /src/storage/
 
 # Logs
+logs/
 *.log
-server.log
 
 # IDE
 .vscode/
