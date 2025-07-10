@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@tailwindcss/postcss": "^4.1.11",
     "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.4.21",
     "monaco-editor": "^0.52.2",
