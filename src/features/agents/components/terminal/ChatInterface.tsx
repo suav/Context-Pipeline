@@ -5,6 +5,8 @@
 'use client';
 import { useState, useEffect, useRef, useCallback, KeyboardEvent } from 'react';
 import { CommandInjector } from '../CommandInjector';
+import { SlashCommandAutocomplete } from './SlashCommandAutocomplete';
+import { UserCommand } from '../../services/CommandManager';
 interface ConversationMessage {
   id: string;
   timestamp: string;
@@ -15,6 +17,11 @@ interface ConversationMessage {
     file_changes?: string[];
     approval_required?: boolean;
     human_intervention?: boolean;
+    session_id?: string;
+    checkpoint_saved?: boolean;
+    checkpoint_name?: string;
+    checkpoint_restored?: boolean;
+    usage?: any;
   };
 }
 interface ChatInterfaceProps {
@@ -66,6 +73,11 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   const [checkpointName, setCheckpointName] = useState('');
   const [checkpointDescription, setCheckpointDescription] = useState('');
   const [isSavingCheckpoint, setIsSavingCheckpoint] = useState(false);
+  
+  // Slash command autocomplete state
+  const [showSlashCommands, setShowSlashCommands] = useState(false);
+  const [slashSearchTerm, setSlashSearchTerm] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
   // Load conversation history once when component mounts
   useEffect(() => {
     if (agentId && workspaceId) {
@@ -98,9 +110,41 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         scrollToBottom();
       }
     };
+    
+    // Also handle when the terminal area becomes visible again
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0) {
+          console.log(`[${componentId.current}] Terminal area became visible - reactivating`);
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+          scrollToBottom();
+          
+          // Check if we were processing when the user left - if so, suggest continuing
+          const lastMessage = messages[messages.length - 1];
+          if (isProcessing && lastMessage?.role === 'user') {
+            console.log(`[${componentId.current}] Detected potentially stuck streaming - user may need to continue`);
+            // Set a helpful input suggestion
+            setTimeout(() => {
+              if (!isProcessing && inputValue.trim() === '') {
+                setInputValue('/continue');
+              }
+            }, 2000);
+          }
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    // Observe the terminal ref element
+    if (terminalRef.current) {
+      observer.observe(terminalRef.current);
+    }
+    
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      observer.disconnect();
     };
   }, []);
   // Cleanup on unmount
@@ -132,6 +176,19 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     };
     loadAgentState();
   }, [agentId, workspaceId, agentLoaded]);
+  // Add timeout for tool approvals to prevent getting stuck
+  useEffect(() => {
+    if (pendingToolApproval) {
+      // Auto-deny after 5 minutes if no response
+      const timeout = setTimeout(() => {
+        console.warn('Tool approval timeout - auto-denying for safety');
+        handleToolApproval(false);
+      }, 5 * 60 * 1000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [pendingToolApproval]);
+  
   // Add scroll event listener to detect user scrolling
   useEffect(() => {
     const handleScroll = () => {
@@ -220,23 +277,12 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         console.log(`Tool ${pendingToolApproval.toolName} ${approved ? 'approved' : 'denied'}`);
         const toolName = pendingToolApproval.toolName;
         setPendingToolApproval(null);
-        // Add approval message to chat
-        const approvalMessage: ConversationMessage = {
-          id: `approval_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          timestamp: new Date().toISOString(),
-          role: 'system',
-          content: `Tool ${toolName} ${approved ? '✅ APPROVED' : '❌ DENIED'} by user`,
-          metadata: { approval_action: true, tool_name: toolName, approved }
-        };
-        setMessages(prev => [...prev, approvalMessage]);
-        forceScrollToBottom();
-        // If approved, automatically request continuation to get agent's analysis
-        if (approved) {
-          console.log('🔄 Tool approved - requesting agent continuation');
-          setTimeout(async () => {
-            await sendCommandWithStreaming('Please continue with your analysis of the tool results and provide your findings.');
-          }, 1000); // Small delay to ensure approval is processed
-        }
+        
+        // No approval message in chat as requested by user - just process the approval
+        console.log(`🔧 Tool approval processed: ${toolName} ${approved ? 'APPROVED' : 'DENIED'}`);
+        
+        // If approved, the agent can continue with tool execution automatically
+        // No need to send additional commands - Claude will proceed when approval is processed
       }
     } catch (error) {
       console.error('Tool approval failed:', error);
@@ -298,6 +344,160 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     } finally {
       setIsSavingCheckpoint(false);
     }
+  };
+  
+  // Handle slash command selection
+  const handleSelectSlashCommand = (commandText: string) => {
+    // Find the slash command in the input and replace it with the command text
+    const beforeCursor = inputValue.substring(0, cursorPosition);
+    const afterCursor = inputValue.substring(cursorPosition);
+    const slashMatch = beforeCursor.match(/\/([^\/\s]*)$/);
+    
+    if (slashMatch) {
+      const slashStart = beforeCursor.lastIndexOf('/' + slashMatch[1]);
+      const newInput = beforeCursor.substring(0, slashStart) + commandText + afterCursor;
+      setInputValue(newInput);
+    } else {
+      // If no slash found, just set the command
+      setInputValue(commandText);
+    }
+    
+    setShowSlashCommands(false);
+    setSlashSearchTerm('');
+    
+    // Focus the input
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+  
+  // Get Claude-optimized command format
+  const getClaudeFormattedCommand = (command: UserCommand) => {
+    const claudeOptimizedPrompts: Record<string, string> = {
+      investigate: `# Investigation Task
+
+## Objective
+Analyze this workspace comprehensively to understand the codebase, identify current issues, and recommend next steps.
+
+## Step-by-Step Process
+
+### 1. Initial Assessment
+- Use the \`Read\` tool to examine the project structure
+- Check for package.json, README.md, and other configuration files
+- Identify the primary technology stack and frameworks
+
+### 2. Context Analysis
+- Review all context files in the workspace
+- Analyze JIRA tickets (if available) for current objectives
+- Examine recent git commits for development patterns
+
+### 3. Code Investigation
+- Use \`Grep\` to search for key patterns and potential issues
+- Identify main application entry points
+- Look for TODO comments, FIXME markers, or deprecation warnings
+
+### 4. Documentation Review
+- Check for existing documentation
+- Identify gaps in documentation
+- Review API documentation if available
+
+### 5. Final Report
+Provide a structured report including:
+- **Architecture Overview**: High-level system design
+- **Current State**: What's working and what needs attention
+- **Key Issues**: Priority issues that need addressing
+- **Recommendations**: Specific next steps with prioritization
+
+## Expected Deliverables
+- Comprehensive workspace analysis
+- Prioritized list of issues and opportunities
+- Specific recommendations for next actions`,
+
+      analyze: `# Code Analysis Task
+
+## Objective
+Perform a comprehensive code analysis including architecture review, code quality assessment, and improvement recommendations.
+
+## Step-by-Step Process
+
+### 1. Architecture Analysis
+- Use \`Glob\` to map the project structure
+- Identify architectural patterns and design principles
+- Analyze component relationships and dependencies
+
+### 2. Code Quality Review
+- Use \`Grep\` to identify potential code quality issues
+- Check for consistent coding standards
+- Look for potential security vulnerabilities
+
+### 3. Performance Analysis
+- Identify performance bottlenecks
+- Check for inefficient algorithms or data structures
+- Review database queries and API calls
+
+### 4. Testing Analysis
+- Examine test coverage and quality
+- Identify missing test cases
+- Review test architecture and patterns
+
+### 5. Documentation Assessment
+- Check code documentation quality
+- Identify undocumented functions or modules
+- Review API documentation completeness
+
+## Expected Deliverables
+- **Architecture Report**: System design analysis
+- **Code Quality Score**: With specific improvement areas
+- **Performance Assessment**: Bottlenecks and optimization opportunities
+- **Testing Report**: Coverage gaps and recommendations
+- **Action Plan**: Prioritized improvements with implementation steps`,
+
+      implement: `# Implementation Task
+
+## Objective
+Implement the requested feature or fix based on previous discussions and requirements.
+
+## Step-by-Step Process
+
+### 1. Implementation Planning
+- Review the agreed-upon approach and requirements
+- Confirm technical design and architecture decisions
+- Set up development environment if needed
+
+### 2. Code Implementation
+- Follow established coding standards and patterns
+- Implement core functionality first
+- Add error handling and edge cases
+
+### 3. Testing Integration
+- Write unit tests for new functionality
+- Run existing tests to ensure no regressions
+- Add integration tests if needed
+
+### 4. Code Review Preparation
+- Self-review code for quality and completeness
+- Ensure code is well-documented
+- Clean up any temporary or debugging code
+
+### 5. Deployment Preparation
+- Test in development environment
+- Prepare deployment notes and procedures
+- Update documentation as needed
+
+## Expected Deliverables
+- **Working Implementation**: Complete, tested code
+- **Test Coverage**: Adequate test coverage for new features
+- **Documentation**: Updated documentation and comments
+- **Deployment Notes**: Instructions for deployment and rollback
+
+## Important Notes
+- Always test thoroughly before marking as complete
+- Follow the established code review process
+- Ensure backward compatibility unless specifically noted`
+    };
+
+    // Use Claude-optimized prompt if available, otherwise use base prompt
+    return claudeOptimizedPrompts[command.keyword] || command.base_prompt;
   };
   
   // Restore previous Claude session if available
@@ -643,8 +843,12 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                             metadata.tool_uses.push(parsedMetadata);
                             // Show current tool operation
                             setCurrentToolOperation(`${parsedMetadata.name}: ${parsedMetadata.operation_summary || 'Processing...'}`);
-                            // Check if this tool requires approval (expanded list for Claude tools)
-                            const toolsRequiringApproval = ['bash', 'edit_file', 'Edit', 'Bash', 'Write', 'MultiEdit'];
+                            // Check if this tool requires approval - only tools that modify files or run dangerous commands
+                            const toolsRequiringApproval = [
+                              'bash', 'str_replace_editor', 'computer', 'Edit', 'Bash', 'Write', 
+                              'MultiEdit'
+                              // Note: Read, LS, Glob, Grep, Task, WebFetch, WebSearch, TodoRead, TodoWrite are now pre-approved
+                            ];
                             const requiresApproval = parsedMetadata.approval_required ||
                                                    toolsRequiringApproval.includes(parsedMetadata.name);
                             console.log(`🔧 Tool detected: ${parsedMetadata.name}, requires approval: ${requiresApproval}`);
@@ -660,6 +864,18 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
                             break;
                           case 'TOOL_RESULT':
                             metadata.tool_results.push(parsedMetadata);
+                            // Check if this was a file operation and trigger refresh
+                            if (parsedMetadata.tool_name && 
+                                ['Edit', 'Write', 'MultiEdit', 'str_replace_editor'].includes(parsedMetadata.tool_name)) {
+                              console.log('🔄 File operation detected, triggering refresh');
+                              window.dispatchEvent(new CustomEvent('agentFileOperation', {
+                                detail: { 
+                                  toolName: parsedMetadata.tool_name,
+                                  operation: 'file_modified',
+                                  workspaceId: workspaceId
+                                }
+                              }));
+                            }
                             break;
                           case 'THINKING':
                             metadata.thinking.push(parsedMetadata);
@@ -788,6 +1004,12 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       if (isComponentActiveRef.current) {
         console.log(`[${componentId.current}] Setting processing to false (sendCommandWithStreaming)`);
         setIsProcessing(false);
+        // Clear any pending tool approvals on stream end
+        if (pendingToolApproval) {
+          console.log('Stream ended with pending approval - clearing');
+          setPendingToolApproval(null);
+        }
+        setCurrentToolOperation(null);
         if (inputRef.current) {
           inputRef.current.focus();
         }
@@ -830,6 +1052,13 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
         return;
       }
     }
+    
+    // If slash command autocomplete is showing, let it handle navigation keys
+    if (showSlashCommands && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Enter' || e.key === 'Escape')) {
+      // The SlashCommandAutocomplete component will handle these
+      return;
+    }
+    
     if (e.key === 'Enter') {
       e.preventDefault();
       sendCommand();
@@ -840,6 +1069,9 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
       e.preventDefault();
       if (showCommandInjector) {
         setShowCommandInjector(false);
+      } else if (showSlashCommands) {
+        setShowSlashCommands(false);
+        setSlashSearchTerm('');
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -1037,7 +1269,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     <div className="flex flex-col h-full w-full bg-black text-green-400 font-mono text-sm" style={{ height: '100%' }}>
       {/* Fixed Input Area at Top */}
       <div className="flex-shrink-0 bg-black border-b border-gray-700">
-        {/* Command Picker Dropdown */}
+        {/* Legacy Command Picker Dropdown - kept for Tab key */}
         {showCommandInjector && (
           <div className="border-b border-gray-700 bg-gray-900 p-2">
             <CommandInjector
@@ -1068,21 +1300,41 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
             ref={inputRef}
             type="text"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              const cursorPos = e.target.selectionStart || 0;
+              
+              setInputValue(value);
+              setCursorPosition(cursorPos);
+              
+              // Detect slash commands
+              const beforeCursor = value.substring(0, cursorPos);
+              const slashMatch = beforeCursor.match(/\/([^\/\s]*)$/);
+              
+              if (slashMatch) {
+                setSlashSearchTerm(slashMatch[1]);
+                setShowSlashCommands(true);
+              } else {
+                setShowSlashCommands(false);
+                setSlashSearchTerm('');
+              }
+            }}
             onKeyDown={handleKeyDown}
-            placeholder={isProcessing ? "Processing..." : `Type your command...`}
+            onSelect={(e) => {
+              const target = e.target as HTMLInputElement;
+              setCursorPosition(target.selectionStart || 0);
+            }}
+            onBlur={() => {
+              // Hide autocomplete when input loses focus, but with a small delay
+              // to allow for clicks on autocomplete items
+              setTimeout(() => setShowSlashCommands(false), 200);
+            }}
+            placeholder={isProcessing ? "Processing..." : `Type your command or "/" for commands...`}
             className="flex-1 bg-transparent border-none outline-none text-green-400"
             disabled={isProcessing}
             autoFocus
           />
           <div className="flex items-center gap-2 ml-2">
-            <button
-              onClick={() => setShowCommandInjector(!showCommandInjector)}
-              className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors"
-              title="Quick Commands (Tab)"
-            >
-              ⚡
-            </button>
             <button
               onClick={() => {
                 setCheckpointName(`${workspaceId} Expert`);
@@ -1107,6 +1359,7 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
             </button>
           </div>
         </div>
+        
       </div>
       {/* Scrollable Content Area */}
       <div
@@ -1420,6 +1673,18 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
           </div>
         </div>
       )}
+      
+      {/* Slash Command Autocomplete - Positioned to overlay */}
+      <SlashCommandAutocomplete
+        isVisible={showSlashCommands}
+        searchTerm={slashSearchTerm}
+        onSelectCommand={handleSelectSlashCommand}
+        onClose={() => {
+          setShowSlashCommands(false);
+          setSlashSearchTerm('');
+        }}
+        workspaceId={workspaceId}
+      />
     </div>
   );
 }

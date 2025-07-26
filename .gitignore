@@ -56,3 +56,27 @@ logs/
 
 # OS
 Thumbs.db
+
+# Test artifacts and screenshots
+test-results-*.json
+test-screenshots/
+investigation-screenshots/
+scripts/test-screenshots/
+
+# Temporary test scripts
+scripts/test-*.js
+!scripts/test-comprehensive.js
+!scripts/test-fixed-issues.js
+
+# Investigation files
+investigation-*.json
+
+# MCP configuration (local)
+.mcp.json
+
+# Analysis artifacts
+scripts/analyze-git-changes.js
+scripts/recommended-gitignore-additions.txt
+
+# Temporary fix scripts
+scripts/fix-chat-persistence-permissions.js

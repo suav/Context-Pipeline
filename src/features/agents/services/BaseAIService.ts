@@ -9,6 +9,8 @@ export interface WorkspaceContext {
   target_summary: string;
   git_status?: { has_git: boolean };
   permissions?: any;
+  claudeMdContent?: string;
+  claudeSettings?: any;
 }
 export interface AIResponse {
   content: string;
@@ -32,7 +34,8 @@ export abstract class BaseAIService {
     systemPrompt: string,
     userMessage: string,
     conversationHistory: any[],
-    workspaceId: string
+    workspaceId: string,
+    sessionId?: string
   ): Promise<AsyncIterable<string>>;
   public async loadWorkspaceContext(workspaceId: string): Promise<WorkspaceContext> {
     const workspacePath = path.join(this.workspaceBasePath, workspaceId);
@@ -88,6 +91,25 @@ export abstract class BaseAIService {
       // Load workspace permissions for context enhancement
       const permissions = await WorkspaceDocumentGenerator.loadWorkspacePermissions(workspaceId);
       context.permissions = permissions;
+      
+      // CRITICAL: Load CLAUDE.md content
+      try {
+        const claudeMdPath = path.join(workspacePath, 'CLAUDE.md');
+        context.claudeMdContent = await fs.readFile(claudeMdPath, 'utf-8');
+        console.log(`📄 Loaded CLAUDE.md for workspace ${workspaceId}`);
+      } catch (error) {
+        console.warn(`⚠️ Could not load CLAUDE.md for workspace ${workspaceId}`);
+      }
+      
+      // CRITICAL: Load Claude Code settings.json for proper permissions
+      try {
+        const claudeSettingsPath = path.join(workspacePath, '.claude', 'settings.json');
+        const claudeSettings = await fs.readFile(claudeSettingsPath, 'utf-8');
+        context.claudeSettings = JSON.parse(claudeSettings);
+        console.log(`🔐 Loaded .claude/settings.json for workspace ${workspaceId}`);
+      } catch (error) {
+        console.warn(`⚠️ Could not load .claude/settings.json for workspace ${workspaceId}`);
+      }
     } catch (error) {
       console.warn(`[${this.getServiceName()}] Permission injection failed:`, error);
       // Continue with default context if permission injection fails
@@ -95,7 +117,7 @@ export abstract class BaseAIService {
     return context;
   }
   public buildSystemPrompt(context: WorkspaceContext, agentId: string): string {
-    return `You are an AI assistant helping with software development tasks in a workspace called "${context.name}".
+    let systemPrompt = `You are an AI assistant helping with software development tasks in a workspace called "${context.name}".
 IMPORTANT CONSTRAINTS:
 - You are ONLY allowed to work within the current workspace directory
 - You have access to 4 main folders: target/ (code), context/ (reference), feedback/ (user feedback), agents/ (agent data)
@@ -111,9 +133,44 @@ ${context.target_summary}
 AVAILABLE CONTEXT:
 ${context.context_items.map((item, i) => `${i + 1}. ${item.title} (${item.type})`).join('\n')}
 Your agent ID is: ${agentId}
-You can save agent-specific data in: agents/${agentId}/
-Be helpful, accurate, and focused on the development tasks at hand.`;
+You can save agent-specific data in: agents/${agentId}/`;
+
+    // CRITICAL: Include CLAUDE.md content if available
+    if (context.claudeMdContent) {
+      systemPrompt = context.claudeMdContent + '\n\n' + systemPrompt;
+    }
+    
+    // Include permissions in system prompt
+    if (context.permissions) {
+      systemPrompt += `\n\nWORKSPACE PERMISSIONS:\n${this.formatPermissionsForSystemPrompt(context.permissions)}`;
+    }
+    
+    return systemPrompt;
   }
+  
+  private formatPermissionsForSystemPrompt(permissions: any): string {
+    return `
+## Your Permissions in this Workspace
+
+### File System Access
+- Read: ${permissions.fileSystem.read.join(', ')}
+- Write: ${permissions.fileSystem.write.join(', ')}
+- Execute: ${permissions.fileSystem.execute.join(', ')}
+
+### Tool Usage
+- Pre-approved tools (no manual approval needed): Read, LS, Glob, Grep, Task, WebFetch, WebSearch, TodoRead, TodoWrite
+- Tools requiring approval: Bash, Edit, Write, MultiEdit, str_replace_editor
+- Always wait for user approval before using tools that modify files or run commands
+
+### Git Operations
+- Allowed: ${permissions.git.allowedOperations.join(', ')}
+- Protected branches: ${permissions.git.protectedBranches.join(', ')}
+
+### Commands
+- Allowed: ${permissions.commands.allowed.join(', ')}
+- Forbidden: ${permissions.commands.forbidden.join(', ')}`;
+  }
+  
   protected spawnProcess(
     command: string,
     args: string[],

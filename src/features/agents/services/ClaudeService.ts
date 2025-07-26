@@ -51,11 +51,15 @@ ASSISTANT:`;
       const tempPromptFile = path.join(workspacePath, '.claude-temp-prompt.txt');
       await fs.writeFile(tempPromptFile, fullPrompt);
       console.log(`[Claude] Spawning Claude CLI process`);
+      // Use target subdirectory as working directory for Claude to respect permissions
+      const targetPath = path.join(workspacePath, 'target');
+      
       const { process: childProcess, cleanup } = await this.spawnProcess('claude', ['--print', '--output-format', 'stream-json', '--verbose'], {
-        cwd: workspacePath,
+        cwd: targetPath, // Run Claude from target directory so it can access workspace files
         env: {
           ...process.env,
           CLAUDE_DATA_DIR: path.join(workspacePath, '.claude-agent-data'),
+          CLAUDE_WORKSPACE_ROOT: workspacePath, // Tell Claude the actual workspace root
           HOME: process.env.HOME
         },
         timeout: 300000 // 5 minutes for complex analysis
@@ -141,41 +145,56 @@ ASSISTANT:`;
     systemPrompt: string,
     userMessage: string,
     conversationHistory: any[],
-    workspaceId: string
+    workspaceId: string,
+    sessionId?: string
   ): Promise<AsyncIterable<string>> {
-    console.log(`[Claude] Creating stream for workspace: ${workspaceId}`);
+    console.log(`[Claude] Creating stream for workspace: ${workspaceId}, session: ${sessionId || 'new'}`);
     try {
       const workspacePath = path.join(this.workspaceBasePath, workspaceId);
       await this.ensureClaudeSettings(workspacePath);
-      // Build conversation context
-      const conversationContext = conversationHistory
-        .slice(-10)
-        .map(msg => `${msg.role}: ${msg.content}`)
-        .join('\n\n');
-      const fullPrompt = `${systemPrompt}\n\nCONVERSATION HISTORY:\n${conversationContext}\n\nUSER: ${userMessage}\n\nASSISTANT:`;
-      console.log(`[Claude] Creating real stream for workspace: ${workspaceId}`);
-      // Return an async generator that streams Claude responses in real-time
-      return this.createRealClaudeStream(workspacePath, fullPrompt);
+      
+      // If we have a session ID, we'll resume that session instead of passing history
+      if (sessionId) {
+        console.log(`[Claude] Resuming existing session: ${sessionId}`);
+        return this.createRealClaudeStream(workspacePath, userMessage, sessionId);
+      } else {
+        // For new sessions, provide initial context
+        console.log(`[Claude] Creating new session with system prompt`);
+        const initialPrompt = `${systemPrompt}\n\nUSER: ${userMessage}\n\nASSISTANT:`;
+        return this.createRealClaudeStream(workspacePath, initialPrompt);
+      }
     } catch (error) {
       console.warn(`[Claude] Streaming failed, using fallback:`, error);
       const fallback = this.generateIntelligentFallback(userMessage, conversationHistory);
       return this.createFallbackStream(fallback);
     }
   }
-  private async* createRealClaudeStream(workspacePath: string, fullPrompt: string): AsyncIterable<string> {
-    const tempPromptFile = path.join(workspacePath, '.claude-temp-prompt.txt');
-    await fs.writeFile(tempPromptFile, fullPrompt);
-    console.log(`[Claude] Starting real-time stream`);
-    const { process: childProcess, cleanup } = await this.spawnProcess('claude', ['--print', '--output-format', 'stream-json', '--verbose'], {
-      cwd: workspacePath,
+  private async* createRealClaudeStream(workspacePath: string, prompt: string, sessionId?: string): AsyncIterable<string> {
+    console.log(`[Claude] Starting real-time stream${sessionId ? ` (resuming session: ${sessionId})` : ' (new session)'}`);
+    
+    // Build Claude CLI arguments
+    const claudeArgs = ['--print', '--output-format', 'stream-json', '--verbose'];
+    if (sessionId) {
+      claudeArgs.push('--resume', sessionId);
+    }
+    
+    // Use target subdirectory as working directory for Claude to respect permissions
+    const targetPath = path.join(workspacePath, 'target');
+    
+    const { process: childProcess, cleanup } = await this.spawnProcess('claude', claudeArgs, {
+      cwd: targetPath, // Run Claude from target directory so it can access workspace files
       env: {
         ...process.env,
         CLAUDE_DATA_DIR: path.join(workspacePath, '.claude-agent-data'),
+        CLAUDE_WORKSPACE_ROOT: workspacePath, // Tell Claude the actual workspace root
         HOME: process.env.HOME
       },
       timeout: 300000 // 5 minutes for complex analysis
     });
-    childProcess.stdin?.write(fullPrompt);
+    
+    // For resumed sessions, just send the user message
+    // For new sessions, send the full prompt with system context
+    childProcess.stdin?.write(prompt);
     childProcess.stdin?.end();
     let buffer = '';
     let sessionInfo: any = null;
@@ -251,12 +270,24 @@ ASSISTANT:`;
                     content_preview: generateResultPreview(contentItem.content)
                   };
                   results.push(`<<<CLAUDE_METADATA:TOOL_RESULT:${JSON.stringify(toolResult)}>>>`);
-                  // Also yield a human-readable result notification
-                  if (contentItem.is_error) {
-                    results.push(`\n❌ **Tool Error**: ${contentItem.content}\n`);
-                  } else {
-                    results.push(`\n✅ **Tool Result**: ${generateResultPreview(contentItem.content)}\n`);
+                  // Only show human-readable tool result notifications for actual tool outputs, not analysis
+                  // Check if this is a short tool result vs a long Claude analysis response
+                  const contentStr = typeof contentItem.content === 'string' ? contentItem.content : JSON.stringify(contentItem.content);
+                  const isAnalysisResponse = contentStr.length > 500 || 
+                                           contentStr.includes('Based on my analysis') || 
+                                           contentStr.includes('Looking at') ||
+                                           contentStr.includes('After reviewing') ||
+                                           contentStr.includes('I can see that');
+                  
+                  if (!isAnalysisResponse) {
+                    // Only show tool result notifications for actual tool outputs
+                    if (contentItem.is_error) {
+                      results.push(`\n❌ **Tool Error**: ${contentItem.content}\n`);
+                    } else {
+                      results.push(`\n✅ **Tool Result**: ${generateResultPreview(contentItem.content)}\n`);
+                    }
                   }
+                  // If it's an analysis response, it should be treated as regular content, not a tool result display
                 }
               }
             }
@@ -279,8 +310,15 @@ ASSISTANT:`;
               })}>>>`);
             }
           } catch (e) {
-            // Not JSON, might be plain text from verbose output
-            if (!line.startsWith('[') && !line.includes('INFO:')) {
+            // Not JSON, might be plain text from verbose output or Claude's direct response
+            if (!line.startsWith('[') && !line.includes('INFO:') && line.trim()) {
+              // Check if this looks like a Claude analysis response that got mislabeled
+              if (line.includes('Based on my analysis') || 
+                  line.includes('Looking at') || 
+                  line.includes('After reviewing') ||
+                  line.includes('I can see that')) {
+                console.log('🔍 Detected Claude analysis response outside JSON structure:', line.substring(0, 100));
+              }
               results.push(line);
             }
           }
@@ -304,11 +342,6 @@ ASSISTANT:`;
       yield `Error in stream: ${error}`;
     } finally {
       cleanup();
-      try {
-        await fs.unlink(tempPromptFile);
-      } catch (e) {
-        // Ignore cleanup errors
-      }
     }
   }
 }
@@ -386,7 +419,30 @@ function generateToolDescription(toolName: string, input: any): string {
 }
 function generateResultPreview(content: any): string {
   if (!content) return 'No output';
+  
+  // Handle JSON content that might contain Claude responses
+  if (typeof content === 'object' || (typeof content === 'string' && content.trim().startsWith('{'))) {
+    try {
+      const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+      // If this is Claude's JSON response format with text content, extract just the text
+      if (parsed.type === 'text' && parsed.text) {
+        const textContent = parsed.text;
+        // If it's a long analysis, just show it's an analysis
+        if (textContent.length > 200 || 
+            textContent.includes('Based on my analysis') || 
+            textContent.includes('Looking at') ||
+            textContent.includes('After reviewing')) {
+          return 'Claude analysis response (see full text above)';
+        }
+        return textContent.substring(0, 150) + (textContent.length > 150 ? '...' : '');
+      }
+    } catch (e) {
+      // Not JSON, continue with string processing
+    }
+  }
+  
   const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+  
   // Handle different types of content
   if (contentStr.includes('error') || contentStr.includes('Error')) {
     return `Error: ${contentStr.substring(0, 100)}${contentStr.length > 100 ? '...' : ''}`;
