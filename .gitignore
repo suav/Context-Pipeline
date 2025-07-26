@@ -62,6 +62,7 @@ test-results-*.json
 test-screenshots/
 investigation-screenshots/
 scripts/test-screenshots/
+analysis/comprehensive-test-results.json
 
 # Temporary test scripts
 scripts/test-*.js
@@ -80,3 +81,19 @@ scripts/recommended-gitignore-additions.txt
 
 # Temporary fix scripts
 scripts/fix-chat-persistence-permissions.js
+
+# Cleanup and preparation scripts
+prepare-commit-*.sh
+scripts/prepare-commits.sh
+scripts/final-cleanup-summary.md
+scripts/generate-claude-commands.js
+scripts/investigate-uncommitted-changes-puppeteer.js
+scripts/manual-regenerate-docs.js
+scripts/migrate-claude-permissions.js
+scripts/regenerate-workspace-permissions.js
+scripts/trigger-workspace-regeneration.js
+scripts/verify-final-implementation.js
+
+# Puppeteer test artifacts
+scripts/puppeteer-tests/results/
+scripts/puppeteer-tests/screenshots/
