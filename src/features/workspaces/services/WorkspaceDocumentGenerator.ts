@@ -232,8 +232,27 @@ export class WorkspaceDocumentGenerator {
     }
   }
   private static async determineWorkspacePermissions(workspaceId: string, context?: WorkspaceContext): Promise<WorkspacePermissions> {
+    // PRIORITY 1: Check for user-specific permissions from top-level settings
+    try {
+      const userSettingsPath = path.join(process.cwd(), '.claude', 'settings.local.json');
+      const userSettings = JSON.parse(await fs.readFile(userSettingsPath, 'utf8'));
+      
+      if (userSettings.workspacePermissions) {
+        console.log(`🔐 Using user-specific workspace permissions for ${workspaceId}`);
+        return userSettings.workspacePermissions;
+      }
+      
+      // If user has Claude permissions, derive workspace permissions from them
+      if (userSettings.permissions?.allow) {
+        console.log(`🔐 Deriving workspace permissions from user Claude settings for ${workspaceId}`);
+        return this.deriveWorkspacePermissionsFromClaudeSettings(userSettings.permissions);
+      }
+    } catch (error) {
+      console.log(`⚠️ Could not load user settings, falling back to templates: ${error.message}`);
+    }
+    
+    // PRIORITY 2: Use role-based templates from global config
     const config = await this.configManager.loadConfig();
-    // Determine role based on workspace type or context
     let roleTemplate = 'developer'; // default
     if (context?.projectType) {
       switch (context.projectType) {
@@ -247,12 +266,62 @@ export class WorkspaceDocumentGenerator {
           roleTemplate = 'developer';
       }
     }
+    
     const templatePermissions = config.permissions.templates[roleTemplate];
     if (templatePermissions) {
+      console.log(`🔐 Using template permissions (${roleTemplate}) for ${workspaceId}`);
       return this.convertPermissionSetToWorkspacePermissions(templatePermissions);
     }
+    
+    // PRIORITY 3: Fallback to hardcoded defaults
+    console.log(`🔐 Using default permissions for ${workspaceId}`);
     return this.getDefaultPermissions();
   }
+  private static deriveWorkspacePermissionsFromClaudeSettings(claudePermissions: any): WorkspacePermissions {
+    const allowedCommands = claudePermissions.allow || [];
+    
+    // Parse Claude permissions to extract workspace permissions
+    const bashCommands = allowedCommands
+      .filter((perm: string) => perm.startsWith('Bash('))
+      .map((perm: string) => perm.replace(/^Bash\(/, '').replace(/\)$/, '').replace(/:.*$/, ''));
+    
+    const gitCommands = bashCommands
+      .filter((cmd: string) => cmd.startsWith('git '))
+      .map((cmd: string) => cmd.replace('git ', ''));
+    
+    return {
+      fileSystem: {
+        read: ['**/*'], // Allow reading all files
+        write: ['target/**', 'feedback/**', 'agents/**'], // Standard workspace areas
+        execute: bashCommands.includes('chmod') ? ['target/**'] : []
+      },
+      git: {
+        allowedOperations: ['diff', 'status', 'log', 'show', 'blame', ...gitCommands] as any[],
+        protectedBranches: ['main', 'master', 'production'],
+        requiresApproval: gitCommands.includes('push') ? [] : ['push']
+      },
+      external: {
+        allowedHosts: ['api.github.com', 'api.openai.com', 'api.anthropic.com'],
+        apiKeys: {}
+      },
+      commands: {
+        allowed: bashCommands,
+        requiresApproval: bashCommands.includes('rm') ? [] : ['rm', 'sudo'],
+        forbidden: claudePermissions.deny || []
+      },
+      systemAccess: {
+        canInstallPackages: bashCommands.some((cmd: string) => cmd.includes('install')),
+        canModifyEnvironment: bashCommands.includes('export') || bashCommands.includes('chmod'),
+        canAccessNetwork: bashCommands.includes('curl') || bashCommands.includes('wget'),
+        maxResourceUsage: {
+          memory: 2048,
+          cpu: 80,
+          disk: 5120
+        }
+      }
+    };
+  }
+
   private static convertPermissionSetToWorkspacePermissions(permissionSet: PermissionSet): WorkspacePermissions {
     return {
       fileSystem: permissionSet.fileSystem,
