@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
+import { resolveGitDirectory } from '@/features/git/utils/gitDirectoryResolver';
 
 const execAsync = promisify(exec);
 
@@ -19,15 +20,32 @@ export async function GET(
 ) {
   try {
     const { workspaceId } = await params;
-    const workspaceDir = path.join(process.cwd(), 'storage', 'workspaces', workspaceId);
+    const { searchParams } = new URL(request.url);
+    const repoName = searchParams.get('repo'); // Optional repo name for multi-repo workspaces
+    
+    // Resolve the correct git directory
+    const gitInfo = await resolveGitDirectory(workspaceId, repoName);
+    const gitDir = gitInfo.gitDir;
+    
+    if (!gitInfo.isGitRepo) {
+      return Response.json({
+        success: false,
+        error: `No git repository found in workspace${repoName ? ` for repo: ${repoName}` : ''}`,
+        gitInfo: {
+          searchedDir: gitDir,
+          repoType: gitInfo.repoType,
+          repoName: gitInfo.repoName
+        }
+      });
+    }
     
     try {
       // Check if it's a git repository
-      await execAsync('git rev-parse --git-dir', { cwd: workspaceDir });
+      await execAsync('git rev-parse --git-dir', { cwd: gitDir });
       
       // Get all branches (local and remote)
       const { stdout: branchOutput } = await execAsync('git branch -a -v --format="%(refname:short)|%(HEAD)|%(upstream:short)|%(subject)|%(committerdate:iso8601)"', { 
-        cwd: workspaceDir,
+        cwd: gitDir,
         maxBuffer: 1024 * 1024 // 1MB buffer
       });
       
@@ -79,7 +97,12 @@ export async function GET(
       
       return Response.json({
         success: true,
-        branches: uniqueBranches
+        branches: uniqueBranches,
+        gitInfo: {
+          gitDir: gitDir,
+          repoType: gitInfo.repoType,
+          repoName: gitInfo.repoName
+        }
       });
       
     } catch (gitError: any) {
@@ -117,21 +140,25 @@ export async function POST(
     }
     
     const workspaceDir = path.join(process.cwd(), 'storage', 'workspaces', workspaceId);
+    const targetDir = path.join(workspaceDir, 'target');
+    
+    // Check if target directory exists, if not, try workspace root (backwards compatibility)
+    const gitDir = require('fs').existsSync(targetDir) ? targetDir : workspaceDir;
     
     try {
       // Check if it's a git repository
-      await execAsync('git rev-parse --git-dir', { cwd: workspaceDir });
+      await execAsync('git rev-parse --git-dir', { cwd: gitDir });
       
       // Check if branch already exists
       try {
-        await execAsync(`git rev-parse --verify ${branchName}`, { cwd: workspaceDir });
+        await execAsync(`git rev-parse --verify ${branchName}`, { cwd: gitDir });
         return Response.json({ error: 'Branch already exists' }, { status: 409 });
       } catch {
         // Branch doesn't exist, which is what we want
       }
       
       // Create new branch from base branch
-      await execAsync(`git checkout -b ${branchName} ${baseBranch}`, { cwd: workspaceDir });
+      await execAsync(`git checkout -b ${branchName} ${baseBranch}`, { cwd: gitDir });
       
       return Response.json({
         success: true,
@@ -169,20 +196,24 @@ export async function PUT(
     }
     
     const workspaceDir = path.join(process.cwd(), 'storage', 'workspaces', workspaceId);
+    const targetDir = path.join(workspaceDir, 'target');
+    
+    // Check if target directory exists, if not, try workspace root (backwards compatibility)
+    const gitDir = require('fs').existsSync(targetDir) ? targetDir : workspaceDir;
     
     try {
       // Check if it's a git repository
-      await execAsync('git rev-parse --git-dir', { cwd: workspaceDir });
+      await execAsync('git rev-parse --git-dir', { cwd: gitDir });
       
       // Check if branch exists
       try {
-        await execAsync(`git rev-parse --verify ${branchName}`, { cwd: workspaceDir });
+        await execAsync(`git rev-parse --verify ${branchName}`, { cwd: gitDir });
       } catch {
         return Response.json({ error: 'Branch does not exist' }, { status: 404 });
       }
       
       // Check for uncommitted changes
-      const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: workspaceDir });
+      const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: gitDir });
       if (statusOutput.trim()) {
         return Response.json({ 
           error: 'Cannot switch branch with uncommitted changes',
@@ -192,7 +223,7 @@ export async function PUT(
       }
       
       // Switch to branch
-      await execAsync(`git checkout ${branchName}`, { cwd: workspaceDir });
+      await execAsync(`git checkout ${branchName}`, { cwd: gitDir });
       
       return Response.json({
         success: true,
@@ -232,20 +263,24 @@ export async function DELETE(
     }
     
     const workspaceDir = path.join(process.cwd(), 'storage', 'workspaces', workspaceId);
+    const targetDir = path.join(workspaceDir, 'target');
+    
+    // Check if target directory exists, if not, try workspace root (backwards compatibility)
+    const gitDir = require('fs').existsSync(targetDir) ? targetDir : workspaceDir;
     
     try {
       // Check if it's a git repository
-      await execAsync('git rev-parse --git-dir', { cwd: workspaceDir });
+      await execAsync('git rev-parse --git-dir', { cwd: gitDir });
       
       // Check if branch exists
       try {
-        await execAsync(`git rev-parse --verify ${branchName}`, { cwd: workspaceDir });
+        await execAsync(`git rev-parse --verify ${branchName}`, { cwd: gitDir });
       } catch {
         return Response.json({ error: 'Branch does not exist' }, { status: 404 });
       }
       
       // Check if it's the current branch
-      const { stdout: currentBranch } = await execAsync('git branch --show-current', { cwd: workspaceDir });
+      const { stdout: currentBranch } = await execAsync('git branch --show-current', { cwd: gitDir });
       if (currentBranch.trim() === branchName) {
         return Response.json({ error: 'Cannot delete current branch' }, { status: 409 });
       }
@@ -258,7 +293,7 @@ export async function DELETE(
       
       // Delete branch
       const deleteFlag = force ? '-D' : '-d';
-      await execAsync(`git branch ${deleteFlag} ${branchName}`, { cwd: workspaceDir });
+      await execAsync(`git branch ${deleteFlag} ${branchName}`, { cwd: gitDir });
       
       return Response.json({
         success: true,

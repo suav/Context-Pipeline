@@ -4,7 +4,7 @@
  */
 
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CredentialSelector as CredentialSelectorService } from '../services/CredentialSelector';
 
 interface Credential {
@@ -42,9 +42,15 @@ export function CredentialSelector({
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasAutoSelected = useRef(false);
 
   useEffect(() => {
     loadCredentials();
+  }, [service]);
+
+  // Reset auto-selection flag when service changes
+  useEffect(() => {
+    hasAutoSelected.current = false;
   }, [service]);
 
   const loadCredentials = async () => {
@@ -58,10 +64,14 @@ export function CredentialSelector({
       setCredentials(serviceCredentials);
       
       // Auto-select default credential if none selected
-      if (!selectedCredentialId && serviceCredentials.length > 0) {
+      if (!selectedCredentialId && serviceCredentials.length > 0 && !hasAutoSelected.current) {
         const defaultCredential = await credentialService.getDefaultCredentialForService(service);
         if (defaultCredential) {
-          onCredentialSelect(defaultCredential.id);
+          hasAutoSelected.current = true;
+          // Use setTimeout to prevent infinite re-render loops
+          setTimeout(() => {
+            onCredentialSelect(defaultCredential.id);
+          }, 0);
         }
       }
       

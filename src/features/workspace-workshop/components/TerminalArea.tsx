@@ -33,27 +33,34 @@ export function TerminalArea({
   }, [activeAgent]);
   const currentAgent = agents.find(agent => agent.id === activeTab);
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="h-full w-full flex flex-col min-w-0">
       {/* Terminal Content - Header removed, toggle buttons now in FileTabs */}
       <div className="flex-1 w-full overflow-hidden">
-        {agents.some(agent => agent.id === activeTab) && currentAgent && (
-          <Suspense fallback={
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderColor: 'var(--color-primary)' }} />
-                <p style={{ color: 'var(--color-text-secondary)' }}>Loading agent terminal...</p>
+        {/* Render all agent terminals but only show the active one - this preserves streaming connections */}
+        {agents.map(agent => (
+          <div 
+            key={agent.id}
+            style={{ display: activeTab === agent.id ? 'block' : 'none' }}
+            className="h-full w-full"
+          >
+            <Suspense fallback={
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderColor: 'var(--color-primary)' }} />
+                  <p style={{ color: 'var(--color-text-secondary)' }}>Loading agent terminal...</p>
+                </div>
               </div>
-            </div>
-          }>
-            <LazyChatInterface
-              agentId={currentAgent.id}
-              workspaceId={workspaceId}
-              agentName={currentAgent.name}
-              agentTitle="Claude Agent"
-              agentColor={currentAgent.color}
-            />
-          </Suspense>
-        )}
+            }>
+              <LazyChatInterface
+                agentId={agent.id}
+                workspaceId={workspaceId}
+                agentName={agent.name}
+                agentTitle="Claude Agent"
+                agentColor={agent.color}
+              />
+            </Suspense>
+          </div>
+        ))}
         {activeTab === 'system' && (
           <SystemTerminal />
         )}

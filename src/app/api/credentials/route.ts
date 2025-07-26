@@ -4,9 +4,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
 
 // Types
 interface Credential {
@@ -249,7 +249,7 @@ async function updateEnvVars(service: string, fields: Record<string, string>): P
     // Check if this repo URL already exists
     const existingUrl = existingRepoUrls.find(key => vars[key] === fields.repo_url);
     if (existingUrl) {
-      throw new Error('Repository URL already exists');
+      throw new Error(`Repository URL already exists as ${existingUrl}. Please use a different repository URL or update the existing credential.`);
     }
     
     // Find next available slot
@@ -620,10 +620,14 @@ export async function POST(request: NextRequest) {
 // PUT - Update credential (updates .env.local)
 export async function PUT(request: NextRequest) {
   try {
+    console.log('PUT /api/credentials - Starting credential update');
     const body = await request.json();
+    console.log('PUT request body:', { id: body.id, fields: body.fields ? Object.keys(body.fields) : 'none' });
+    
     const { id, fields } = body;
     
     if (!id || !fields) {
+      console.log('PUT validation failed - missing id or fields');
       return NextResponse.json({
         success: false,
         error: 'ID and fields are required'

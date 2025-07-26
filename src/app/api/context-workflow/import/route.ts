@@ -4,8 +4,8 @@ import { GitImporter } from '@/features/context-import/importers/GitImporter';
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { source, searchParams } = body;
-        console.log('🚀 Import Request:', { source, searchParams });
+        const { source, searchParams, credentialId } = body;
+        console.log('🚀 Import Request:', { source, searchParams, credentialId });
         let result;
         switch (source) {
             case 'jira':
@@ -25,7 +25,24 @@ export async function POST(request: NextRequest) {
                 break;
             case 'git':
                 try {
-                    const gitImporter = new GitImporter();
+                    // Load credential if provided
+                    let credentials = {};
+                    if (credentialId) {
+                        const credentialResponse = await fetch(`${request.nextUrl.origin}/api/credentials/${credentialId}`);
+                        if (credentialResponse.ok) {
+                            const credentialData = await credentialResponse.json();
+                            // Extract fields from the credential object
+                            credentials = credentialData.credential?.fields || credentialData.fields || {};
+                            console.log('🔑 Using credential for git import:', { 
+                                credentialId, 
+                                credentials,
+                                repoUrl: credentials.repoUrl 
+                            });
+                        } else {
+                            console.error('Failed to load credential:', credentialId);
+                        }
+                    }
+                    const gitImporter = new GitImporter(credentials);
                     result = await gitImporter.search(searchParams);
                 } catch (error) {
                     console.error('❌ Git Import Error:', error);

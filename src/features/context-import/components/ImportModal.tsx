@@ -34,17 +34,28 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
     const [credentialRequired, setCredentialRequired] = useState(false);
 
     const loadQueries = async (source: string) => {
+        // Prevent concurrent loading
+        if (loading) {
+            console.log('Already loading queries, skipping...');
+            return;
+        }
+        
         setLoading(true);
         try {
             console.log(`Loading queries for source: ${source}`);
-            const response = await fetch(`/api/context-workflow/queries/${source}`);
+            // Include credential ID for git queries to get repository-specific templates
+            const url = selectedCredentialId && source === 'git' 
+                ? `/api/context-workflow/queries/${source}?credentialId=${selectedCredentialId}`
+                : `/api/context-workflow/queries/${source}`;
+            const response = await fetch(url);
             const data = await response.json();
             console.log(`Query data received:`, data);
             setQueries(data.queries);
         } catch (error) {
             console.error('Failed to load queries:', error);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     useEffect(() => {
@@ -69,6 +80,18 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
             setCredentialRequired(['jira', 'git', 'email'].includes(selectedSource));
         }
     }, [isOpen, selectedSource]);
+
+    // Reload queries when credential changes for git source
+    useEffect(() => {
+        if (selectedSource === 'git' && selectedCredentialId && isOpen) {
+            console.log('🔄 Credential changed for git, reloading queries...');
+            // Use setTimeout to prevent immediate re-render loop
+            const timeoutId = setTimeout(() => {
+                loadQueries(selectedSource);
+            }, 100);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [selectedCredentialId, selectedSource, isOpen]);
 
     const executeQuery = async () => {
         if (!customQuery.trim()) return;

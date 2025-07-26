@@ -160,7 +160,8 @@ USER: ${userMessage}`;
     systemPrompt: string,
     userMessage: string,
     conversationHistory: any[],
-    workspaceId: string
+    workspaceId: string,
+    sessionId?: string
   ): Promise<AsyncIterable<string>> {
     console.log(`[Gemini] Creating stream for workspace: ${workspaceId}`);
     try {

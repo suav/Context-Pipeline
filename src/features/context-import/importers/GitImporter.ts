@@ -1,19 +1,27 @@
 import { ContextItem, ImportResult } from '@/features/context-import/types';
 export class GitImporter {
     constructor(private credentials: any = {}) {
-        this.repoUrl = credentials.repoUrl || process.env.REPO_URL || '';
-        this.defaultBranch = credentials.defaultBranch || process.env.DEFAULT_BRANCH || 'main';
+        console.log('🔧 GitImporter constructor called with credentials:', credentials);
+        this.repoUrl = credentials.repoUrl || credentials.repo_url || process.env.REPO_URL || '';
+        this.defaultBranch = credentials.defaultBranch || credentials.default_branch || process.env.DEFAULT_BRANCH || 'main';
+        console.log('📍 Using repository URL:', this.repoUrl);
+        
         // Parse GitHub repo from URL
         if (this.repoUrl.includes('github.com')) {
-            const match = this.repoUrl.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
+            // Handle various GitHub URL formats
+            const match = this.repoUrl.match(/github\.com[:/]([^/]+)\/([^/.]+?)(\.git)?$/);
             if (match) {
                 this.owner = match[1];
                 this.repo = match[2];
                 this.baseUrl = 'https://api.github.com';
+                console.log(`✅ Parsed repository: ${this.owner}/${this.repo}`);
+            } else {
+                console.error('❌ Could not match GitHub URL pattern:', this.repoUrl);
             }
         }
         if (!this.owner || !this.repo) {
-            throw new Error('Could not parse GitHub repository from URL');
+            console.error('❌ Failed to parse repository from URL:', this.repoUrl);
+            throw new Error(`Could not parse GitHub repository from URL: ${this.repoUrl}`);
         }
     }
     private repoUrl: string;

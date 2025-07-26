@@ -114,6 +114,11 @@ export function CredentialsManager({ isOpen, onClose }: CredentialsManagerProps)
       setLoading(true);
       setError(null);
 
+      console.log('Updating credential:', {
+        id: editingCredential.credentialId,
+        fields: Object.keys(editingCredential.fields)
+      });
+
       const response = await fetch('/api/credentials', {
         method: 'PUT',
         headers: {
@@ -125,7 +130,16 @@ export function CredentialsManager({ isOpen, onClose }: CredentialsManagerProps)
         }),
       });
 
+      console.log('Update response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Update failed with status:', response.status, 'Error:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
       const data = await response.json();
+      console.log('Update response data:', data);
 
       if (data.success) {
         await loadCredentials();
@@ -136,7 +150,7 @@ export function CredentialsManager({ isOpen, onClose }: CredentialsManagerProps)
       }
     } catch (error) {
       console.error('Failed to update credential:', error);
-      setError('Failed to update credential');
+      setError(error instanceof Error ? error.message : 'Failed to update credential');
     } finally {
       setLoading(false);
     }
@@ -167,7 +181,11 @@ export function CredentialsManager({ isOpen, onClose }: CredentialsManagerProps)
       const data = await response.json();
 
       if (data.success) {
-        await loadCredentials(); // Reload the list
+        // Reload the list but with a delay to prevent immediate re-render loops
+        setTimeout(async () => {
+          await loadCredentials();
+        }, 500);
+        
         setShowAddForm(false);
         setFormData({});
         alert(`✅ Credential "${newCredential.name}" added successfully!\n\nUpdated .env.local file.`);
@@ -219,12 +237,24 @@ export function CredentialsManager({ isOpen, onClose }: CredentialsManagerProps)
 
     try {
       setLoading(true);
+      setError(null);
       
+      console.log('Deleting credential:', credentialId);
+
       const response = await fetch(`/api/credentials?id=${credentialId}`, {
         method: 'DELETE',
       });
 
+      console.log('Delete response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Delete failed with status:', response.status, 'Error:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
       const data = await response.json();
+      console.log('Delete response data:', data);
 
       if (data.success) {
         await loadCredentials(); // Reload the list
@@ -234,7 +264,7 @@ export function CredentialsManager({ isOpen, onClose }: CredentialsManagerProps)
       }
     } catch (error) {
       console.error('Failed to delete credential:', error);
-      setError('Failed to delete credential');
+      setError(error instanceof Error ? error.message : 'Failed to delete credential');
     } finally {
       setLoading(false);
     }

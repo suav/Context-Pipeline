@@ -679,12 +679,84 @@ export async function POST(request: NextRequest) {
                         failed_repos: repoResults.filter(r => r.status === 'error').length
                     }, null, 2)
                 );
-            } else {
-                // Create empty workspace folder for agent output
+            }
+            
+            // Initialize target directory as a proper git repository for workspace operations
+            console.log(`🔧 Initializing git repository in target directory...`);
+            try {
+                const targetPath = path.join(workspacePath, 'target');
+                
+                // Initialize git repository in target directory
+                await execAsync('git init', { cwd: targetPath });
+                console.log(`✅ Git repository initialized in target directory`);
+                
+                // Create initial commit with workspace structure
+                const initialFiles = [];
+                
+                // Add workspace README if no repositories were cloned
+                if (repoItems.length === 0) {
+                    await fs.writeFile(
+                        path.join(targetPath, 'README.md'),
+                        `# ${workspaceDraft.name} - Workspace Repository\n\nThis is the git repository for workspace deliverables.\n\n## Directory Structure\n\n- \`workspace/\` - Agent-generated content and files\n- \`build/\` - Build artifacts and compiled outputs\n\n---\n*Workspace created: ${new Date().toLocaleString()}*\n`
+                    );
+                    initialFiles.push('README.md');
+                } else {
+                    // Create a workspace summary file
+                    await fs.writeFile(
+                        path.join(targetPath, 'WORKSPACE.md'),
+                        `# ${workspaceDraft.name} - Workspace Repository\n\nThis workspace contains cloned repositories and deliverables.\n\n## Cloned Repositories\n\n${repoItems.map(repo => `- ${repo.title || repo.id}`).join('\n')}\n\n## Workspace Deliverables\n\nAgent-generated content and modifications will be tracked in this git repository.\n\n---\n*Workspace created: ${new Date().toLocaleString()}*\n`
+                    );
+                    initialFiles.push('WORKSPACE.md');
+                }
+                
+                // Create workspace directory structure
+                await fs.mkdir(path.join(targetPath, 'workspace'), { recursive: true });
                 await fs.writeFile(
-                    path.join(workspacePath, 'target', 'workspace', 'README.md'),
-                    '# Workspace Output\n\nThis directory is for agent-generated content.\n'
+                    path.join(targetPath, 'workspace', '.gitkeep'),
+                    '# This file keeps the workspace directory in git\n'
                 );
+                initialFiles.push('workspace/.gitkeep');
+                
+                // Create build directory structure  
+                await fs.mkdir(path.join(targetPath, 'build'), { recursive: true });
+                await fs.writeFile(
+                    path.join(targetPath, 'build', '.gitkeep'),
+                    '# This file keeps the build directory in git\n'
+                );
+                initialFiles.push('build/.gitkeep');
+                
+                // Add initial files to git
+                for (const file of initialFiles) {
+                    await execAsync(`git add "${file}"`, { cwd: targetPath });
+                }
+                
+                // Create initial commit
+                const commitMessage = `Initial workspace setup for ${workspaceDraft.name}\n\nWorkspace ID: ${workspaceId}\nCreated: ${new Date().toISOString()}\nContext items: ${workspaceDraft.context_items.length}\nRepositories: ${repoItems.length}`;
+                
+                await execAsync(`git -c user.name="Context Pipeline" -c user.email="noreply@context-pipeline.dev" commit -m "${commitMessage.replace(/"/g, '\\"')}"`, { 
+                    cwd: targetPath 
+                });
+                console.log(`✅ Initial commit created in workspace repository`);
+                
+                // If repositories were cloned with writeable mode, set up remote integration
+                const writeableRepos = repoItems.filter(repo => 
+                    (repo.library_metadata?.clone_mode || 'read-only') === 'writeable'
+                );
+                
+                if (writeableRepos.length > 0) {
+                    console.log(`🔗 Setting up remote integration for ${writeableRepos.length} writeable repositories...`);
+                    // For now, we'll just create branches for workspace isolation
+                    // Future enhancement: set up remote repositories for deployment
+                    
+                    const workspaceBranch = `workspace/${workspaceDraft.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${new Date().toISOString().slice(0, 10)}`;
+                    await execAsync(`git checkout -b "${workspaceBranch}"`, { cwd: targetPath });
+                    console.log(`✅ Created workspace branch: ${workspaceBranch}`);
+                }
+                
+            } catch (gitError) {
+                console.error(`❌ Failed to initialize git repository in target directory:`, gitError);
+                // Don't fail the entire workspace creation, but log the error
+                console.warn(`⚠️ Workspace created without git repository. Git operations may not work properly.`);
             }
             // Save workspace metadata
             const workspaceMetadata = {

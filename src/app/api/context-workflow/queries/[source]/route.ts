@@ -8,6 +8,8 @@ export async function GET(
     try {
         const { source } = await params;
         const sourceType = source as ContextSource;
+        const { searchParams } = new URL(request.url);
+        const credentialId = searchParams.get('credentialId');
         // Validate source
         const validSources: ContextSource[] = ['jira', 'email', 'slack', 'git', 'file'];
         if (!validSources.includes(sourceType)) {
@@ -16,9 +18,31 @@ export async function GET(
                 error: `Invalid source type: ${source}`
             }, { status: 400 });
         }
+        // For git sources with credentials, customize templates with repository info
+        let repoInfo = null;
+        if (sourceType === 'git' && credentialId) {
+            try {
+                const credentialResponse = await fetch(`${request.nextUrl.origin}/api/credentials/${credentialId}`);
+                if (credentialResponse.ok) {
+                    const credentialData = await credentialResponse.json();
+                    const repoUrl = credentialData.fields?.repoUrl;
+                    if (repoUrl) {
+                        // Extract repo info from URL
+                        const match = repoUrl.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
+                        if (match) {
+                            repoInfo = { owner: match[1], repo: match[2], repoUrl };
+                            console.log('🔗 Git credential loaded for queries:', repoInfo);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load git credential for queries:', error);
+            }
+        }
+
         const templates = {
-            popular: getPopularTemplates(sourceType),
-            all: getTemplatesForSource(sourceType),
+            popular: getPopularTemplates(sourceType, repoInfo),
+            all: getTemplatesForSource(sourceType, repoInfo),
             categories: getCategoriesForSource(sourceType)
         };
         const custom: any[] = [];

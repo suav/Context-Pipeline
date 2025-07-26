@@ -158,9 +158,6 @@ export function AgentOverlay({
       setShowCommandInjector(false);
     }
   };
-  // Duplicate function removed: handleAgentClick (see ./src/features/agents/components/terminal/TerminalModal.tsx)
-    onAgentClick(agentId);
-  };
   const handleDeleteAgent = async (agentId: string) => {
     if (!confirm('Are you sure you want to delete this agent? This will remove all conversation history.')) {
       return;
@@ -252,7 +249,7 @@ Note: For full file system access, you may need to grant permissions.`);
             {agents.map((agent) => (
               <div
                 key={agent.id}
-                onClick={() => handleAgentClick(agent.id)}
+                onClick={() => onAgentClick(agent.id)}
                 className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                 style={{
                   background: `linear-gradient(90deg, ${agent.color}20 0%, transparent 100%)`
@@ -483,3 +480,5 @@ Note: For full file system access, you may need to grant permissions.`);
     </div>
   );
 }
+
+export default AgentOverlay;

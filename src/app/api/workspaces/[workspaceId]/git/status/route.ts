@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
+import { resolveGitDirectory } from '@/features/git/utils/gitDirectoryResolver';
 
 const execAsync = promisify(exec);
 
@@ -115,14 +116,31 @@ export async function GET(
 ) {
   try {
     const { workspaceId } = await params;
-    const workspaceDir = path.join(process.cwd(), 'storage', 'workspaces', workspaceId);
+    const { searchParams } = new URL(request.url);
+    const repoName = searchParams.get('repo'); // Optional repo name for multi-repo workspaces
+    
+    // Resolve the correct git directory
+    const gitInfo = await resolveGitDirectory(workspaceId, repoName);
+    const gitDir = gitInfo.gitDir;
+    
+    if (!gitInfo.isGitRepo) {
+      return Response.json({
+        success: false,
+        error: `No git repository found in workspace${repoName ? ` for repo: ${repoName}` : ''}`,
+        gitInfo: {
+          searchedDir: gitDir,
+          repoType: gitInfo.repoType,
+          repoName: gitInfo.repoName
+        }
+      });
+    }
     
     try {
       // Check if it's a git repository
-      await execAsync('git rev-parse --git-dir', { cwd: workspaceDir });
+      await execAsync('git rev-parse --git-dir', { cwd: gitDir });
       
       // Get current branch
-      const { stdout: branchOutput } = await execAsync('git branch --show-current', { cwd: workspaceDir });
+      const { stdout: branchOutput } = await execAsync('git branch --show-current', { cwd: gitDir });
       const currentBranch = branchOutput.trim();
       
       // Get tracking info (ahead/behind)
@@ -130,7 +148,7 @@ export async function GET(
       let behind = 0;
       
       try {
-        const { stdout: trackingOutput } = await execAsync(`git rev-list --count --left-right origin/${currentBranch}...HEAD`, { cwd: workspaceDir });
+        const { stdout: trackingOutput } = await execAsync(`git rev-list --count --left-right origin/${currentBranch}...HEAD`, { cwd: gitDir });
         const trackingParts = trackingOutput.trim().split('\t');
         behind = parseInt(trackingParts[0]) || 0;
         ahead = parseInt(trackingParts[1]) || 0;
@@ -140,7 +158,7 @@ export async function GET(
       
       // Get detailed status
       const { stdout: statusOutput } = await execAsync('git status --porcelain', { 
-        cwd: workspaceDir,
+        cwd: gitDir,
         maxBuffer: 1024 * 1024 // 1MB buffer
       });
       
@@ -167,7 +185,12 @@ export async function GET(
       
       return Response.json({
         success: true,
-        status: gitStatus
+        status: gitStatus,
+        gitInfo: {
+          gitDir: gitDir,
+          repoType: gitInfo.repoType,
+          repoName: gitInfo.repoName
+        }
       });
       
     } catch (gitError: any) {
@@ -201,10 +224,14 @@ export async function POST(
     }
     
     const workspaceDir = path.join(process.cwd(), 'storage', 'workspaces', workspaceId);
+    const targetDir = path.join(workspaceDir, 'target');
+    
+    // Check if target directory exists, if not, try workspace root (backwards compatibility)
+    const gitDir = require('fs').existsSync(targetDir) ? targetDir : workspaceDir;
     
     try {
       // Check if it's a git repository
-      await execAsync('git rev-parse --git-dir', { cwd: workspaceDir });
+      await execAsync('git rev-parse --git-dir', { cwd: gitDir });
       
       let command = '';
       
@@ -236,10 +263,10 @@ export async function POST(
       }
       
       // Execute the git command
-      await execAsync(command, { cwd: workspaceDir });
+      await execAsync(command, { cwd: gitDir });
       
       // Get updated status
-      const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: workspaceDir });
+      const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: gitDir });
       const updatedFiles = parseGitStatus(statusOutput);
       
       return Response.json({

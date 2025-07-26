@@ -80,10 +80,24 @@ export class AgentService {
         // Return fallback stream
         return this.createNoServiceFallbackStream(userMessage, conversationHistory);
       }
+      
+      // Extract the most recent session ID from conversation history
+      let sessionId: string | undefined;
+      for (let i = conversationHistory.length - 1; i >= 0; i--) {
+        const message = conversationHistory[i];
+        if (message.metadata?.session_id) {
+          sessionId = message.metadata.session_id;
+          console.log(`🔄 Found previous session ID: ${sessionId}`);
+          break;
+        }
+      }
+      
       // Load workspace context
       const workspaceContext = await aiService.loadWorkspaceContext(workspaceId);
       const systemPrompt = aiService.buildSystemPrompt(workspaceContext, agentId);
-      return await aiService.createStream(systemPrompt, userMessage, conversationHistory, workspaceId);
+      
+      // Pass session ID to continue existing Claude session or start new one
+      return await aiService.createStream(systemPrompt, userMessage, conversationHistory, workspaceId, sessionId);
     } catch (error) {
       console.error(`❌ Streaming response failed:`, error);
       return this.createErrorFallbackStream(error as Error, userMessage);

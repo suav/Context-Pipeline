@@ -240,4 +240,5 @@ Please read [CLAUDE.md](./CLAUDE.md) for development guidelines and [CONCEPT.md]
 
 ## 🙏 Acknowledgments
 
-Built with Next.js, React, and TypeScript. Integrates with Claude and Gemini AI assistants.
+Built with Next.js, React, and TypeScript. Integrates with Claude and Gemini AI assistants.Deploy test change
+Another deploy test change

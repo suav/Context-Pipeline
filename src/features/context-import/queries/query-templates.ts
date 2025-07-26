@@ -138,7 +138,7 @@ export const QueryTemplates: Record<ContextSource, QueryTemplate[]> = {
         {
             id: 'grab-repo',
             name: 'Grab Entire Repository',
-            description: 'Clone/grab the entire repository for context',
+            description: 'Clone/grab the entire {repo} repository for context',
             query: 'GRAB_REPO',
             category: 'repository',
             popular: true
@@ -146,42 +146,58 @@ export const QueryTemplates: Record<ContextSource, QueryTemplate[]> = {
         {
             id: 'recent-docs',
             name: 'Recent Documentation',
-            description: 'Documentation files updated recently',
-            query: 'path:docs/ OR path:README* modified:>7d',
+            description: 'Documentation files updated recently in {repo}',
+            query: 'repo:OWNER/REPO path:docs/ OR path:README* modified:>7d',
             category: 'documentation',
             popular: true
         },
         {
             id: 'config-files',
             name: 'Configuration Files',
-            description: 'Configuration and setup files',
-            query: 'path:config/ OR filename:.env OR filename:*.conf',
+            description: 'Configuration and setup files in {repo}',
+            query: 'repo:OWNER/REPO path:config/ OR filename:.env OR filename:*.conf',
             category: 'config',
             popular: false
         },
         {
             id: 'api-docs',
             name: 'API Documentation',
-            description: 'API related documentation and specs',
-            query: 'path:api/ OR filename:swagger OR filename:openapi',
+            description: 'API related documentation and specs in {repo}',
+            query: 'repo:OWNER/REPO path:api/ OR filename:swagger OR filename:openapi',
             category: 'api',
             popular: true
         },
         {
             id: 'security-docs',
             name: 'Security Documentation',
-            description: 'Security policies and procedures',
-            query: 'path:security/ OR filename:*security* OR content:authentication',
+            description: 'Security policies and procedures in {repo}',
+            query: 'repo:OWNER/REPO path:security/ OR filename:*security* OR content:authentication',
             category: 'security',
             popular: false
         },
         {
             id: 'troubleshooting',
             name: 'Troubleshooting Guides',
-            description: 'Troubleshooting and FAQ documentation',
-            query: 'filename:*troubleshoot* OR filename:*faq* OR content:"common issues"',
+            description: 'Troubleshooting and FAQ documentation in {repo}',
+            query: 'repo:OWNER/REPO filename:*troubleshoot* OR filename:*faq* OR content:"common issues"',
             category: 'support',
             popular: true
+        },
+        {
+            id: 'recent-commits',
+            name: 'Recent Changes',
+            description: 'Files modified in recent commits in {repo}',
+            query: 'repo:OWNER/REPO pushed:>7d',
+            category: 'recent',
+            popular: true
+        },
+        {
+            id: 'package-files',
+            name: 'Package & Build Files',
+            description: 'Package managers and build configuration in {repo}',
+            query: 'repo:OWNER/REPO filename:package.json OR filename:Dockerfile OR filename:*requirements*',
+            category: 'config',
+            popular: false
         }
     ],
     file: []
@@ -207,11 +223,23 @@ export const QueryCategories: Record<string, QueryCategory> = {
     config: { id: 'config', name: 'Configuration', icon: '⚙️', description: 'Config files' },
     api: { id: 'api', name: 'API', icon: '🔌', description: 'API documentation' }
 };
-export function getTemplatesForSource(source: ContextSource): QueryTemplate[] {
-    return QueryTemplates[source] || [];
-}
-export function getPopularTemplates(source: ContextSource): QueryTemplate[] {
+export function getTemplatesForSource(source: ContextSource, repoInfo?: { owner: string; repo: string; repoUrl: string } | null): QueryTemplate[] {
     const templates = QueryTemplates[source] || [];
+    
+    // For git sources, customize templates with repository info
+    if (source === 'git' && repoInfo) {
+        return templates.map(template => ({
+            ...template,
+            query: template.query.replace(/repo:OWNER\/REPO/g, `repo:${repoInfo.owner}/${repoInfo.repo}`),
+            description: template.description.replace(/\{repo\}/g, `${repoInfo.owner}/${repoInfo.repo}`)
+        }));
+    }
+    
+    return templates;
+}
+
+export function getPopularTemplates(source: ContextSource, repoInfo?: { owner: string; repo: string; repoUrl: string } | null): QueryTemplate[] {
+    const templates = getTemplatesForSource(source, repoInfo);
     return templates.filter(template => template.popular);
 }
 export function getTemplatesByCategory(source: ContextSource, category: string): QueryTemplate[] {

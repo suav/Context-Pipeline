@@ -17,8 +17,9 @@ export interface ConversationThread {
   commands_executed: CommandExecution[];
   status: 'active' | 'paused' | 'completed' | 'checkpointed';
 }
-export // Duplicate type removed: ConversationMessage (see ./src/features/agents/components/terminal/ChatInterface.tsx);
-}
+
+// Duplicate type removed: ConversationMessage (see ./src/features/agents/components/terminal/ChatInterface.tsx)
+
 export interface CommandExecution {
   id: string;
   command_id: string;

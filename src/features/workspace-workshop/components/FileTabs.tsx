@@ -15,6 +15,7 @@ interface FileTabsProps {
   onFileClose: (filePath: string) => void;
   isDirty: Record<string, boolean>;
   isAutoSaving: Record<string, boolean>;
+  fileReadOnly?: Record<string, boolean>;
   hideEditor?: boolean;
   hideTerminal?: boolean;
   onToggleTerminal?: () => void;
@@ -29,17 +30,20 @@ export function FileTabs({
   onFileClose,
   isDirty,
   isAutoSaving,
+  fileReadOnly = {},
   hideEditor = false,
   hideTerminal = false,
   onToggleTerminal,
   onToggleEditor,
   onShowBoth
 }: FileTabsProps) {
-  const getFileName = (filePath: string) => {
+  const getFileName = (filePath: string | undefined | null) => {
+    if (!filePath) return 'unknown';
     return filePath.split('/').pop() || filePath;
   };
 
-  const getFileExtension = (filePath: string) => {
+  const getFileExtension = (filePath: string | undefined | null) => {
+    if (!filePath) return '';
     return filePath.split('.').pop() || '';
   };
 
@@ -104,12 +108,14 @@ export function FileTabs({
         minHeight: '40px'
       }}
     >
-      {openFiles.map((filePath) => {
+      {openFiles.filter(Boolean).map((filePath) => {
         const isActive = filePath === activeFile;
         const fileName = getFileName(filePath);
         const extension = getFileExtension(filePath);
-        const isDirtyFile = isDirty[filePath] || editorConfigManager.isFileDirty(filePath);
-        const isAutoSavingFile = isAutoSaving[filePath];
+        const isReadOnly = fileReadOnly[filePath];
+        // Read-only files should never be marked as dirty
+        const isDirtyFile = !isReadOnly && (isDirty[filePath] || editorConfigManager.isFileDirty(filePath));
+        const isAutoSavingFile = !isReadOnly && isAutoSaving[filePath];
         return (
           <div
             key={filePath}
@@ -127,6 +133,15 @@ export function FileTabs({
               {isDirtyFile && (
                 <span className="text-xs" style={{ color: 'var(--color-warning)' }}>
                   {isAutoSavingFile ? '💾' : '●'}
+                </span>
+              )}
+              {isReadOnly && (
+                <span 
+                  className="text-xs" 
+                  style={{ color: 'var(--color-primary)' }}
+                  title="Read-only workspace metadata file"
+                >
+                  🔒
                 </span>
               )}
             </div>

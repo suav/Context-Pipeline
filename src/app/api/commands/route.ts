@@ -42,6 +42,14 @@ export async function POST(request: NextRequest) {
     await commandManager.initializeStorage();
     await commandManager.saveCommand(command);
     
+    // Regenerate documents for all workspaces
+    try {
+      await regenerateAllWorkspaceDocuments();
+    } catch (regenerateError) {
+      console.warn('Failed to regenerate some workspace documents:', regenerateError);
+      // Don't fail the command save operation
+    }
+    
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to save command:', error);
@@ -49,6 +57,58 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to save command' },
       { status: 500 }
     );
+  }
+}
+
+// Helper function to regenerate documents for all workspaces
+async function regenerateAllWorkspaceDocuments() {
+  const { promises: fs } = await import('fs');
+  const path = await import('path');
+  const WorkspaceDocumentGenerator = (await import('@/features/workspaces/services/WorkspaceDocumentGenerator')).default;
+  
+  const workspacesDir = path.join(process.cwd(), 'storage', 'workspaces');
+  
+  try {
+    const workspaces = await fs.readdir(workspacesDir);
+    
+    for (const workspaceId of workspaces) {
+      try {
+        const workspacePath = path.join(workspacesDir, workspaceId);
+        const stats = await fs.stat(workspacePath);
+        
+        if (stats.isDirectory()) {
+          // Check if workspace has been initialized (has workspace.json)
+          const workspaceJsonPath = path.join(workspacePath, 'workspace.json');
+          try {
+            await fs.access(workspaceJsonPath);
+            
+            // Load workspace data
+            const workspaceData = JSON.parse(await fs.readFile(workspaceJsonPath, 'utf8'));
+            
+            const context = {
+              workspaceId,
+              workspacePath,
+              description: workspaceData.description || 'Development workspace',
+              projectType: workspaceData.projectType || 'general',
+              gitInfo: workspaceData.git_status
+            };
+            
+            // Only regenerate commands.json and CLAUDE.md (not permissions)
+            await WorkspaceDocumentGenerator.generateCommands(workspaceId, context);
+            await WorkspaceDocumentGenerator.generateClaudeMd(workspaceId, context);
+            
+            console.log(`✅ Regenerated documents for workspace ${workspaceId}`);
+          } catch (error) {
+            // Skip workspaces without workspace.json
+            continue;
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to regenerate documents for workspace ${workspaceId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to access workspaces directory:', error);
   }
 }
 
@@ -68,6 +128,14 @@ export async function DELETE(request: NextRequest) {
     const commandManager = CommandManager.getInstance();
     await commandManager.initializeStorage();
     await commandManager.deleteCommand(id);
+    
+    // Regenerate documents for all workspaces
+    try {
+      await regenerateAllWorkspaceDocuments();
+    } catch (regenerateError) {
+      console.warn('Failed to regenerate some workspace documents:', regenerateError);
+      // Don't fail the command delete operation
+    }
     
     return NextResponse.json({ success: true });
   } catch (error) {

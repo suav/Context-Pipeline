@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import path from 'path';
+import * as path from 'path';
 import { Command, STARTUP_COMMANDS, REPLY_COMMANDS } from '../data/commandLibrary';
 
 export interface UserCommand extends Command {
@@ -205,24 +205,6 @@ export class CommandManager {
     }
   }
 
-  async getCommandsByCategory(category: string): Promise<UserCommand[]> {
-    const commands = await this.getAllCommands();
-    return commands.filter(cmd => cmd.category === category);
-  }
-
-  async getCommandsByMode(mode: 'startup' | 'reply'): Promise<UserCommand[]> {
-    const commands = await this.getAllCommands();
-    const startupIds = STARTUP_COMMANDS.map(cmd => cmd.id);
-    const replyIds = REPLY_COMMANDS.map(cmd => cmd.id);
-    
-    return commands.filter(cmd => {
-      if (mode === 'startup') {
-        return startupIds.includes(cmd.id) || cmd.category === 'startup';
-      } else {
-        return replyIds.includes(cmd.id) || cmd.category === 'reply';
-      }
-    });
-  }
 
   private async loadStorage(): Promise<CommandStorage> {
     try {

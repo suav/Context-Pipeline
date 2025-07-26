@@ -87,13 +87,34 @@ export async function GET(
 
     const workspaceFiles = await getFiles(baseDir);
 
-    // Organize by main folders
+    // Define workspace metadata files that should be visible for validation
+    const workspaceMetadataFiles = [
+      'CLAUDE.md', 'workspace.json', 'permissions.json', 'commands.json', 
+      'README.md'
+    ];
+    
+    // Get .claude folder separately to ensure it's included with children
+    const claudeFolder = workspaceFiles.find(f => f.name === '.claude');
+    
+    // Organize by main folders with workspace metadata section
     const organized = {
+      workspace: {
+        name: 'workspace',
+        type: 'directory',
+        children: [
+          ...workspaceFiles.filter(f => workspaceMetadataFiles.includes(f.name)),
+          ...(claudeFolder ? [claudeFolder] : [])
+        ],
+        metadata: { readOnly: true, description: 'Workspace configuration and metadata files' }
+      },
       context: workspaceFiles.find(f => f.name === 'context') || { name: 'context', type: 'directory', children: [] },
       target: workspaceFiles.find(f => f.name === 'target') || { name: 'target', type: 'directory', children: [] },
       feedback: workspaceFiles.find(f => f.name === 'feedback') || { name: 'feedback', type: 'directory', children: [] },
       agents: workspaceFiles.find(f => f.name === 'agents') || { name: 'agents', type: 'directory', children: [] },
-      other: workspaceFiles.filter(f => !['context', 'target', 'feedback', 'agents'].includes(f.name))
+      other: workspaceFiles.filter(f => 
+        !['context', 'target', 'feedback', 'agents', '.claude'].includes(f.name) &&
+        !workspaceMetadataFiles.includes(f.name)
+      )
     };
 
     const responseData = { 

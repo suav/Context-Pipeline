@@ -30,7 +30,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
   const [files, setFiles] = useState<FileItem[]>([]);
   const [filteredFiles, setFilteredFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'modified' | 'agent'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'modified'>('all');
   const panelRef = useRef<HTMLDivElement>(null);
   const [isInViewport, setIsInViewport] = useState(true); // Assume visible for now
   const [panelWidth, setPanelWidth] = useState(320); // Start wider for better filename visibility
@@ -50,7 +50,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
               if (item.type === 'file') {
                 const extension = item.name.split('.').pop() || '';
                 allFiles.push({
-                  path: `/workspace${item.path}`,
+                  path: item.path, // Use the path as-is, without prefixing /workspace
                   name: item.name,
                   extension,
                   relativePath: item.path.substring(1), // Remove leading /
@@ -64,7 +64,8 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
               }
             });
           };
-          // Process all main folders
+          // Process all main folders including workspace metadata
+          if (data.files.workspace) processFiles([data.files.workspace]);
           if (data.files.context) processFiles([data.files.context]);
           if (data.files.target) processFiles([data.files.target]);
           if (data.files.feedback) processFiles([data.files.feedback]);
@@ -84,7 +85,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
     };
     loadFiles();
   }, [workspaceId, isInViewport]);
-  // Listen for file modification events
+  // Listen for file modification and creation events
   useEffect(() => {
     const handleFileModified = (event: CustomEvent) => {
       const { filePath, modified } = event.detail;
@@ -96,9 +97,29 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
         )
       );
     };
+
+    const handleFileCreated = (event: CustomEvent) => {
+      console.log('File created event received:', event.detail);
+      // Force reload file list when new files are created
+      handleRefresh();
+    };
+
+    const handleAgentFileOperation = (event: CustomEvent) => {
+      console.log('Agent file operation detected:', event.detail);
+      // Auto-refresh when agents modify files
+      setTimeout(() => {
+        handleRefresh();
+      }, 1000); // Small delay to ensure file is written
+    };
+
     window.addEventListener('fileModified', handleFileModified as EventListener);
+    window.addEventListener('fileCreated', handleFileCreated as EventListener);
+    window.addEventListener('agentFileOperation', handleAgentFileOperation as EventListener);
+    
     return () => {
       window.removeEventListener('fileModified', handleFileModified as EventListener);
+      window.removeEventListener('fileCreated', handleFileCreated as EventListener);
+      window.removeEventListener('agentFileOperation', handleAgentFileOperation as EventListener);
     };
   }, []);
   // Filter files based on search term and active filter
@@ -108,9 +129,6 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
     switch (activeFilter) {
       case 'modified':
         filtered = files.filter(file => file.isModified);
-        break;
-      case 'agent':
-        filtered = files.filter(file => file.agentModified);
         break;
       default:
         filtered = files;
@@ -150,7 +168,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
   const getWorkspaceFiles = (): FileItem[] => [
     // Context folder - imported context documents
     {
-      path: '/workspace/context/requirements.md',
+      path: '/context/requirements.md',
       name: 'requirements.md',
       extension: 'md',
       relativePath: 'context/requirements.md',
@@ -158,7 +176,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: false,
     },
     {
-      path: '/workspace/context/api-docs.json',
+      path: '/context/api-docs.json',
       name: 'api-docs.json',
       extension: 'json',
       relativePath: 'context/api-docs.json',
@@ -166,7 +184,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: false,
     },
     {
-      path: '/workspace/context/design-system.md',
+      path: '/context/design-system.md',
       name: 'design-system.md',
       extension: 'md',
       relativePath: 'context/design-system.md',
@@ -175,7 +193,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
     },
     // Target folder - the actual project files/repository
     {
-      path: '/workspace/target/src/components/Dashboard.tsx',
+      path: '/target/src/components/Dashboard.tsx',
       name: 'Dashboard.tsx',
       extension: 'tsx',
       relativePath: 'target/src/components/Dashboard.tsx',
@@ -183,7 +201,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: true,
     },
     {
-      path: '/workspace/target/src/utils/api.ts',
+      path: '/target/src/utils/api.ts',
       name: 'api.ts',
       extension: 'ts',
       relativePath: 'target/src/utils/api.ts',
@@ -191,7 +209,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: true,
     },
     {
-      path: '/workspace/target/package.json',
+      path: '/target/package.json',
       name: 'package.json',
       extension: 'json',
       relativePath: 'target/package.json',
@@ -199,7 +217,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: false,
     },
     {
-      path: '/workspace/target/README.md',
+      path: '/target/README.md',
       name: 'README.md',
       extension: 'md',
       relativePath: 'target/README.md',
@@ -208,7 +226,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
     },
     // Feedback folder - agent work and outputs
     {
-      path: '/workspace/feedback/analysis-report.md',
+      path: '/feedback/analysis-report.md',
       name: 'analysis-report.md',
       extension: 'md',
       relativePath: 'feedback/analysis-report.md',
@@ -216,7 +234,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: true,
     },
     {
-      path: '/workspace/feedback/code-review.md',
+      path: '/feedback/code-review.md',
       name: 'code-review.md',
       extension: 'md',
       relativePath: 'feedback/code-review.md',
@@ -225,7 +243,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
     },
     // Agents folder - agent configurations and memories
     {
-      path: '/workspace/agents/dev-assistant/config.json',
+      path: '/agents/dev-assistant/config.json',
       name: 'config.json',
       extension: 'json',
       relativePath: 'agents/dev-assistant/config.json',
@@ -233,7 +251,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: true,
     },
     {
-      path: '/workspace/agents/dev-assistant/memory.md',
+      path: '/agents/dev-assistant/memory.md',
       name: 'memory.md',
       extension: 'md',
       relativePath: 'agents/dev-assistant/memory.md',
@@ -241,7 +259,7 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
       agentModified: true,
     },
     {
-      path: '/workspace/agents/code-reviewer/config.json',
+      path: '/agents/code-reviewer/config.json',
       name: 'config.json',
       extension: 'json',
       relativePath: 'agents/code-reviewer/config.json',
@@ -251,10 +269,11 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
   ];
   const getFilterCounts = () => ({
     modified: files.filter(f => f.isModified).length,
-    agent: files.filter(f => f.agentModified).length,
   });
-  const handleFileClick = (file: FileItem) => {
-    onFileSelect(file.path);
+  const handleFileClick = (file: FileItem | string) => {
+    // Handle both FileItem objects (from search results) and string paths (from FileTree)
+    const filePath = typeof file === 'string' ? file : file.path;
+    onFileSelect(filePath);
   };
   const handleNewFile = () => {
     console.log('Create new file');
@@ -262,13 +281,55 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
   const handleNewFolder = () => {
     console.log('Create new folder');
   };
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
+    console.log('🔄 Refreshing file list...');
     // Force reload files
     setLoading(true);
     setFiles([]);
-    // Trigger useEffect reload
-    setSearchTerm(prev => prev + ' ');
-    setTimeout(() => setSearchTerm(prev => prev.trim()), 100);
+    
+    try {
+      const response = await fetch(`/api/workspaces/${workspaceId}/files`);
+      if (response.ok) {
+        const data = await response.json();
+        const allFiles: FileItem[] = [];
+        // Convert nested file structure to flat list
+        const processFiles = (items: any[], basePath: string = '') => {
+          items.forEach(item => {
+            if (item.type === 'file') {
+              const extension = item.name.split('.').pop() || '';
+              allFiles.push({
+                path: item.path, // Use the path as-is, without prefixing /workspace
+                name: item.name,
+                extension,
+                relativePath: item.path.substring(1), // Remove leading /
+                isModified: false,
+                agentModified: item.path.includes('/agents/') || item.path.includes('/feedback/'),
+                size: item.size,
+                lastModified: item.modified ? new Date(item.modified) : undefined
+              });
+            } else if (item.type === 'directory' && item.children) {
+              processFiles(item.children, item.path);
+            }
+          });
+        };
+        // Process all main folders
+        if (data.files.context) processFiles([data.files.context]);
+        if (data.files.target) processFiles([data.files.target]);
+        if (data.files.feedback) processFiles([data.files.feedback]);
+        if (data.files.agents) processFiles([data.files.agents]);
+        if (data.files.other) processFiles(data.files.other);
+        setFiles(allFiles);
+        console.log(`✅ File list refreshed: ${allFiles.length} files found`);
+      } else {
+        // Fallback to workspace structure mock data
+        setFiles(getWorkspaceFiles());
+      }
+    } catch (error) {
+      console.error('Error refreshing files:', error);
+      setFiles(getWorkspaceFiles());
+    } finally {
+      setLoading(false);
+    }
   };
   // Handle panel resizing
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -365,16 +426,6 @@ export function FileSearchPanel({ workspaceId, onFileSelect, onToggleWorkspaceVi
             }}
           >
             Modified {counts.modified > 0 && <span className="bg-red-500 text-white rounded-full px-1 text-xs">{counts.modified}</span>}
-          </button>
-          <button
-            onClick={() => setActiveFilter('agent')}
-            className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${activeFilter === 'agent' ? 'font-medium' : ''}`}
-            style={{
-              backgroundColor: activeFilter === 'agent' ? 'var(--color-primary)' : 'var(--color-surface-elevated)',
-              color: activeFilter === 'agent' ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
-            }}
-          >
-            Agent {counts.agent > 0 && <span className="bg-blue-500 text-white rounded-full px-1 text-xs">{counts.agent}</span>}
           </button>
         </div>
       </div>

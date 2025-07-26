@@ -17,7 +17,7 @@ interface FileItem {
 }
 interface FileTreeProps {
   files: FileItem[];
-  onFileSelect: (file: FileItem) => void;
+  onFileSelect: (filePath: string | FileItem) => void;
   onFileRename?: (oldPath: string, newName: string) => void;
   onFileDelete?: (path: string) => void;
   onFileCreate?: (parentPath: string, fileName: string, isFolder: boolean) => void;
@@ -131,7 +131,20 @@ export function FileTree({
             paddingLeft: `${depth * 16 + 8}px`,
             backgroundColor: isHighlighted ? 'var(--color-primary)' : 'transparent',
           }}
-          onClick={() => onFileSelect(node.file!)}
+          onClick={() => {
+            const filePath = node.file ? node.file.path : `/${node.path}`;
+            console.log('FileTree: onClick for file node:', { 
+              nodeName: node.name, 
+              nodePath: node.path, 
+              nodeFile: node.file, 
+              finalPath: filePath 
+            });
+            if (filePath && filePath !== '/') {
+              onFileSelect(filePath);
+            } else {
+              console.error('FileTree: Invalid filePath generated:', filePath);
+            }
+          }}
           onContextMenu={(e) => handleContextMenu(e, node.path, node.name, true)}
           title={`${fileIcon.description} - ${node.path}`}
         >
