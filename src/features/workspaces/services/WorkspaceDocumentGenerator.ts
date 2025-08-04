@@ -437,10 +437,14 @@ export class WorkspaceDocumentGenerator {
   }
 
   private static generateClaudeCodeSettings(workspaceId: string, context?: WorkspaceContext): any {
-    // Generate Claude Code format settings with proper permissions
+    // Generate Claude Code format settings with THREE-TIER permissions:
+    // 1. BASE SECURITY (always enforced - workspace isolation & security)
+    // 2. UI INTEGRATION (always enforced - limited UI state access for development workflow)
+    // 3. CONFIGURABLE (user-customizable - workflow and role-based permissions)
+    
     const projectType = context?.projectType || 'development';
     
-    // Get default permissions to extract tool permissions
+    // Get default permissions to extract configurable tool permissions
     const defaultPermissions = this.getDefaultPermissions();
     
     const settings = {
@@ -455,48 +459,82 @@ export class WorkspaceDocumentGenerator {
         workspaceId,
         projectType,
         generated: new Date().toISOString(),
-        description: 'Auto-generated Claude Code permissions for Context Pipeline workspace'
+        description: 'Three-tier Claude Code permissions: Base Security + UI Integration + Configurable Workflow',
+        permissionTiers: {
+          baseSecurity: 'Always enforced - workspace isolation, filesystem security, dangerous operation blocking',
+          uiIntegration: 'Always enforced - limited UI state access for development workflow (file open state, agent requests)',
+          configurable: 'User customizable - workflow permissions, role-based access, project-specific tools'
+        }
       }
     };
 
-    // Build allow list based on our default permissions
-    const allowList: string[] = [];
+    // TIER 1: BASE SECURITY PERMISSIONS (Always enforced - cannot be overridden)
+    const baseAllowList = this.getBaseSecurityPermissions();
+    
+    // TIER 2: CONFIGURABLE WORKFLOW PERMISSIONS (User customizable)
+    const configurableAllowList = this.getConfigurablePermissions(projectType, defaultPermissions);
+    
+    // Combine both tiers
+    const allowList: string[] = [...baseAllowList, ...configurableAllowList];
 
-    // Core file operations - always allowed
+    // Core file operations - WORKSPACE ISOLATED ONLY
     allowList.push(
-      'Read',                 // Read tool (no args)
-      'Read(*)',              // Read tool (any file)
-      'Read(**)',             // Read tool (recursive)
+      // ONLY allow reading files within workspace directories
       'Read(context/**)',     // Context files
       'Read(target/**)',      // Target code files  
       'Read(feedback/**)',    // Feedback files
       'Read(agents/**)',      // Agent data
-      'Read(*.md)',           // Documentation files
-      'Read(*.json)',         // Config files
-      'Read(*.yml)',          // YAML configs
-      'Read(*.yaml)',         // YAML configs
-      'Read(*.txt)',          // Text files
-      'Read(*.ts)',           // TypeScript files
-      'Read(*.tsx)',          // TypeScript React files
-      'Read(*.js)',           // JavaScript files
-      'Read(*.jsx)',          // JavaScript React files
-      'Read(*.css)',          // CSS files
-      'Read(*.html)',         // HTML files
-      'Read(*.py)',           // Python files
-      'Read(.gitignore)',     // Git ignore
-      'Read(package.json)',   // Package info
-      'Read(tsconfig.json)'   // TypeScript config
+      'Read(*.md)',           // Documentation files in workspace root
+      'Read(*.json)',         // Config files in workspace root
+      'Read(*.yml)',          // YAML configs in workspace root
+      'Read(*.yaml)',         // YAML configs in workspace root
+      'Read(*.txt)',          // Text files in workspace root
+      'Read(.gitignore)',     // Git ignore in workspace root
+      'Read(CLAUDE.md)',      // Claude instructions
+      'Read(README.md)',      // Readme in workspace root
+      'Read(package.json)',   // Package info in workspace root
+      'Read(tsconfig.json)',  // TypeScript config in workspace root
+      'Read(commands.json)',  // Commands in workspace root
+      'Read(permissions.json)' // Permissions in workspace root
     );
 
-    // Claude Code specific tools - essential for development
+    // Claude Code specific tools - WORKSPACE ISOLATED ONLY
     allowList.push(
-      'LS',                   // Directory listing tool (no args)
-      'LS(*)',                // Directory listing tool (with args)
-      'LS(**)',               // Directory listing tool (recursive)
-      'Glob',                 // File pattern matching tool (no args)
-      'Glob(*)',              // File pattern matching tool (with args)
-      'Grep',                 // Content search tool (no args)
-      'Grep(*)',              // Content search tool (with args)
+      // LS - only allow listing workspace directories
+      'LS(.)',                // Current directory (workspace root)
+      'LS(context)',          // Context directory
+      'LS(context/**)',       // Context subdirectories
+      'LS(target)',           // Target directory
+      'LS(target/**)',        // Target subdirectories
+      'LS(feedback)',         // Feedback directory
+      'LS(feedback/**)',      // Feedback subdirectories
+      'LS(agents)',           // Agents directory
+      'LS(agents/**)',        // Agents subdirectories
+      
+      // Glob - only allow patterns within workspace
+      'Glob(*.md)',           // Markdown files in root
+      'Glob(*.json)',         // JSON files in root
+      'Glob(context/**)',     // All context files
+      'Glob(target/**)',      // All target files
+      'Glob(feedback/**)',    // All feedback files
+      'Glob(agents/**)',      // All agent files
+      'Glob(target/**/*.ts)', // TypeScript in target
+      'Glob(target/**/*.tsx)', // TypeScript React in target
+      'Glob(target/**/*.js)', // JavaScript in target
+      'Glob(target/**/*.jsx)', // JavaScript React in target
+      'Glob(target/**/*.css)', // CSS in target
+      'Glob(target/**/*.html)', // HTML in target
+      'Glob(target/**/*.py)', // Python in target
+      
+      // Grep - only allow searching within workspace
+      'Grep(*, context/**)',  // Search in context files
+      'Grep(*, target/**)',   // Search in target files
+      'Grep(*, feedback/**)', // Search in feedback files
+      'Grep(*, agents/**)',   // Search in agent files
+      'Grep(*, *.md)',        // Search in root markdown
+      'Grep(*, *.json)',      // Search in root JSON
+      
+      // Safe tools
       'Task(*)',              // Task delegation tool
       'TodoRead',             // Todo list reading
       'TodoWrite',            // Todo list writing
@@ -537,49 +575,67 @@ export class WorkspaceDocumentGenerator {
       );
     }
 
-    // Add safe bash commands - this is the key fix
+    // Add WORKSPACE-RESTRICTED bash commands
     if (defaultPermissions.commands.allowed.length > 0) {
-      // Essential file and directory operations
+      // Essential file and directory operations - WORKSPACE ONLY
       allowList.push(
-        'Bash(ls)',
-        'Bash(ls *)',
-        'Bash(dir)',
-        'Bash(pwd)',
-        'Bash(cd *)',
-        'Bash(tree)',
-        'Bash(tree *)'
+        'Bash(ls)',             // List current dir (workspace root)
+        'Bash(ls .)',           // List current dir explicitly
+        'Bash(ls context)',     // List context directory
+        'Bash(ls target)',      // List target directory
+        'Bash(ls feedback)',    // List feedback directory
+        'Bash(ls agents)',      // List agents directory
+        'Bash(pwd)',            // Show current directory
+        'Bash(tree .)',         // Tree view of workspace
+        'Bash(tree context)',   // Tree view of context
+        'Bash(tree target)',    // Tree view of target
+        'Bash(tree feedback)',  // Tree view of feedback
+        'Bash(tree agents)'     // Tree view of agents
       );
 
-      // File viewing and content operations
+      // File viewing - WORKSPACE FILES ONLY
       allowList.push(
-        'Bash(cat *)',
-        'Bash(head *)',
-        'Bash(tail *)',
-        'Bash(less *)',
-        'Bash(more *)',
-        'Bash(file *)',
-        'Bash(stat *)'
+        'Bash(cat *.md)',       // Read markdown in root
+        'Bash(cat *.json)',     // Read JSON in root
+        'Bash(cat context/*)',  // Read context files
+        'Bash(cat target/*)',   // Read target files
+        'Bash(cat feedback/*)', // Read feedback files
+        'Bash(cat agents/*)',   // Read agent files
+        'Bash(head context/*)', // Head context files
+        'Bash(head target/*)',  // Head target files
+        'Bash(head feedback/*)', // Head feedback files
+        'Bash(tail context/*)', // Tail context files
+        'Bash(tail target/*)',  // Tail target files
+        'Bash(tail feedback/*)', // Tail feedback files
+        'Bash(file context/*)', // File type context files
+        'Bash(file target/*)',  // File type target files
+        'Bash(stat context/*)', // Stat context files
+        'Bash(stat target/*)'   // Stat target files
       );
 
-      // Search and find operations
+      // Search operations - WORKSPACE ONLY
       allowList.push(
-        'Bash(find *)',
-        'Bash(grep *)',
-        'Bash(locate *)',
-        'Bash(which *)',
-        'Bash(whereis *)'
+        'Bash(find . -name *)',     // Find in workspace only
+        'Bash(find context -name *)', // Find in context
+        'Bash(find target -name *)',  // Find in target
+        'Bash(find feedback -name *)', // Find in feedback
+        'Bash(grep * context/*)',    // Grep context files
+        'Bash(grep * target/*)',     // Grep target files
+        'Bash(grep * feedback/*)',   // Grep feedback files
+        'Bash(grep * *.md)',         // Grep root markdown
+        'Bash(grep * *.json)'        // Grep root JSON
       );
 
-      // Text processing
+      // Text processing - WORKSPACE FILES ONLY
       allowList.push(
-        'Bash(wc *)',
-        'Bash(sort *)',
-        'Bash(uniq *)',
-        'Bash(cut *)',
-        'Bash(awk *)',
-        'Bash(sed *)',
-        'Bash(diff *)',
-        'Bash(cmp *)'
+        'Bash(wc context/*)',    // Word count context files
+        'Bash(wc target/*)',     // Word count target files
+        'Bash(wc feedback/*)',   // Word count feedback files
+        'Bash(sort context/*)',  // Sort context files
+        'Bash(sort target/*)',   // Sort target files
+        'Bash(diff target/* target/*)', // Diff target files
+        'Bash(diff context/* context/*)', // Diff context files
+        'Bash(cmp target/* target/*)'     // Compare target files
       );
 
       // System information
@@ -634,44 +690,12 @@ export class WorkspaceDocumentGenerator {
     // Add the allow list to settings
     settings.permissions.allow = allowList;
 
-    // Build deny list for dangerous operations
-    const denyList: string[] = [
-      // Sensitive file operations
-      'Edit(.env*)',
-      'Edit(*.key)',
-      'Edit(*.pem)',
-      'Edit(node_modules/**)',
-      'Edit(.git/**)',
-      
-      // Dangerous bash commands
-      'Bash(rm *)',
-      'Bash(rmdir *)',
-      'Bash(sudo *)',
-      'Bash(su *)',
-      'Bash(passwd *)',
-      'Bash(shutdown *)',
-      'Bash(reboot *)',
-      'Bash(chmod *)',
-      'Bash(chown *)',
-      
-      // Network operations that could be risky
-      'Bash(curl *)',
-      'Bash(wget *)',
-      'Bash(ssh *)',
-      'Bash(scp *)',
-      'Bash(rsync *)'
-    ];
-
-    // Remove network denials if network access is allowed
-    if (defaultPermissions.systemAccess.canAccessNetwork) {
-      // Keep curl/wget denied but allow other network tools
-      const networkDenials = ['Bash(curl *)', 'Bash(wget *)'];
-      settings.permissions.deny = denyList.filter(item => 
-        networkDenials.includes(item) || !item.includes('ssh') && !item.includes('scp') && !item.includes('rsync')
-      );
-    } else {
-      settings.permissions.deny = denyList;
-    }
+    // Build combined deny list (base security + configurable)
+    const baseDenyList = this.getBaseSecurityDenyList();
+    const configurableDenyList = this.getConfigurableDenyList(defaultPermissions);
+    const denyList = [...baseDenyList, ...configurableDenyList];
+    
+    settings.permissions.deny = denyList;
 
     return settings;
   }
@@ -750,6 +774,362 @@ Example: \`/debug Error in user authentication\`
       content = content.replace(new RegExp(placeholder, 'g'), value);
     }
     return content;
+  }
+
+  // ============================================================================
+  // THREE-TIER PERMISSION SYSTEM
+  // ============================================================================
+
+  /**
+   * TIER 1: BASE SECURITY PERMISSIONS
+   * These are ALWAYS enforced and cannot be overridden by users.
+   * They ensure workspace isolation and prevent security breaches.
+   * Includes UI integration permissions for development workflow.
+   */
+  private static getBaseSecurityPermissions(): string[] {
+    return [
+      // CORE FILE OPERATIONS - Workspace isolated only
+      'Read(context/**)',     // Context files
+      'Read(target/**)',      // Target code files  
+      'Read(feedback/**)',    // Feedback files
+      'Read(agents/**)',      // Agent data
+      'Read(*.md)',           // Documentation files in workspace root
+      'Read(*.json)',         // Config files in workspace root
+      'Read(*.yml)',          // YAML configs in workspace root
+      'Read(*.yaml)',         // YAML configs in workspace root
+      'Read(*.txt)',          // Text files in workspace root
+      'Read(.gitignore)',     // Git ignore in workspace root
+      'Read(CLAUDE.md)',      // Claude instructions
+      'Read(README.md)',      // Readme in workspace root
+      'Read(package.json)',   // Package info in workspace root
+      'Read(tsconfig.json)',  // TypeScript config in workspace root
+      'Read(commands.json)',  // Commands in workspace root
+      'Read(permissions.json)', // Permissions in workspace root
+
+      // ESSENTIAL TOOLS - Workspace isolated only
+      'LS(.)',                // Current directory (workspace root)
+      'LS(context)',          // Context directory
+      'LS(context/**)',       // Context subdirectories
+      'LS(target)',           // Target directory
+      'LS(target/**)',        // Target subdirectories
+      'LS(feedback)',         // Feedback directory
+      'LS(feedback/**)',      // Feedback subdirectories
+      'LS(agents)',           // Agents directory
+      'LS(agents/**)',        // Agents subdirectories
+
+      // PATTERN MATCHING - Workspace isolated only
+      'Glob(*.md)',           // Markdown files in root
+      'Glob(*.json)',         // JSON files in root
+      'Glob(context/**)',     // All context files
+      'Glob(target/**)',      // All target files
+      'Glob(feedback/**)',    // All feedback files
+      'Glob(agents/**)',      // All agent files
+
+      // CONTENT SEARCH - Workspace isolated only
+      'Grep(*, context/**)',  // Search in context files
+      'Grep(*, target/**)',   // Search in target files
+      'Grep(*, feedback/**)', // Search in feedback files
+      'Grep(*, agents/**)',   // Search in agent files
+      'Grep(*, *.md)',        // Search in root markdown
+      'Grep(*, *.json)',      // Search in root JSON
+
+      // SAFE TOOLS - Always allowed
+      'Task(*)',              // Task delegation tool
+      'TodoRead',             // Todo list reading
+      'TodoWrite',            // Todo list writing
+      'WebFetch(*)',          // Web content fetching
+      'WebSearch(*)',         // Web search tool
+      'exit_plan_mode',       // Exit plan mode tool
+
+      // UI INTEGRATION - Limited workspace UI access for development workflow
+      'Read(.editor-state.json)',      // Read current editor state (which file is open)
+      'Read(.workspace-ui-state.json)', // Read UI state information
+      'Write(.agent-requests.json)',   // Agent can request file to be opened for user
+      'Edit(.agent-requests.json)',    // Agent can modify file open requests
+
+      // ESSENTIAL BASH - Safe workspace operations only
+      'Bash(pwd)',            // Show current directory
+      'Bash(whoami)',         // Show current user
+      'Bash(date)',           // Show current date
+      'Bash(echo *)',         // Output commands
+      'Bash(printf *)'        // Output commands
+    ];
+  }
+
+  /**
+   * TIER 2: CONFIGURABLE WORKFLOW PERMISSIONS
+   * These can be customized by users based on project type and needs.
+   * They enable different workflows while maintaining base security.
+   */
+  private static getConfigurablePermissions(projectType: string, defaultPermissions: any): string[] {
+    const configurable: string[] = [];
+
+    // File type specific read permissions
+    configurable.push(
+      'Glob(target/**/*.ts)',  // TypeScript in target
+      'Glob(target/**/*.tsx)', // TypeScript React in target
+      'Glob(target/**/*.js)',  // JavaScript in target
+      'Glob(target/**/*.jsx)', // JavaScript React in target
+      'Glob(target/**/*.css)', // CSS in target
+      'Glob(target/**/*.html)', // HTML in target
+      'Glob(target/**/*.py)',  // Python in target
+    );
+
+    // Edit permissions based on workspace type (CONFIGURABLE)
+    if (projectType === 'development' || projectType === 'general') {
+      configurable.push(
+        'Edit(target/**)',      // Can edit target code
+        'Edit(feedback/**)',    // Can edit feedback
+        'Edit(agents/**)',      // Can edit agent data
+        'Edit(*.md)',           // Can edit documentation
+        'Edit(CHANGELOG.md)',   // Can edit changelog
+        'Edit(TODO.md)',        // Can edit todos
+        'MultiEdit(target/**)', // Can make multiple edits to target files
+        'Write(target/**)',     // Can write new target files
+        'Write(feedback/**)',   // Can write new feedback files
+        'Write(*.md)'           // Can write new documentation
+      );
+    } else if (projectType === 'review') {
+      configurable.push(
+        'Edit(feedback/**)',    // Can only edit feedback
+        'Edit(agents/**)',      // Can edit agent data
+        'Write(feedback/**)',   // Can write new feedback
+        'MultiEdit(feedback/**)' // Can make multiple edits to feedback
+      );
+    } else if (projectType === 'analysis') {
+      configurable.push(
+        'Edit(feedback/**)',    // Can edit analysis results
+        'Edit(agents/**)',      // Can edit agent data
+        'Edit(analysis/**)',    // Can create analysis files
+        'Write(analysis/**)',   // Can write new analysis files
+        'Write(feedback/**)',   // Can write new feedback files
+        'MultiEdit(analysis/**)' // Can make multiple edits to analysis
+      );
+    }
+
+    // Enhanced bash commands (CONFIGURABLE based on permissions)
+    if (defaultPermissions.commands.allowed.length > 0) {
+      // File operations
+      configurable.push(
+        'Bash(ls)',             // List current dir
+        'Bash(ls .)',           // List current dir explicitly
+        'Bash(ls context)',     // List context directory
+        'Bash(ls target)',      // List target directory
+        'Bash(ls feedback)',    // List feedback directory
+        'Bash(ls agents)',      // List agents directory
+        'Bash(tree .)',         // Tree view of workspace
+        'Bash(tree context)',   // Tree view of context
+        'Bash(tree target)',    // Tree view of target
+        'Bash(tree feedback)',  // Tree view of feedback
+        'Bash(tree agents)'     // Tree view of agents
+      );
+
+      // File content operations
+      configurable.push(
+        'Bash(cat *.md)',       // Read markdown in root
+        'Bash(cat *.json)',     // Read JSON in root
+        'Bash(cat context/*)',  // Read context files
+        'Bash(cat target/*)',   // Read target files
+        'Bash(cat feedback/*)', // Read feedback files
+        'Bash(cat agents/*)',   // Read agent files
+        'Bash(head context/*)', // Head context files
+        'Bash(head target/*)',  // Head target files
+        'Bash(head feedback/*)', // Head feedback files
+        'Bash(tail context/*)', // Tail context files
+        'Bash(tail target/*)',  // Tail target files
+        'Bash(tail feedback/*)', // Tail feedback files
+        'Bash(file context/*)', // File type context files
+        'Bash(file target/*)',  // File type target files
+        'Bash(stat context/*)', // Stat context files
+        'Bash(stat target/*)'   // Stat target files
+      );
+
+      // Search operations
+      configurable.push(
+        'Bash(find . -name *)',     // Find in workspace only
+        'Bash(find context -name *)', // Find in context
+        'Bash(find target -name *)',  // Find in target
+        'Bash(find feedback -name *)', // Find in feedback
+        'Bash(grep * context/*)',    // Grep context files
+        'Bash(grep * target/*)',     // Grep target files
+        'Bash(grep * feedback/*)',   // Grep feedback files
+        'Bash(grep * *.md)',         // Grep root markdown
+        'Bash(grep * *.json)'        // Grep root JSON
+      );
+
+      // Text processing
+      configurable.push(
+        'Bash(wc context/*)',    // Word count context files
+        'Bash(wc target/*)',     // Word count target files
+        'Bash(wc feedback/*)',   // Word count feedback files
+        'Bash(sort context/*)',  // Sort context files
+        'Bash(sort target/*)',   // Sort target files
+        'Bash(diff target/* target/*)', // Diff target files
+        'Bash(diff context/* context/*)', // Diff context files
+        'Bash(cmp target/* target/*)'     // Compare target files
+      );
+
+      // System information (CONFIGURABLE - users might want to disable)
+      configurable.push(
+        'Bash(ps)',
+        'Bash(ps *)',
+        'Bash(top)',
+        'Bash(htop)',
+        'Bash(id)',
+        'Bash(cal)',
+        'Bash(history)',
+        'Bash(uname *)',
+        'Bash(hostname)',
+        'Bash(du *)',
+        'Bash(df *)'
+      );
+
+      // Git operations (CONFIGURABLE - based on project needs)
+      configurable.push(
+        'Bash(git status)',
+        'Bash(git diff *)',
+        'Bash(git log *)',
+        'Bash(git show *)',
+        'Bash(git blame *)',
+        'Bash(git add *)',
+        'Bash(git commit *)',
+        'Bash(git stash *)',
+        'Bash(git branch *)',
+        'Bash(git remote *)',
+        'Bash(git config *)'
+      );
+
+      // Development tools (CONFIGURABLE - project specific)
+      configurable.push(
+        'Bash(npm ls *)',
+        'Bash(npm info *)',
+        'Bash(npm view *)',
+        'Bash(node --version)',
+        'Bash(npm --version)',
+        'Bash(python --version)',
+        'Bash(python3 --version)',
+        'Bash(pip list *)',
+        'Bash(pip show *)'
+      );
+    }
+
+    return configurable;
+  }
+
+  /**
+   * BASE SECURITY DENY LIST
+   * These restrictions are ALWAYS enforced - they cannot be overridden.
+   */
+  private static getBaseSecurityDenyList(): string[] {
+    return [
+      // CRITICAL: Block access to parent directories and system paths
+      'Read(../**)',          // Block parent directory access
+      'Read(../../**)',       // Block grandparent access
+      'Read(../../../**)',    // Block great-grandparent access
+      'Read(/home/**)',       // Block home directory access
+      'Read(/root/**)',       // Block root directory access
+      'Read(/etc/**)',        // Block system config access
+      'Read(/var/**)',        // Block var directory access
+      'Read(/usr/**)',        // Block usr directory access
+      'Read(/sys/**)',        // Block sys directory access
+      'Read(/proc/**)',       // Block proc directory access
+      'Read(/dev/**)',        // Block device access
+      'Read(/tmp/**)',        // Block tmp access
+      'LS(..)',               // Block parent directory listing
+      'LS(../..)',            // Block grandparent listing
+      'LS(/home)',            // Block home listing
+      'LS(/root)',            // Block root listing
+      'LS(/etc)',             // Block etc listing
+      'LS(/var)',             // Block var listing
+      'LS(/usr)',             // Block usr listing
+      'Glob(../**)',          // Block parent glob patterns
+      'Glob(/home/**)',       // Block home glob patterns
+      'Glob(/root/**)',       // Block root glob patterns
+      'Glob(/etc/**)',        // Block etc glob patterns
+      'Grep(*, ../**)',       // Block parent grep
+      'Grep(*, /home/**)',    // Block home grep
+      'Grep(*, /root/**)',    // Block root grep
+      'Grep(*, /etc/**)',     // Block etc grep
+      
+      // Block access to main Context Pipeline source
+      'Read(**/src/**)',      // Block source code access
+      'Read(**/node_modules/**)', // Block node_modules access
+      'Read(**/.git/**)',     // Block git internals access
+      'Read(**/Context-Pipeline/**)', // Block main project access
+      'LS(**/src)',           // Block source listing
+      'LS(**/node_modules)',  // Block node_modules listing
+      'LS(**/.git)',          // Block git listing
+      'Glob(**/src/**)',      // Block source glob
+      'Glob(**/node_modules/**)', // Block node_modules glob
+      'Glob(**/.git/**)',     // Block git glob
+      'Grep(*, **/src/**)',   // Block source grep
+      'Grep(*, **/node_modules/**)', // Block node_modules grep
+      'Grep(*, **/.git/**)',  // Block git grep
+      
+      // Bash command restrictions for filesystem isolation
+      'Bash(cd ..)',          // Block parent directory change
+      'Bash(cd ../..)',       // Block grandparent change
+      'Bash(cd /home)',       // Block home change
+      'Bash(cd /root)',       // Block root change
+      'Bash(cd /etc)',        // Block etc change
+      'Bash(cd /var)',        // Block var change
+      'Bash(cd /usr)',        // Block usr change
+      'Bash(ls ..)',          // Block parent listing
+      'Bash(ls ../..)',       // Block grandparent listing
+      'Bash(ls /home)',       // Block home listing
+      'Bash(ls /root)',       // Block root listing
+      'Bash(ls /etc)',        // Block etc listing
+      'Bash(find /home *)',   // Block home find
+      'Bash(find /root *)',   // Block root find
+      'Bash(find /etc *)',    // Block etc find
+      'Bash(find .. *)',      // Block parent find
+      'Bash(grep * ../**)',   // Block parent grep
+      'Bash(grep * /home/**)', // Block home grep
+      'Bash(grep * /root/**)', // Block root grep
+      'Bash(cat ../**)',      // Block parent cat
+      'Bash(cat /home/**)',   // Block home cat
+      'Bash(cat /root/**)',   // Block root cat
+      'Bash(cat /etc/**)',    // Block etc cat
+      
+      // CRITICAL: Dangerous operations (always forbidden)
+      'Bash(rm *)',           // Block file deletion
+      'Bash(rmdir *)',        // Block directory deletion
+      'Bash(sudo *)',         // Block sudo access
+      'Bash(su *)',           // Block user switching
+      'Bash(passwd *)',       // Block password changes
+      'Bash(shutdown *)',     // Block system shutdown
+      'Bash(reboot *)',       // Block system reboot
+      'Bash(chmod *)',        // Block permission changes
+      'Bash(chown *)',        // Block ownership changes
+    ];
+  }
+
+  /**
+   * CONFIGURABLE DENY LIST
+   * These can be customized based on project needs and security policies.
+   */
+  private static getConfigurableDenyList(defaultPermissions: any): string[] {
+    const configurable: string[] = [
+      // Sensitive file operations (configurable)
+      'Edit(.env*)',
+      'Edit(*.key)',
+      'Edit(*.pem)',
+      'Edit(node_modules/**)',
+      'Edit(.git/**)',
+    ];
+
+    // Network operations (configurable based on project needs)
+    if (!defaultPermissions.systemAccess?.canAccessNetwork) {
+      configurable.push(
+        'Bash(curl *)',
+        'Bash(wget *)',
+        'Bash(ssh *)',
+        'Bash(scp *)',
+        'Bash(rsync *)'
+      );
+    }
+
+    return configurable;
   }
 }
 export default WorkspaceDocumentGenerator;

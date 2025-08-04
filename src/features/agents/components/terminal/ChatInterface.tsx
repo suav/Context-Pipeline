@@ -818,7 +818,9 @@ Implement the requested feature or fix based on previous discussions and require
         },
         body: JSON.stringify({
           message: command,
-          model: selectedModel
+          model: selectedModel,
+          userMessageId: userMessage.id,
+          timestamp: userMessage.timestamp
         }),
         signal: currentAbortController.signal  // Add abort signal
       });
@@ -1499,17 +1501,20 @@ Implement the requested feature or fix based on previous discussions and require
           </div>
         )}
         {/* Message History */}
-        {messages.length > 0 && messages.map((message, index) => (
+        {messages.length > 0 && messages
+          .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) // Ensure chronological order
+          .map((message, index) => (
           <div key={message.id} className="mb-2">
             {message.role === 'user' ? (
               <div className="flex items-start">
                 <span className="text-green-400 mr-2">{getPromptSymbol(message.role)}</span>
                 <span className="text-white flex-1">{message.content}</span>
+                <span className="text-gray-500 text-xs ml-2">[{formatTimestamp(message.timestamp)}]</span>
               </div>
             ) : message.role === 'assistant' ? (
               <div className="ml-4">
                 <div className="text-gray-500 text-xs mb-1">
-                  [{formatTimestamp(message.timestamp)}] {isProcessing ? 'Processing...' : 'Completed'}
+                  [{formatTimestamp(message.timestamp)}] {isProcessing && index === messages.length - 1 ? 'Processing...' : 'Completed'}
                 </div>
                 <div className="text-gray-300 whitespace-pre-wrap leading-relaxed font-mono">
                   {renderFormattedContent(message.content)}

@@ -24,7 +24,7 @@ export async function POST(
     try {
         const { workspaceId, agentId } = await params;
         const body = await request.json();
-        const { message, model } = body;
+        const { message, model, userMessageId, timestamp } = body;
         if (!message || message.trim() === '') {
             return NextResponse.json(
                 { error: 'Message content is required' },
@@ -58,17 +58,24 @@ export async function POST(
                 messages: []
             };
         }
-        // Add user message to conversation
-        const userMessage: ConversationMessage = {
-            id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: new Date().toISOString(),
-            role: 'user',
-            content: message.trim()
-        };
-        conversation.messages.push(userMessage);
-        conversation.updated_at = new Date().toISOString();
-        // Save conversation with user message immediately
-        await fs.writeFile(conversationPath, JSON.stringify(conversation, null, 2));
+        // Check if user message already exists (from frontend save)
+        const existingUserMessage = conversation.messages.find((msg: ConversationMessage) => msg.id === userMessageId);
+        
+        if (!existingUserMessage && userMessageId) {
+            // Add user message only if it doesn't exist yet
+            const userMessage: ConversationMessage = {
+                id: userMessageId,
+                timestamp: timestamp || new Date().toISOString(),
+                role: 'user',
+                content: message.trim()
+            };
+            
+            conversation.messages.push(userMessage);
+            conversation.updated_at = new Date().toISOString();
+            
+            // Save conversation with user message
+            await fs.writeFile(conversationPath, JSON.stringify(conversation, null, 2));
+        }
         // Create a streaming response
         const encoder = new TextEncoder();
         const stream = new ReadableStream({

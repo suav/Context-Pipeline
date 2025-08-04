@@ -52,12 +52,12 @@ export class ClaudeService extends BaseAIService {
       // Write prompt to temporary file to avoid command line length limits
       const tempPromptFile = path.join(workspacePath, '.claude-temp-prompt.txt');
       await fs.writeFile(tempPromptFile, prompt);
-      console.log(`[Claude] Spawning Claude CLI process`);
-      // Run Claude from workspace root so it can access CLAUDE.md and .claude/settings.json
-      // Claude will still be able to access target/ subdirectory
+      console.log(`[Claude] Spawning Claude CLI process in workspace: ${workspacePath}`);
+      // Change to workspace directory, launch Claude, then change back
+      const originalCwd = process.cwd();
       
-      const { process: childProcess, cleanup } = await this.spawnProcess('claude', ['--print', '--output-format', 'stream-json', '--verbose'], {
-        cwd: workspacePath, // Run Claude from workspace root to access permission files
+      const { process: childProcess, cleanup } = await this.spawnProcess('bash', ['-c', `cd "${workspacePath}" && claude --print --output-format stream-json --verbose`], {
+        cwd: originalCwd, // Start from original directory
         env: {
           ...process.env,
           CLAUDE_DATA_DIR: path.join(workspacePath, '.claude-agent-data'),
@@ -180,10 +180,12 @@ export class ClaudeService extends BaseAIService {
       claudeArgs.push('--resume', sessionId);
     }
     
-    // Run Claude from workspace root so it can access CLAUDE.md and .claude/settings.json
+    // Change to workspace directory, launch Claude, then change back
+    const originalCwd = process.cwd();
+    const claudeCommand = `cd "${workspacePath}" && claude ${claudeArgs.join(' ')}`;
     
-    const { process: childProcess, cleanup } = await this.spawnProcess('claude', claudeArgs, {
-      cwd: workspacePath, // Run Claude from workspace root to access permission files
+    const { process: childProcess, cleanup } = await this.spawnProcess('bash', ['-c', claudeCommand], {
+      cwd: originalCwd, // Start from original directory
       env: {
         ...process.env,
         CLAUDE_DATA_DIR: path.join(workspacePath, '.claude-agent-data'),

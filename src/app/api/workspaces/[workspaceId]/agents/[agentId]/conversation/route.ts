@@ -186,10 +186,10 @@ export async function POST(
             };
         }
         
-        // Add user message to conversation
+        // Add user message to conversation (use provided messageId if available)
         const userMessage: ConversationMessage = {
-            id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: new Date().toISOString(),
+            id: messageId || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: timestamp || new Date().toISOString(),
             role: 'user',
             content: message.trim()
         };
