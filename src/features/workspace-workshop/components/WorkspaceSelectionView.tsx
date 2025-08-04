@@ -1,21 +1,16 @@
 /**
  * Workspace Selection View
- * 
+ *
  * Displayed when no workspace is selected - encourages workspace selection
  * Lightweight component with quick actions and recent workspaces
  */
-
 'use client';
-
 import { useState, useEffect } from 'react';
-
 interface WorkspaceSelectionViewProps {
   onCreateWorkspace?: () => void;
 }
-
 export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelectionViewProps) {
   const [recentWorkspaces, setRecentWorkspaces] = useState<any[]>([]);
-
   useEffect(() => {
     // Load recent workspaces from localStorage or API
     const loadRecentWorkspaces = () => {
@@ -28,48 +23,39 @@ export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelection
         console.warn('Could not load recent workspaces:', error);
       }
     };
-
     loadRecentWorkspaces();
   }, []);
-
   const handleCreateWorkspace = () => {
     onCreateWorkspace?.();
   };
-
   const handleImportLibrary = () => {
     onCreateWorkspace?.();
   };
-
   const handleBrowseTemplates = () => {
-    // TODO: Open workspace templates
     console.log('Browse templates');
   };
-
   return (
-    <div 
+    <div
       className="flex items-center justify-center h-full p-8"
       style={{ backgroundColor: 'var(--color-background)' }}
     >
       <div className="text-center max-w-md">
         {/* Welcome Icon */}
         <div className="text-6xl mb-6">🏗️</div>
-        
         {/* Title */}
-        <h2 
+        <h2
           className="text-2xl font-bold mb-4"
           style={{ color: 'var(--color-text-primary)' }}
         >
           Welcome to Workspace Workshop
         </h2>
-        
         {/* Description */}
-        <p 
+        <p
           className="text-base mb-8"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           Select a workspace from the sidebar to start coding, or create a new workspace to begin your project.
         </p>
-
         {/* Quick Actions */}
         <div className="space-y-3 mb-8">
           <button
@@ -84,7 +70,6 @@ export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelection
             <span>➕</span>
             <span>Create New Workspace</span>
           </button>
-          
           <button
             onClick={handleImportLibrary}
             className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-lg border transition-colors text-base"
@@ -97,7 +82,6 @@ export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelection
             <span>📚</span>
             <span>Import from Library</span>
           </button>
-          
           <button
             onClick={handleBrowseTemplates}
             className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-lg border transition-colors text-base"
@@ -111,11 +95,10 @@ export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelection
             <span>Browse Templates</span>
           </button>
         </div>
-
         {/* Recent Workspaces */}
         {recentWorkspaces.length > 0 && (
           <div>
-            <h3 
+            <h3
               className="text-lg font-semibold mb-4"
               style={{ color: 'var(--color-text-primary)' }}
             >
@@ -131,19 +114,18 @@ export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelection
                     backgroundColor: 'var(--color-surface)',
                   }}
                   onClick={() => {
-                    // TODO: Select this workspace
                     console.log('Select workspace:', workspace.id);
                   }}
                 >
                   <span>📂</span>
                   <div className="flex-1">
-                    <div 
+                    <div
                       className="font-medium"
                       style={{ color: 'var(--color-text-primary)' }}
                     >
                       {workspace.title}
                     </div>
-                    <div 
+                    <div
                       className="text-sm"
                       style={{ color: 'var(--color-text-muted)' }}
                     >
@@ -156,14 +138,13 @@ export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelection
             </div>
           </div>
         )}
-
         {/* Tips */}
         <div className="mt-8 pt-6 border-t" style={{ borderColor: 'var(--color-border)' }}>
-          <p 
+          <p
             className="text-sm"
             style={{ color: 'var(--color-text-muted)' }}
           >
-            💡 <strong>Tip:</strong> Workspaces integrate with your file system, agents, and context - 
+            💡 <strong>Tip:</strong> Workspaces integrate with your file system, agents, and context -
             everything you need for efficient development.
           </p>
         </div>

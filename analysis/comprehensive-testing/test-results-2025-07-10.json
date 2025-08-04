@@ -1,0 +1,207 @@
+{
+  "timestamp": "2025-07-10T14:34:35.159Z",
+  "tests": {
+    "complete": {
+      "description": "Complete Context Pipeline",
+      "success": true,
+      "timestamp": "2025-07-10T14:34:58.591Z",
+      "totalTests": 19,
+      "passedTests": 19,
+      "failedTests": 0,
+      "results": [
+        {
+          "feature": "Workspace Cards Display",
+          "success": true,
+          "details": "Found 29 workspace cards",
+          "timestamp": "2025-07-10T14:34:42.726Z"
+        },
+        {
+          "feature": "Workspace Metadata",
+          "success": true,
+          "details": "Agent and item statistics displayed",
+          "timestamp": "2025-07-10T14:34:42.731Z"
+        },
+        {
+          "feature": "Dashboard Actions",
+          "success": true,
+          "details": "Main action buttons available",
+          "timestamp": "2025-07-10T14:34:42.734Z"
+        },
+        {
+          "feature": "Context Library UI",
+          "success": true,
+          "details": "Library controls present, 62 items visible",
+          "timestamp": "2025-07-10T14:34:44.779Z"
+        },
+        {
+          "feature": "Workspace Card Click",
+          "success": true,
+          "details": "Clicked: Workspace - Repository: Evpatarini/DavinEPV2-2",
+          "timestamp": "2025-07-10T14:34:45.816Z"
+        },
+        {
+          "feature": "Workspace Expand",
+          "success": true,
+          "details": "Expanded workspace to IDE view",
+          "timestamp": "2025-07-10T14:34:47.933Z"
+        },
+        {
+          "feature": "IDE View Loaded",
+          "success": true,
+          "details": "Workspace IDE interface loaded",
+          "timestamp": "2025-07-10T14:34:50.941Z"
+        },
+        {
+          "feature": "File Explorer",
+          "success": true,
+          "details": "Found 4 folders, 5 files",
+          "timestamp": "2025-07-10T14:34:50.948Z"
+        },
+        {
+          "feature": "Context Items Bar",
+          "success": true,
+          "details": "159 context items loaded",
+          "timestamp": "2025-07-10T14:34:50.957Z"
+        },
+        {
+          "feature": "Editor Area",
+          "success": true,
+          "details": "Editor area ready for file selection",
+          "timestamp": "2025-07-10T14:34:50.962Z"
+        },
+        {
+          "feature": "Terminal Integration",
+          "success": true,
+          "details": "Terminal/console area available",
+          "timestamp": "2025-07-10T14:34:50.969Z"
+        },
+        {
+          "feature": "Agent Options",
+          "success": true,
+          "details": "Found 6 agent options: Agent 7, 🤖Dev Assistant, 🤖Code Reviewer, +New Agent, 💻System, 🔄Git",
+          "timestamp": "2025-07-10T14:34:50.973Z"
+        },
+        {
+          "feature": "Agent Deployment",
+          "success": true,
+          "details": "Clicked agent: 🤖Dev Assistant",
+          "timestamp": "2025-07-10T14:34:51.078Z"
+        },
+        {
+          "feature": "Agent Interface",
+          "success": true,
+          "details": "Agent interface elements available",
+          "timestamp": "2025-07-10T14:34:53.084Z"
+        },
+        {
+          "feature": "File Actions",
+          "success": true,
+          "details": "File operation buttons available",
+          "timestamp": "2025-07-10T14:34:53.088Z"
+        },
+        {
+          "feature": "File Selection",
+          "success": true,
+          "details": "Clicked file: CLAUDE.md",
+          "timestamp": "2025-07-10T14:34:53.151Z"
+        },
+        {
+          "feature": "File Editor",
+          "success": true,
+          "details": "File editor state changed",
+          "timestamp": "2025-07-10T14:34:55.157Z"
+        },
+        {
+          "feature": "API Endpoints",
+          "success": true,
+          "details": "4 API calls to: health, workspaces",
+          "timestamp": "2025-07-10T14:34:58.590Z"
+        },
+        {
+          "feature": "Workspace APIs",
+          "success": true,
+          "details": "3 workspace-specific API calls",
+          "timestamp": "2025-07-10T14:34:58.591Z"
+        }
+      ]
+    },
+    "simple": {
+      "description": "Simple Functionality Check",
+      "success": true,
+      "timestamp": "2025-07-10T14:35:11.643Z",
+      "totalTests": 10,
+      "passedTests": 10,
+      "failedTests": 0,
+      "results": [
+        {
+          "feature": "Page Load",
+          "success": true,
+          "details": "Page title: \"Context Pipeline\"",
+          "timestamp": "2025-07-10T14:35:05.639Z"
+        },
+        {
+          "feature": "Page Content",
+          "success": true,
+          "details": "Page has 12767 characters of content",
+          "timestamp": "2025-07-10T14:35:05.645Z"
+        },
+        {
+          "feature": "Buttons Present",
+          "success": true,
+          "details": "Found 4 buttons",
+          "timestamp": "2025-07-10T14:35:05.713Z"
+        },
+        {
+          "feature": "Layout Elements",
+          "success": true,
+          "details": "Found 336 div elements",
+          "timestamp": "2025-07-10T14:35:05.887Z"
+        },
+        {
+          "feature": "Workspace Features",
+          "success": true,
+          "details": "Workspace functionality detected",
+          "timestamp": "2025-07-10T14:35:05.890Z"
+        },
+        {
+          "feature": "Context Features",
+          "success": true,
+          "details": "Context functionality detected",
+          "timestamp": "2025-07-10T14:35:05.891Z"
+        },
+        {
+          "feature": "Agent Features",
+          "success": true,
+          "details": "Agent functionality detected",
+          "timestamp": "2025-07-10T14:35:05.893Z"
+        },
+        {
+          "feature": "API Health",
+          "success": true,
+          "details": "API calls: 2, Successful: 2, Failed: 0",
+          "timestamp": "2025-07-10T14:35:10.038Z"
+        },
+        {
+          "feature": "Button Click",
+          "success": true,
+          "details": "Successfully clicked first button",
+          "timestamp": "2025-07-10T14:35:11.136Z"
+        },
+        {
+          "feature": "Page Scrolling",
+          "success": true,
+          "details": "Page scrolling works",
+          "timestamp": "2025-07-10T14:35:11.643Z"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "totalSuites": 2,
+    "passedSuites": 2,
+    "failedSuites": 0,
+    "totalTests": 29,
+    "passedTests": 29,
+    "failedTests": 0
+  }
+}

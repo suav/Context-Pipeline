@@ -1,0 +1,144 @@
+{
+  "timestamp": "2025-08-01T00:43:37.989Z",
+  "tests": {
+    "apiHealth": {
+      "health": {
+        "status": 200,
+        "success": true,
+        "responseTime": "Fast"
+      },
+      "workspaces": {
+        "status": 200,
+        "success": true,
+        "responseTime": "Fast"
+      },
+      "library": {
+        "status": 200,
+        "success": true,
+        "responseTime": "Fast"
+      },
+      "jira": {
+        "status": 200,
+        "success": true,
+        "responseTime": "Fast"
+      },
+      "git": {
+        "status": 200,
+        "success": true,
+        "responseTime": "Fast"
+      }
+    },
+    "contextImport": {
+      "mockItem": {
+        "id": "test-item-1754009018903",
+        "title": "Test Context Item",
+        "source": "test",
+        "type": "document",
+        "preview": "This is a test context item for comprehensive testing",
+        "content": {
+          "text": "Test content for Context Pipeline testing"
+        },
+        "metadata": {
+          "source": "test",
+          "test": true
+        },
+        "tags": [
+          "test",
+          "automation"
+        ],
+        "added_at": "2025-08-01T00:43:38.903Z",
+        "size_bytes": 1024
+      },
+      "jiraTemplates": true,
+      "gitTemplates": true
+    },
+    "workspaceCreation": {
+      "success": true,
+      "workspaceId": "test-workspace-1754009018925",
+      "path": "/home/nricoatarini/Project-Workspace/Context-Pipeline/storage/workspaces/test-workspace-1754009018925",
+      "message": "Workspace published successfully"
+    },
+    "workspaceFeatures": {
+      "status": {
+        "success": true,
+        "data": {
+          "success": true,
+          "workspace_id": "test-workspace-1754009018925",
+          "status": {
+            "phase": "initialization",
+            "progress": 0,
+            "active_agents": 0,
+            "last_updated": "2025-08-01T00:43:39.214Z",
+            "messages": [
+              "Workspace created successfully"
+            ]
+          },
+          "agents": []
+        }
+      },
+      "validation": {
+        "success": false,
+        "data": ""
+      },
+      "feedback": {
+        "success": true,
+        "data": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Workspace: Test Workspace - Comprehensive</title>\n    <style>\n        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; }\n        .status { padding: 20px; border-radius: 8px; margin: 20px 0; }\n        .created { background: #e8f5e8; border-left: 4px solid #4caf50; }\n        .working { background: #fff3cd; border-left: 4px solid #ffc107; }\n        .completed { background: #d4edda; border-left: 4px solid #28a745; }\n        .error { background: #f8d7da; border-left: 4px solid #dc3545; }\n        pre { background: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto; }\n        .timestamp { color: #666; font-size: 0.9em; }\n    </style>\n</head>\n<body>\n    <h1>🏗️ Workspace: Test Workspace - Comprehensive</h1>\n    <div class=\"status created\">\n        <h3>✅ Workspace Created</h3>\n        <p>Your workspace has been successfully created and is ready for agent deployment.</p>\n        <p class=\"timestamp\">Created: 7/31/2025, 8:43:39 PM</p>\n    </div>\n    <h2>📊 Context Items</h2>\n    <ul>\n        <li><strong>Test JIRA Ticket</strong> (jira)</li><li><strong>Test Git Repository</strong> (git)</li>\n    </ul>\n    <h2>🎯 Next Steps</h2>\n    <ol>\n        <li>Deploy an agent to this workspace</li>\n        <li>Monitor progress in the feedback section</li>\n        <li>Review results when completed</li>\n    </ol>\n    <div id=\"live-updates\">\n        <!-- Agents will update this section -->\n    </div>\n    <script>\n        // Auto-refresh every 30 seconds for live updates\n        setTimeout(() => location.reload(), 30000);\n    </script>\n</body>\n</html>"
+      }
+    },
+    "agentIntegration": {
+      "agentListing": {
+        "success": true,
+        "agentCount": 0
+      },
+      "agentStatus": {
+        "success": true,
+        "data": {
+          "success": true,
+          "status": {
+            "total": 0,
+            "active": 0,
+            "idle": 0,
+            "error": 0
+          },
+          "agents": [],
+          "workspace_id": "test-workspace-1754009018925",
+          "last_updated": "2025-08-01T00:43:41.851Z"
+        }
+      }
+    },
+    "fileOperations": {
+      "fileListing": {
+        "success": true,
+        "fileCount": 0
+      },
+      "gitDiff": {
+        "success": false,
+        "data": {
+          "error": "File path is required for file diff"
+        }
+      }
+    },
+    "uiAnalysis": {
+      "pageLoaded": true,
+      "hasWorkspaceWorkshop": true,
+      "hasSettingsButton": true,
+      "hasCreateWorkspace": true,
+      "hasImportButton": true,
+      "hasLibraryElements": true,
+      "hasAgentElements": true,
+      "hasMonacoEditor": false,
+      "hasTerminalElements": false,
+      "pageSize": 12601,
+      "scriptCount": 12
+    }
+  },
+  "summary": {
+    "totalTests": 13,
+    "passedTests": 11,
+    "failedTests": 2,
+    "overallHealth": "Good"
+  },
+  "recommendations": [
+    "Monaco editor not detected - may only load with active workspace"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-07-10T06:38:26.968Z",
+  "screenshots": [
+    {
+      "name": "Homepage",
+      "path": "/home/nricoatarini/Project-Workspace/Context-Pipeline/analysis/puppeteer-test-results/screenshots/01-homepage.png"
+    }
+  ],
+  "interactions": [],
+  "uiElements": {},
+  "performance": {},
+  "errors": [
+    "SyntaxError: Failed to execute 'querySelector' on 'Document': 'button:has-text(\"New Workspace\"), button:has-text(\"Create New Workspace\")' is not a valid selector."
+  ],
+  "summary": {
+    "totalScreenshots": 1,
+    "successfulInteractions": 0,
+    "errorCount": 1,
+    "uiElementsDetected": 0,
+    "overallStatus": "PARTIAL"
+  }
+}

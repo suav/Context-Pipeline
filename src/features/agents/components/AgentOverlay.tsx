@@ -2,15 +2,11 @@
  * Agent Overlay Component
  * Displays agent management overlay on workspace cards
  */
-
 'use client';
-
 import { useState, useEffect } from 'react';
 import { CommandInjector } from './CommandInjector';
-
 // Feature flag - set to false to disable agents
 const AGENTS_ENABLED = true;
-
 interface Agent {
   id: string;
   name: string;
@@ -19,19 +15,17 @@ interface Agent {
   created_at: string;
   last_activity: string;
 }
-
 interface AgentOverlayProps {
   workspaceId: string;
   onClose: () => void;
   onNewAgent: () => void;
   onAgentClick: (agentId: string) => void;
 }
-
-export function AgentOverlay({ 
-  workspaceId, 
-  onClose, 
-  onNewAgent, 
-  onAgentClick 
+export function AgentOverlay({
+  workspaceId,
+  onClose,
+  onNewAgent,
+  onAgentClick
 }: AgentOverlayProps) {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,26 +33,20 @@ export function AgentOverlay({
   const [showAgentCreator, setShowAgentCreator] = useState(false);
   const [agentTitle, setAgentTitle] = useState('');
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini'>('claude');
-
   useEffect(() => {
     if (AGENTS_ENABLED) {
       loadAgents();
     }
   }, [workspaceId]);
-
   const loadAgents = async () => {
     if (!AGENTS_ENABLED) return;
-    
     console.log('Loading agents for workspace:', workspaceId);
     setLoading(true);
     try {
       const url = `/api/workspaces/${workspaceId}/agents`;
       console.log('Fetching agents from:', url);
-      
       const response = await fetch(url);
-      
       console.log('Agents response status:', response.status);
-      
       if (response.ok) {
         const data = await response.json();
         console.log('Agents data received:', data);
@@ -74,22 +62,18 @@ export function AgentOverlay({
       setLoading(false);
     }
   };
-
   const handleNewAgent = async () => {
     if (!AGENTS_ENABLED) {
       alert('🚧 Agent system coming soon!');
       return;
     }
-    
     setAgentTitle('');
     setSelectedModel('claude');
     setShowAgentCreator(true);
   };
-
   const handleCommandSelect = async (command: string) => {
     console.log('Creating agent for workspace:', workspaceId);
     console.log('Command:', command);
-    
     try {
       // First create the agent
       const agentName = agentTitle.trim() || `Agent ${Date.now().toString().slice(-4)}`;
@@ -98,10 +82,8 @@ export function AgentOverlay({
         title: agentTitle.trim() || undefined,
         preferredModel: selectedModel
       };
-      
       console.log('Request body:', requestBody);
       console.log('Request URL:', `/api/workspaces/${workspaceId}/agents`);
-      
       const response = await fetch(`/api/workspaces/${workspaceId}/agents`, {
         method: 'POST',
         headers: {
@@ -109,19 +91,15 @@ export function AgentOverlay({
         },
         body: JSON.stringify(requestBody)
       });
-
       console.log('Response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
       if (response.ok) {
         const data = await response.json();
         console.log('Agent created successfully:', data);
         const newAgentId = data.agent.id;
-        
         // Close the dialogs
         setShowCommandInjector(false);
         setShowAgentCreator(false);
-        
         // Open the terminal with the new agent
         console.log('Opening terminal for agent:', newAgentId);
         try {
@@ -131,13 +109,12 @@ export function AgentOverlay({
           console.error('Failed to open terminal:', terminalError);
           throw terminalError; // Re-throw to trigger catch block
         }
-        
         // Inject the startup command after a delay to ensure terminal is ready
         setTimeout(() => {
           console.log('Attempting to inject command:', command, 'for agent:', newAgentId);
           const event = new CustomEvent('injectCommand', {
-            detail: { 
-              command, 
+            detail: {
+              command,
               autoSend: true,
               targetAgentId: newAgentId
             }
@@ -146,7 +123,6 @@ export function AgentOverlay({
           window.dispatchEvent(event);
           console.log('Event dispatched successfully');
         }, 2000); // Increased delay to ensure terminal is ready
-        
         // Refresh agent list
         console.log('Refreshing agent list');
         try {
@@ -159,7 +135,6 @@ export function AgentOverlay({
       } else {
         const errorData = await response.text();
         console.error('Agent creation failed:', response.status, errorData);
-        
         // Parse error message if it's JSON
         let errorMessage = errorData;
         try {
@@ -168,7 +143,6 @@ export function AgentOverlay({
         } catch {
           // If not JSON, use as is
         }
-        
         // Show user-friendly error message
         if (errorMessage.includes('Maximum of')) {
           alert(`${errorMessage}\n\nPlease remove an existing agent before creating a new one.`);
@@ -184,26 +158,14 @@ export function AgentOverlay({
       setShowCommandInjector(false);
     }
   };
-
-  const handleAgentClick = (agentId: string) => {
-    if (!AGENTS_ENABLED) {
-      alert('🚧 Agent system coming soon!');
-      return;
-    }
-    
-    onAgentClick(agentId);
-  };
-
   const handleDeleteAgent = async (agentId: string) => {
     if (!confirm('Are you sure you want to delete this agent? This will remove all conversation history.')) {
       return;
     }
-
     try {
       const response = await fetch(`/api/workspaces/${workspaceId}/agents/${agentId}`, {
         method: 'DELETE',
       });
-
       if (response.ok) {
         console.log('Agent deleted successfully:', agentId);
         // Refresh the agent list
@@ -218,34 +180,26 @@ export function AgentOverlay({
       alert('Failed to delete agent. Please try again.');
     }
   };
-
   const handleOpenVSCode = () => {
     // Get the workspace path for VSCode Web
     const workspacePath = `/storage/workspaces/${workspaceId}/target`;
-    
     // Create VSCode Web URL - using vscode.dev with file system access
     const vscodeUrl = `https://vscode.dev/`;
-    
     // Open in a new window/tab
     window.open(vscodeUrl, '_blank', 'width=1400,height=900');
-    
     // Show instructions to user
     setTimeout(() => {
-      alert(`VSCode Web opened! 
-
+      alert(`VSCode Web opened!
 To access your workspace:
 1. Click "Open Folder" in VSCode Web
 2. Navigate to: ${workspacePath}
 3. Or use File > Open Folder to browse to your workspace
-
 Note: For full file system access, you may need to grant permissions.`);
     }, 1000);
   };
-
   // Always render when called (visibility managed by parent)
-
   return (
-    <div 
+    <div
       className="absolute top-full right-0 mt-2 w-96 border rounded-lg shadow-lg z-10"
       style={{
         backgroundColor: 'var(--color-surface)',
@@ -254,7 +208,7 @@ Note: For full file system access, you may need to grant permissions.`);
     >
       <div className="p-4">
         <div className="flex justify-between items-center mb-3">
-          <h4 
+          <h4
             className="font-medium"
             style={{ color: 'var(--color-text-primary)' }}
           >
@@ -263,14 +217,13 @@ Note: For full file system access, you may need to grant permissions.`);
           <button
             onClick={onClose}
             className="transition-colors"
-            style={{ 
+            style={{
               color: 'var(--color-text-muted)',
             }}
           >
             ✕
           </button>
         </div>
-
         {!AGENTS_ENABLED && (
           <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div className="flex items-center gap-2 text-yellow-800">
@@ -282,9 +235,8 @@ Note: For full file system access, you may need to grant permissions.`);
             </p>
           </div>
         )}
-
         {AGENTS_ENABLED && loading ? (
-          <div 
+          <div
             className="text-center py-4"
             style={{ color: 'var(--color-text-secondary)' }}
           >
@@ -295,26 +247,26 @@ Note: For full file system access, you may need to grant permissions.`);
         ) : agents.length > 0 ? (
           <div className="space-y-2 mb-3">
             {agents.map((agent) => (
-              <div 
+              <div
                 key={agent.id}
-                onClick={() => handleAgentClick(agent.id)}
+                onClick={() => onAgentClick(agent.id)}
                 className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                 style={{
                   background: `linear-gradient(90deg, ${agent.color}20 0%, transparent 100%)`
                 }}
               >
-                <div 
+                <div
                   className="w-3 h-8 rounded-full flex-shrink-0"
                   style={{ backgroundColor: agent.color }}
                 ></div>
                 <div className="flex-1 min-w-0">
-                  <div 
+                  <div
                     className="font-medium text-sm truncate"
                     style={{ color: 'var(--color-text-primary)' }}
                   >
                     {agent.name}
                   </div>
-                  <div 
+                  <div
                     className="text-xs truncate"
                     style={{ color: 'var(--color-text-secondary)' }}
                   >
@@ -342,7 +294,7 @@ Note: For full file system access, you may need to grant permissions.`);
             ))}
           </div>
         ) : (
-          <div 
+          <div
             className="text-center py-4 mb-3"
             style={{ color: 'var(--color-text-secondary)' }}
           >
@@ -350,7 +302,6 @@ Note: For full file system access, you may need to grant permissions.`);
             <p className="text-sm">No agents deployed yet</p>
           </div>
         )}
-
         {!showCommandInjector && !showAgentCreator ? (
           <div className="space-y-2">
             <button
@@ -370,7 +321,6 @@ Note: For full file system access, you may need to grant permissions.`);
                agents.length >= 4 ? '🚫 Max Agents Reached (4/4)' :
                '🚀 Deploy New Agent'}
             </button>
-            
             <button
               onClick={() => handleOpenVSCode()}
               className="w-full py-1 px-3 rounded text-xs transition-colors border"
@@ -383,7 +333,6 @@ Note: For full file system access, you may need to grant permissions.`);
             >
               💻 Open in VSCode Web
             </button>
-            
             {AGENTS_ENABLED && (
               <button
                 onClick={() => {
@@ -404,7 +353,7 @@ Note: For full file system access, you may need to grant permissions.`);
         ) : showAgentCreator ? (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span 
+              <span
                 className="text-sm font-medium"
                 style={{ color: 'var(--color-text-primary)' }}
               >
@@ -420,7 +369,7 @@ Note: For full file system access, you may need to grant permissions.`);
             </div>
             <div className="space-y-3">
               <div>
-                <label 
+                <label
                   className="block text-xs font-medium mb-1"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
@@ -441,7 +390,7 @@ Note: For full file system access, you may need to grant permissions.`);
                 />
               </div>
               <div>
-                <label 
+                <label
                   className="block text-xs font-medium mb-1"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
@@ -479,7 +428,7 @@ Note: For full file system access, you may need to grant permissions.`);
         ) : (
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span 
+              <span
                 className="text-sm font-medium"
                 style={{ color: 'var(--color-text-primary)' }}
               >
@@ -496,7 +445,7 @@ Note: For full file system access, you may need to grant permissions.`);
             <CommandInjector
               mode="startup"
               workspaceContext={{
-                has_jira: true,  // TODO: Get from actual workspace context
+                has_jira: true,
                 has_git: true,
                 has_files: true,
                 has_email: false
@@ -506,19 +455,18 @@ Note: For full file system access, you may need to grant permissions.`);
             />
           </div>
         )}
-
         {AGENTS_ENABLED && agents.length > 0 && (
-          <div 
+          <div
             className="mt-3 pt-3 border-t"
             style={{ borderColor: 'var(--color-border)' }}
           >
-            <div 
+            <div
               className="text-xs text-center"
               style={{ color: 'var(--color-text-secondary)' }}
             >
               Click an agent to open conversation
               {agents.length >= 4 && (
-                <div 
+                <div
                   className="mt-1"
                   style={{ color: 'var(--color-warning)' }}
                 >
@@ -532,3 +480,5 @@ Note: For full file system access, you may need to grant permissions.`);
     </div>
   );
 }
+
+export default AgentOverlay;

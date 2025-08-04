@@ -1,41 +1,51 @@
 /**
  * Workspace Drafts Component
  */
-
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { WorkspaceDraftCard } from './WorkspaceDraftCard';
+import { AgentConfigurationModal } from './AgentConfigurationModal';
 import { WorkspaceDraft } from '../types';
 
-export function WorkspaceDrafts() {
+interface WorkspaceDraftsProps {
+    onApplyContextToDrafts?: (selectedDraftIds: string[]) => void;
+    selectedLibraryItems?: Set<string>;
+    libraryItems?: any[];
+    isLibraryCollapsed?: boolean;
+    isApplyToWorkspacesMode?: boolean;
+    onExitApplyToWorkspacesMode?: () => void;
+}
+
+export function WorkspaceDrafts({ 
+    onApplyContextToDrafts, 
+    selectedLibraryItems = new Set(), 
+    libraryItems = [],
+    isLibraryCollapsed = false,
+    isApplyToWorkspacesMode = false,
+    onExitApplyToWorkspacesMode
+}: WorkspaceDraftsProps = {}) {
     const [drafts, setDrafts] = useState<WorkspaceDraft[]>([]);
     const [selectedDrafts, setSelectedDrafts] = useState<Set<string>>(new Set());
-    
+    const [showAgentConfig, setShowAgentConfig] = useState(false);
+    const [agentConfigDraft, setAgentConfigDraft] = useState<WorkspaceDraft | null>(null);
     useEffect(() => {
         loadDrafts();
-        
         // Listen for storage changes (from other components)
         const handleStorageChange = () => {
             loadDrafts();
         };
-        
         window.addEventListener('storage', handleStorageChange);
-        
         // Also check periodically for local changes
         const interval = setInterval(loadDrafts, 2000);
-        
         return () => {
             window.removeEventListener('storage', handleStorageChange);
             clearInterval(interval);
         };
     }, []);
-    
     const loadDrafts = () => {
         try {
             const storedDrafts = JSON.parse(localStorage.getItem('workspace-drafts') || '[]');
             setDrafts(storedDrafts);
-            
             // Sync to file system if there are drafts
             if (storedDrafts.length > 0) {
                 syncDraftsToStorage(storedDrafts);
@@ -44,7 +54,6 @@ export function WorkspaceDrafts() {
             console.error('Failed to load workspace drafts:', error);
         }
     };
-    
     const syncDraftsToStorage = async (draftsToSync: WorkspaceDraft[]) => {
         try {
             const response = await fetch('/api/workspace-drafts', {
@@ -57,7 +66,6 @@ export function WorkspaceDrafts() {
                     drafts: draftsToSync
                 })
             });
-            
             const result = await response.json();
             if (result.success) {
                 console.log('✅ Drafts synced to storage:', result.message);
@@ -66,10 +74,9 @@ export function WorkspaceDrafts() {
             console.error('❌ Failed to sync drafts to storage:', error);
         }
     };
-    
     const updateDraft = (draftId: string, updates: Partial<WorkspaceDraft>) => {
-        const updatedDrafts = drafts.map(draft => 
-            draft.id === draftId 
+        const updatedDrafts = drafts.map(draft =>
+            draft.id === draftId
                 ? { ...draft, ...updates, updated_at: new Date().toISOString() }
                 : draft
         );
@@ -77,13 +84,50 @@ export function WorkspaceDrafts() {
         setDrafts(updatedDrafts);
         syncDraftsToStorage(updatedDrafts);
     };
-    
-    const archiveDraft = async (draftId: string) => {
+    const addContextToDraft = (draftId: string, item: any) => {
         const draft = drafts.find(d => d.id === draftId);
         if (!draft) return;
         
-        const confirmMessage = `Archive workspace draft "${draft.name}"?\n\nThis will:\n• Remove it from your active drafts\n• Preserve complete history in archives\n• Allow future restoration\n\nContinue?`;
+        // Check if item already exists
+        const existingItemIds = new Set(draft.context_items.map((contextItem: any) => contextItem.id));
+        if (existingItemIds.has(item.id)) {
+            return; // Item already exists, don't add duplicate
+        }
         
+        // Add the item to the draft's context
+        const updatedItems = [...draft.context_items, item];
+        updateDraft(draftId, { context_items: updatedItems });
+    };
+
+    const configureAgents = (draftId: string) => {
+        const draft = drafts.find(d => d.id === draftId);
+        if (!draft) return;
+        
+        setAgentConfigDraft(draft);
+        setShowAgentConfig(true);
+    };
+    const cloneDraft = (draftId: string) => {
+        const draft = drafts.find(d => d.id === draftId);
+        if (!draft) return;
+        
+        const clonedDraft = {
+            ...draft,
+            id: `draft-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            name: `${draft.name} (Copy)`,
+            status: 'draft' as const,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        const updatedDrafts = [...drafts, clonedDraft];
+        localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
+        setDrafts(updatedDrafts);
+        syncDraftsToStorage(updatedDrafts);
+    };
+    const archiveDraft = async (draftId: string) => {
+        const draft = drafts.find(d => d.id === draftId);
+        if (!draft) return;
+        const confirmMessage = `Archive workspace draft "${draft.name}"?\n\nThis will:\n• Remove it from your active drafts\n• Preserve complete history in archives\n• Allow future restoration\n\nContinue?`;
         if (window.confirm(confirmMessage)) {
             try {
                 // Archive the draft
@@ -96,23 +140,19 @@ export function WorkspaceDrafts() {
                         reason: 'manual_archive'
                     })
                 });
-                
                 const result = await response.json();
-                
                 if (result.success) {
                     // Remove from active drafts
                     const updatedDrafts = drafts.filter(draft => draft.id !== draftId);
                     localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
                     setDrafts(updatedDrafts);
                     syncDraftsToStorage(updatedDrafts);
-                    
                     // Remove from selection if selected
                     setSelectedDrafts(prev => {
                         const newSet = new Set(prev);
                         newSet.delete(draftId);
                         return newSet;
                     });
-                    
                     alert(`✅ "${draft.name}" has been archived and can be restored later.`);
                 } else {
                     alert(`❌ Failed to archive: ${result.error}`);
@@ -123,7 +163,6 @@ export function WorkspaceDrafts() {
             }
         }
     };
-    
     const publishDraft = async (draftId: string) => {
         const draft = drafts.find(d => d.id === draftId);
         if (!draft) return;
@@ -131,28 +170,18 @@ export function WorkspaceDrafts() {
         // Update status to publishing
         updateDraft(draftId, { status: 'publishing' });
         
+        // Create a temporary workspace entry that appears in the sidebar immediately
+        const publishingWorkspace = {
+            ...draft,
+            status: 'publishing',
+            published_at: new Date().toISOString(),
+            workspace_path: null
+        };
+        
+        // Add the publishing workspace to the sidebar immediately
+        // This is handled by the parent component's workspace list refresh
+        
         try {
-            // Create workspace manifest
-            const manifest = {
-                workspace_id: draft.id,
-                created: new Date().toISOString(),
-                last_updated: new Date().toISOString(),
-                total_items: draft.context_items.length,
-                context_items: draft.context_items.map((item, index) => ({
-                    id: `ctx-${index + 1}`,
-                    type: item.source,
-                    title: item.title,
-                    description: item.preview,
-                    content_file: `context/${item.source}/${item.id}.json`,
-                    preview: item.preview,
-                    metadata: item.metadata || {},
-                    tags: item.tags || [],
-                    added_at: item.added_at,
-                    size_bytes: item.size_bytes
-                })),
-                context_summary: `Workspace contains ${draft.context_items.length} context items`
-            };
-            
             // Send to API to create actual workspace
             const response = await fetch('/api/workspaces', {
                 method: 'POST',
@@ -164,43 +193,66 @@ export function WorkspaceDrafts() {
                     workspaceDraft: draft
                 })
             });
-            
             const result = await response.json();
-            
             if (result.success) {
                 updateDraft(draftId, { status: 'published' });
-                alert(`Workspace "${draft.name}" has been published!\n\nLocation: ${result.workspace_path}`);
+                
+                // Trigger a workspace list refresh to show the completed workspace
+                window.dispatchEvent(new CustomEvent('workspace-published', { 
+                    detail: { 
+                        workspaceId: draft.id, 
+                        workspacePath: result.workspace_path 
+                    } 
+                }));
+                
+                // Show success notification
+                alert(`✅ Workspace "${draft.name}" published successfully!\n\n📁 Location: ${result.workspace_path}\n\n🚀 The workspace now appears in your sidebar.`);
             } else {
                 throw new Error(result.error || 'Failed to publish');
             }
-            
         } catch (error) {
             console.error('Failed to publish workspace:', error);
             updateDraft(draftId, { status: 'draft' });
             
+            // Remove from sidebar if it was added
+            window.dispatchEvent(new CustomEvent('workspace-publish-failed', { 
+                detail: { workspaceId: draft.id } 
+            }));
+            
             // Show detailed error information
             const errorMsg = error instanceof Error ? error.message : String(error);
-            alert(`Failed to publish workspace: ${errorMsg}\n\nCheck the browser console for more details.`);
+            alert(`❌ Failed to publish workspace: ${errorMsg}\n\nCheck the browser console for more details.`);
         }
     };
-    
     const publishSelected = () => {
         selectedDrafts.forEach(draftId => {
             publishDraft(draftId);
         });
         setSelectedDrafts(new Set());
     };
-    
+    const archiveSelected = async () => {
+        if (window.confirm(`Archive ${selectedDrafts.size} workspace draft(s)?`)) {
+            for (const draftId of selectedDrafts) {
+                await archiveDraft(draftId);
+            }
+            setSelectedDrafts(new Set());
+        }
+    };
     const deleteSelected = () => {
-        if (window.confirm(`Are you sure you want to delete ${selectedDrafts.size} workspace draft(s)?`)) {
+        const confirmed = window.confirm(`Are you sure you want to delete ${selectedDrafts.size} workspace draft(s)?\n\nThis will permanently remove them without archiving.`);
+        if (confirmed) {
             const updatedDrafts = drafts.filter(draft => !selectedDrafts.has(draft.id));
             localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
             setDrafts(updatedDrafts);
             syncDraftsToStorage(updatedDrafts);
             setSelectedDrafts(new Set());
+        } else {
+            // If they declined deletion, offer archiving instead
+            if (window.confirm(`Would you like to archive these ${selectedDrafts.size} workspace draft(s) instead?`)) {
+                archiveSelected();
+            }
         }
     };
-    
     const toggleDraftSelection = (draftId: string) => {
         setSelectedDrafts(prev => {
             const newSet = new Set(prev);
@@ -212,67 +264,190 @@ export function WorkspaceDrafts() {
             return newSet;
         });
     };
-    
     if (drafts.length === 0) {
         return (
-            <div className="mt-8 border-t pt-6">
+            <div className="p-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold">🏗️ Workspace Drafts</h3>
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                        🏗️ Workspace Drafts
+                    </h3>
                 </div>
-                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-                    <div className="text-3xl mb-2">📝</div>
-                    <p>No workspace drafts yet</p>
-                    <p className="text-sm">Select context items above and click "Make Workspace" to create drafts</p>
+                <div 
+                    className="text-center py-6 rounded-lg"
+                    style={{ 
+                        backgroundColor: 'var(--color-surface-elevated)',
+                        color: 'var(--color-text-secondary)'
+                    }}
+                >
+                    <div className="text-2xl mb-2">📝</div>
+                    <p style={{ color: 'var(--color-text-primary)' }}>No workspace drafts yet</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                        Select context items above and click "Make Workspace" to create drafts
+                    </p>
                 </div>
             </div>
         );
     }
-    
     return (
-        <div className="mt-8 border-t pt-6">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">🏗️ Workspace Drafts</h3>
-                
-                {selectedDrafts.size > 0 && (
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600">
-                            {selectedDrafts.size} selected
+        <div className="p-3 border-t relative" style={{ borderColor: 'var(--color-border)' }}>
+            {/* Compact title as overlay in top-left */}
+            <div className="absolute top-2 left-3 z-10 flex items-center gap-2">
+                <h3 className="text-sm font-semibold px-2 py-1 rounded" style={{ 
+                    color: 'var(--color-text-primary)',
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    border: '1px solid var(--color-border)'
+                }}>
+                    🏗️ Workspace Drafts
+                </h3>
+                {isApplyToWorkspacesMode && (
+                    <div className="flex items-center gap-1">
+                        <span 
+                            className="px-2 py-1 rounded text-xs font-medium"
+                            style={{
+                                backgroundColor: 'var(--color-accent)',
+                                color: 'var(--color-text-inverse)'
+                            }}
+                        >
+                            📋 Apply: {selectedLibraryItems.size} item{selectedLibraryItems.size !== 1 ? 's' : ''}
                         </span>
                         <button
-                            onClick={publishSelected}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                            onClick={onExitApplyToWorkspacesMode}
+                            className="px-1 py-1 rounded text-xs transition-colors"
+                            style={{
+                                backgroundColor: 'var(--color-surface-elevated)',
+                                color: 'var(--color-text-secondary)',
+                                border: '1px solid var(--color-border)'
+                            }}
                         >
-                            🚀 Publish Selected
-                        </button>
-                        <button
-                            onClick={deleteSelected}
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                        >
-                            🗑️ Delete Selected
-                        </button>
-                        <button
-                            onClick={() => setSelectedDrafts(new Set())}
-                            className="text-gray-600 hover:text-gray-800 text-sm"
-                        >
-                            Clear Selection
+                            ✕
                         </button>
                     </div>
                 )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {drafts.map(draft => (
-                    <WorkspaceDraftCard
-                        key={draft.id}
-                        draft={draft}
-                        isSelected={selectedDrafts.has(draft.id)}
-                        onSelect={toggleDraftSelection}
-                        onUpdate={updateDraft}
-                        onDelete={archiveDraft}
-                        onPublish={publishDraft}
-                    />
-                ))}
+            {/* Action buttons as overlay in top-right */}
+            {selectedDrafts.size > 0 && (
+                <div className="absolute top-2 right-3 z-10 flex items-center gap-2">
+                    <span className="text-xs px-2 py-1 rounded" style={{ 
+                        color: 'var(--color-text-secondary)',
+                        backgroundColor: 'var(--color-surface-elevated)',
+                        border: '1px solid var(--color-border)'
+                    }}>
+                        {selectedDrafts.size} selected
+                    </span>
+                    {onApplyContextToDrafts && selectedLibraryItems.size > 0 && (
+                        <button
+                            onClick={() => {
+                                onApplyContextToDrafts(Array.from(selectedDrafts));
+                                if (isApplyToWorkspacesMode && onExitApplyToWorkspacesMode) {
+                                    onExitApplyToWorkspacesMode();
+                                }
+                            }}
+                            className="px-2 py-1 rounded text-xs transition-colors"
+                            style={{
+                                backgroundColor: 'var(--color-accent)',
+                                color: 'var(--color-text-inverse)'
+                            }}
+                            title={`Apply ${selectedLibraryItems.size} selected library item(s) to ${selectedDrafts.size} workspace draft(s)`}
+                        >
+                            📋 Apply ({selectedLibraryItems.size})
+                        </button>
+                    )}
+                    {!isApplyToWorkspacesMode && (
+                        <>
+                            <button
+                                onClick={publishSelected}
+                                className="px-2 py-1 rounded text-xs transition-colors"
+                                style={{
+                                    backgroundColor: 'var(--color-primary)',
+                                    color: 'var(--color-text-inverse)'
+                                }}
+                            >
+                                🚀 Publish
+                            </button>
+                            <button
+                                onClick={archiveSelected}
+                                className="px-2 py-1 rounded text-xs transition-colors"
+                                style={{
+                                    backgroundColor: 'var(--color-warning)',
+                                    color: 'var(--color-text-inverse)'
+                                }}
+                            >
+                                🗃️ Archive
+                            </button>
+                            <button
+                                onClick={deleteSelected}
+                                className="px-2 py-1 rounded text-xs transition-colors"
+                                style={{
+                                    backgroundColor: 'var(--color-danger)',
+                                    color: 'var(--color-text-inverse)'
+                                }}
+                            >
+                                🗑️ Delete
+                            </button>
+                        </>
+                    )}
+                    <button
+                        onClick={() => setSelectedDrafts(new Set())}
+                        className="text-xs px-1 py-1 transition-colors"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
+            
+            {/* Spacer for overlays */}
+            <div style={{ height: '36px' }}></div>
+            {/* Drafts Container - Always horizontal scroll with full cards */}
+            <div className="overflow-hidden" style={{ height: isLibraryCollapsed ? '350px' : '220px' }}>
+                <div 
+                    className="overflow-x-auto overflow-y-hidden h-full"
+                    style={{
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: 'var(--color-border) var(--color-surface)',
+                    }}
+                >
+                    <div className="flex gap-4 pb-4 h-full" style={{ width: 'max-content' }}>
+                        {drafts.map(draft => (
+                            <div 
+                                key={draft.id} 
+                                className="flex-shrink-0" 
+                                style={{ 
+                                    width: '300px', 
+                                    height: isLibraryCollapsed ? '330px' : '200px' 
+                                }}
+                            >
+                                <WorkspaceDraftCard
+                                    draft={draft}
+                                    isSelected={selectedDrafts.has(draft.id)}
+                                    onSelect={toggleDraftSelection}
+                                    onUpdate={updateDraft}
+                                    onDelete={archiveDraft}
+                                    onPublish={publishDraft}
+                                    onClone={cloneDraft}
+                                    onAddContext={addContextToDraft}
+                                    onConfigureAgents={configureAgents}
+                                    isExpanded={isLibraryCollapsed}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
+
+            {/* Agent Configuration Modal */}
+            {showAgentConfig && agentConfigDraft && (
+                <AgentConfigurationModal
+                    isOpen={showAgentConfig}
+                    onClose={() => {
+                        setShowAgentConfig(false);
+                        setAgentConfigDraft(null);
+                    }}
+                    draft={agentConfigDraft}
+                    onUpdate={updateDraft}
+                />
+            )}
         </div>
     );
 }

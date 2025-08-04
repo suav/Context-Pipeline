@@ -1,15 +1,8 @@
-/**
- * Context Workflow Workspaces API Route
- * Redirect to main workspaces API for compatibility
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-
 export async function GET(request: NextRequest) {
     try {
         // Get the base URL from the request
         const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`;
-        
         // Forward the request to the main workspaces API
         const response = await fetch(`${baseUrl}/api/workspaces`, {
             method: 'GET',
@@ -17,7 +10,6 @@ export async function GET(request: NextRequest) {
                 'Content-Type': 'application/json',
             },
         });
-        
         if (response.ok) {
             const data = await response.json();
             return NextResponse.json(data);
@@ -36,12 +28,10 @@ export async function GET(request: NextRequest) {
         );
     }
 }
-
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`;
-        
         // Forward POST requests to the main workspaces API
         const response = await fetch(`${baseUrl}/api/workspaces`, {
             method: 'POST',
@@ -50,7 +40,6 @@ export async function POST(request: NextRequest) {
             },
             body: JSON.stringify(body),
         });
-        
         if (response.ok) {
             const data = await response.json();
             return NextResponse.json(data);

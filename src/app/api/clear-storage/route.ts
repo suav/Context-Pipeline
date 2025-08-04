@@ -1,46 +1,34 @@
-/**
- * Clear Storage API - Clears localStorage of invalid items
- */
-
 import { NextRequest, NextResponse } from 'next/server';
-
 export async function POST(request: NextRequest) {
     // This endpoint returns JavaScript to clear localStorage
     const clearScript = `
     // Clear invalid items from localStorage
     try {
         console.log('🧹 Clearing invalid library items from localStorage...');
-        
         const currentItems = JSON.parse(localStorage.getItem('context-library') || '[]');
         console.log('Current items before cleaning:', currentItems.length);
-        
-        const validItems = currentItems.filter(item => 
-            item && 
-            item.id && 
-            item.source && 
-            item.title && 
-            typeof item.id === 'string' && 
+        const validItems = currentItems.filter(item =>
+            item &&
+            item.id &&
+            item.source &&
+            item.title &&
+            typeof item.id === 'string' &&
             typeof item.title === 'string' &&
-            item.title !== 'undefined' && 
-            item.id !== 'undefined' && 
+            item.title !== 'undefined' &&
+            item.id !== 'undefined' &&
             item.source !== 'undefined' &&
             item.title.trim() !== '' &&
             item.id.trim() !== ''
         );
-        
         console.log('Valid items after filtering:', validItems.length);
         console.log('Removed items:', currentItems.length - validItems.length);
-        
         localStorage.setItem('context-library', JSON.stringify(validItems));
-        
         alert('✅ Cleared localStorage! Removed ' + (currentItems.length - validItems.length) + ' invalid items. Refresh the page.');
-        
     } catch (error) {
         console.error('Failed to clear localStorage:', error);
         alert('❌ Failed to clear localStorage: ' + error.message);
     }
     `;
-
     return new NextResponse(clearScript, {
         headers: {
             'Content-Type': 'application/javascript',
@@ -48,7 +36,6 @@ export async function POST(request: NextRequest) {
         }
     });
 }
-
 export async function GET(request: NextRequest) {
     // Return HTML page with clear button
     const html = `
@@ -77,38 +64,30 @@ export async function GET(request: NextRequest) {
                 <li>Keeps only valid, properly formatted items</li>
             </ul>
         </div>
-        
         <button class="btn" onclick="clearInvalidItems()">🗑️ Clear Invalid Items</button>
-        
         <div id="result"></div>
-        
         <script>
         function clearInvalidItems() {
             try {
                 console.log('🧹 Clearing invalid library items from localStorage...');
-                
                 const currentItems = JSON.parse(localStorage.getItem('context-library') || '[]');
                 console.log('Current items before cleaning:', currentItems.length);
-                
-                const validItems = currentItems.filter(item => 
-                    item && 
-                    item.id && 
-                    item.source && 
-                    item.title && 
-                    typeof item.id === 'string' && 
+                const validItems = currentItems.filter(item =>
+                    item &&
+                    item.id &&
+                    item.source &&
+                    item.title &&
+                    typeof item.id === 'string' &&
                     typeof item.title === 'string' &&
-                    item.title !== 'undefined' && 
-                    item.id !== 'undefined' && 
+                    item.title !== 'undefined' &&
+                    item.id !== 'undefined' &&
                     item.source !== 'undefined' &&
                     item.title.trim() !== '' &&
                     item.id.trim() !== ''
                 );
-                
                 console.log('Valid items after filtering:', validItems.length);
                 const removedCount = currentItems.length - validItems.length;
-                
                 localStorage.setItem('context-library', JSON.stringify(validItems));
-                
                 document.getElementById('result').innerHTML = \`
                     <div class="success">
                         <h3>✅ Successfully Cleared!</h3>
@@ -118,7 +97,6 @@ export async function GET(request: NextRequest) {
                         <p><em>Please refresh your application to see the changes.</em></p>
                     </div>
                 \`;
-                
             } catch (error) {
                 console.error('Failed to clear localStorage:', error);
                 document.getElementById('result').innerHTML = \`
@@ -133,7 +111,6 @@ export async function GET(request: NextRequest) {
     </body>
     </html>
     `;
-
     return new NextResponse(html, {
         headers: {
             'Content-Type': 'text/html',

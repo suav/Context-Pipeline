@@ -1,30 +1,22 @@
 /**
  * Triggers Modal Component
- * 
+ *
  * Modal for managing dynamic context triggers
  */
-
 'use client';
-
-interface TriggersModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
+// Duplicate type removed: TriggersModalProps (see ./src/features/context-library/components/ArchiveManager.tsx)
 export function TriggersModal({ isOpen, onClose }: TriggersModalProps) {
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         onClick={onClose}
       />
-      
       {/* Modal */}
-      <div 
+      <div
         className="relative w-full max-w-4xl h-3/4 rounded-lg shadow-xl"
         style={{
           backgroundColor: 'var(--color-surface-elevated)',
@@ -36,7 +28,7 @@ export function TriggersModal({ isOpen, onClose }: TriggersModalProps) {
           <h2 className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
             ⚡ Dynamic Context Triggers
           </h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-xl"
             style={{ color: 'var(--color-text-muted)' }}
@@ -44,7 +36,6 @@ export function TriggersModal({ isOpen, onClose }: TriggersModalProps) {
             ✕
           </button>
         </div>
-        
         {/* Content */}
         <div className="flex-1 p-6 overflow-y-auto">
           <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>

@@ -1,10 +1,3 @@
-/**
- * Davin Remote Deployment Configuration
- * 
- * Configuration for deploying workspace changes to Davin's development server
- * Following the established feature-first architecture
- */
-
 export interface DavinDeploymentConfig {
   // Target server configuration
   targetServer: {
@@ -14,7 +7,6 @@ export interface DavinDeploymentConfig {
     sshHost: string;
     deployPath: string;
   };
-  
   // Repository configuration
   repository: {
     url: string;
@@ -22,7 +14,6 @@ export interface DavinDeploymentConfig {
     testBranchPrefix: string;
     deploymentBranch: string;
   };
-  
   // Deployment process
   deployment: {
     syncScript: string;
@@ -32,7 +23,6 @@ export interface DavinDeploymentConfig {
     maxDeploymentTime: number;
     webhookUrl?: string;
   };
-  
   // SSH configuration for direct git operations
   ssh: {
     host: string;
@@ -43,7 +33,6 @@ export interface DavinDeploymentConfig {
     repositoryPath: string;
     useForceWithLease: boolean;
   };
-  
   // Notification settings
   notifications: {
     slackWebhook?: string;
@@ -51,7 +40,6 @@ export interface DavinDeploymentConfig {
     statusWebhook: string;
   };
 }
-
 export interface DavinDeploymentResult {
   success: boolean;
   branchName?: string;
@@ -61,7 +49,6 @@ export interface DavinDeploymentResult {
   logs?: string[];
   error?: string;
 }
-
 export interface DeploymentStatus {
   id: string;
   status: 'idle' | 'preparing' | 'deploying' | 'completed' | 'failed';
@@ -72,7 +59,6 @@ export interface DeploymentStatus {
   error?: string;
   logs: string[];
 }
-
 export interface WorkspaceDeploymentHistory {
   deploymentId: string;
   timestamp: string;
@@ -90,7 +76,6 @@ export interface WorkspaceDeploymentHistory {
     testedAt: string;
   };
 }
-
 // Default configuration for Davin Healthcare development environment
 export const defaultDavinConfig: DavinDeploymentConfig = {
   targetServer: {
@@ -100,14 +85,12 @@ export const defaultDavinConfig: DavinDeploymentConfig = {
     sshHost: "davinepv2.davindev.com",
     deployPath: "/var/www/davin-app"
   },
-  
   repository: {
     url: "git@github.com:Evpatarini/DavinEPV2.git",
     defaultBranch: "main",
     testBranchPrefix: "test-workspaces-",
     deploymentBranch: "deployment-staging"
   },
-  
   deployment: {
     syncScript: "./scripts/sync-from-git.sh",
     buildScript: "npm run build",
@@ -116,7 +99,6 @@ export const defaultDavinConfig: DavinDeploymentConfig = {
     maxDeploymentTime: 300000, // 5 minutes
     webhookUrl: process.env.DAVIN_DEPLOYMENT_WEBHOOK
   },
-  
   // SSH configuration for direct git push workflow
   ssh: {
     host: "davinepv2.davindev.com",
@@ -127,17 +109,14 @@ export const defaultDavinConfig: DavinDeploymentConfig = {
     repositoryPath: "/var/www/davin-app",
     useForceWithLease: true
   },
-  
   notifications: {
     emailList: ["epatarini@davinhealthcare.com"],
     statusWebhook: process.env.CONTEXT_PIPELINE_WEBHOOK || "http://localhost:3000/api/deployment/status"
   }
 };
-
 // Environment-specific configurations
 export const getDavinConfig = (environment: 'development' | 'staging' | 'production' = 'development'): DavinDeploymentConfig => {
   const baseConfig = { ...defaultDavinConfig };
-  
   switch (environment) {
     case 'staging':
       return {
@@ -148,7 +127,6 @@ export const getDavinConfig = (environment: 'development' | 'staging' | 'product
           testUrlPattern: "https://test-{branch}.staging.davindev.com"
         }
       };
-      
     case 'production':
       return {
         ...baseConfig,
@@ -162,52 +140,41 @@ export const getDavinConfig = (environment: 'development' | 'staging' | 'product
           maxDeploymentTime: 600000 // 10 minutes for production
         }
       };
-      
     default:
       return baseConfig;
   }
 };
-
 // Validation utilities
 export const validateDavinConfig = (config: DavinDeploymentConfig): { valid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
   if (!config.repository.url) {
     errors.push("Repository URL is required");
   }
-  
   if (!config.targetServer.baseUrl) {
     errors.push("Target server base URL is required");
   }
-  
   if (!config.deployment.healthCheckUrl) {
     errors.push("Health check URL is required");
   }
-  
   if (config.deployment.maxDeploymentTime < 60000) {
     errors.push("Max deployment time must be at least 1 minute");
   }
-  
   return {
     valid: errors.length === 0,
     errors
   };
 };
-
 // Utility functions
 export const generateBranchName = (workspaceIds: string[]): string => {
   const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const workspaceNames = workspaceIds
     .map(id => id.replace(/[^a-zA-Z0-9]/g, '-'))
     .join('-');
-  
   return `${defaultDavinConfig.repository.testBranchPrefix}${workspaceNames}-${timestamp}`;
 };
-
 export const generateTestUrl = (branchName: string, config: DavinDeploymentConfig = defaultDavinConfig): string => {
   return config.targetServer.testUrlPattern.replace('{branch}', branchName);
 };
-
 export const generateDeploymentId = (): string => {
   return `deploy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };

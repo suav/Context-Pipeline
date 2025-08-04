@@ -2,12 +2,9 @@
  * Agent History Page
  * Displays detailed history and logs for a specific agent
  */
-
 'use client';
-
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
 interface AgentSession {
     id: string;
     started_at: string;
@@ -16,7 +13,6 @@ interface AgentSession {
     task_description?: string;
     interactions: any[];
 }
-
 interface AgentHistory {
     agent_id: string;
     name: string;
@@ -25,28 +21,22 @@ interface AgentHistory {
     sessions: AgentSession[];
     current_session?: string;
 }
-
 export default function AgentHistoryPage() {
     const params = useParams();
     const workspaceId = params.workspaceId as string;
     const agentId = params.agentId as string;
-    
     const [history, setHistory] = useState<AgentHistory | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>('');
-
     useEffect(() => {
         loadAgentHistory();
-        
         // Auto-refresh every 10 seconds if agent is active
         const interval = setInterval(loadAgentHistory, 10000);
         return () => clearInterval(interval);
     }, [workspaceId, agentId]);
-
     const loadAgentHistory = async () => {
         try {
             const response = await fetch(`/api/workspaces/${workspaceId}/agents/${agentId}/history`);
-            
             if (response.ok) {
                 const data = await response.json();
                 setHistory(data);
@@ -63,11 +53,9 @@ export default function AgentHistoryPage() {
             setLoading(false);
         }
     };
-
     const formatTimestamp = (timestamp: string) => {
         return new Date(timestamp).toLocaleString();
     };
-
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'active': return 'text-blue-600 bg-blue-100';
@@ -76,7 +64,6 @@ export default function AgentHistoryPage() {
             default: return 'text-gray-600 bg-gray-100';
         }
     };
-
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -87,7 +74,6 @@ export default function AgentHistoryPage() {
             </div>
         );
     }
-
     if (error) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -111,7 +97,6 @@ export default function AgentHistoryPage() {
             </div>
         );
     }
-
     if (!history) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -123,7 +108,6 @@ export default function AgentHistoryPage() {
             </div>
         );
     }
-
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-4xl mx-auto py-8 px-4">
@@ -150,7 +134,6 @@ export default function AgentHistoryPage() {
                         </button>
                     </div>
                 </div>
-
                 {/* Current Session */}
                 {history.current_session && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -158,11 +141,9 @@ export default function AgentHistoryPage() {
                         <p className="text-blue-700">Agent is currently active in session: {history.current_session}</p>
                     </div>
                 )}
-
                 {/* Sessions */}
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-900">Session History</h2>
-                    
                     {history.sessions.length > 0 ? (
                         <div className="space-y-4">
                             {history.sessions.map((session, index) => (
@@ -181,14 +162,12 @@ export default function AgentHistoryPage() {
                                             {session.ended_at && ` - ${formatTimestamp(session.ended_at)}`}
                                         </div>
                                     </div>
-                                    
                                     {session.task_description && (
                                         <div className="mb-4">
                                             <h4 className="font-medium text-gray-700 mb-1">Task:</h4>
                                             <p className="text-gray-600">{session.task_description}</p>
                                         </div>
                                     )}
-                                    
                                     <div>
                                         <h4 className="font-medium text-gray-700 mb-2">
                                             Interactions ({session.interactions.length})

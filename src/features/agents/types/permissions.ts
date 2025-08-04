@@ -1,7 +1,3 @@
-/**
- * Permission System Types
- */
-
 export interface WorkspaceBoundary {
   workspace_root: string;
   allowed_paths: {
@@ -23,18 +19,15 @@ export interface WorkspaceBoundary {
       own_agent_path: string;
     };
   };
-  
   cannot_access: string[];
   parent_directory_access: false;
   symlink_following: false;
-  
   deletion_safety: {
     requires_approval: string[];
     forbidden_deletions: string[];
     deletion_log: string;
   };
 }
-
 export interface FileSystemPermissions {
   context_access: {
     read_files: boolean;
@@ -46,7 +39,6 @@ export interface FileSystemPermissions {
     create_files: false;
     modify_permissions: false;
   };
-  
   target_access: {
     read_files: boolean;
     write_files: boolean;
@@ -59,7 +51,6 @@ export interface FileSystemPermissions {
     allowed_extensions: string[];
     backup_before_edit: boolean;
   };
-  
   feedback_access: {
     read_files: boolean;
     write_files: boolean;
@@ -71,7 +62,6 @@ export interface FileSystemPermissions {
     can_request_deletions: boolean;
   };
 }
-
 export interface GitPermissions {
   git_status: boolean;
   git_diff: boolean;
@@ -92,25 +82,21 @@ export interface GitPermissions {
   max_commits_per_session: number;
   require_staged_changes: boolean;
 }
-
 export interface CommandPermissions {
   file_operations: {
     allowed: string[];
     forbidden: string[];
     requires_approval: string[];
   };
-  
   system_info: {
     allowed: string[];
     forbidden: string[];
   };
-  
   network: {
     allowed: string[];
     forbidden: string[];
     rate_limited: string[];
   };
-  
   development: {
     build_tools: string[];
     test_runners: string[];
@@ -118,7 +104,6 @@ export interface CommandPermissions {
     no_global_installs: boolean;
     sandbox_execution: boolean;
   };
-  
   timeout_seconds: number;
   max_concurrent: number;
   resource_limits: {
@@ -127,7 +112,6 @@ export interface CommandPermissions {
     max_disk_write_mb: number;
   };
 }
-
 export interface ApprovalSystem {
   file_deletions: {
     auto_approve: string[];
@@ -136,14 +120,12 @@ export interface ApprovalSystem {
     approval_timeout: number;
     batch_approvals: boolean;
   };
-  
   system_changes: {
     permission_changes: 'require_approval';
     environment_variables: 'require_approval';
     external_network_calls: 'require_approval';
     large_file_operations: 'require_approval';
   };
-  
   approval_notifications: {
     in_terminal: boolean;
     desktop_notification: boolean;
@@ -155,7 +137,6 @@ export interface ApprovalSystem {
     };
   };
 }
-
 export interface PermissionResult {
   allowed: boolean;
   reason?: string;
@@ -163,7 +144,6 @@ export interface PermissionResult {
   approval_context?: ApprovalContext;
   suggested_alternative?: string;
 }
-
 export interface ApprovalContext {
   operation: string;
   file_paths: string[];
@@ -171,7 +151,6 @@ export interface ApprovalContext {
   undo_available: boolean;
   timeout_ms: number;
 }
-
 export interface PermissionAuditLog {
   timestamp: string;
   agent_id: string;
@@ -186,7 +165,6 @@ export interface PermissionAuditLog {
   permission_escalation_used: boolean;
   approval_overridden: boolean;
 }
-
 export interface SecurityAlert {
   type: 'boundary_violation' | 'permission_escalation' | 'anomalous_behavior';
   severity: 'low' | 'medium' | 'high' | 'critical';
@@ -195,7 +173,6 @@ export interface SecurityAlert {
   timestamp: string;
   requires_action: boolean;
 }
-
 export interface AgentRoleTemplate {
   id: string;
   name: string;
@@ -211,7 +188,6 @@ export interface AgentRoleTemplate {
   default_commands: string[];
   risk_level: 'low' | 'medium' | 'high';
 }
-
 export interface ElevatedPermission {
   operation: string;
   justification: string;
@@ -219,4 +195,74 @@ export interface ElevatedPermission {
   expires_after: string;
   granted_at: string;
   used_count: number;
+}
+export interface WorkspacePermissions {
+  fileSystem: {
+    read: string[];
+    write: string[];
+    execute: string[];
+    maxFileSize?: number;
+    allowedExtensions?: string[];
+    backupBeforeEdit?: boolean;
+  };
+  git: {
+    allowedOperations: ('diff' | 'commit' | 'push' | 'branch' | 'status' | 'log' | 'show' | 'blame' | 'add' | 'stash' | 'checkout')[];
+    protectedBranches: string[];
+    requiresApproval: string[];
+    maxCommitsPerSession?: number;
+    requireStagedChanges?: boolean;
+  };
+  external: {
+    allowedHosts: string[];
+    apiKeys: Record<string, string>;
+    rateLimits?: Record<string, number>;
+  };
+  commands: {
+    allowed: string[];
+    requiresApproval: string[];
+    forbidden: string[];
+    timeoutSeconds?: number;
+    maxConcurrent?: number;
+  };
+  systemAccess: {
+    canInstallPackages: boolean;
+    canModifyEnvironment: boolean;
+    canAccessNetwork: boolean;
+    maxResourceUsage: {
+      memory: number;
+      cpu: number;
+      disk: number;
+    };
+  };
+}
+export interface PermissionValidator {
+  validateFileAccess(path: string, operation: 'read' | 'write' | 'execute', permissions: WorkspacePermissions): PermissionResult;
+  validateGitOperation(operation: string, permissions: WorkspacePermissions): PermissionResult;
+  validateCommand(command: string, permissions: WorkspacePermissions): PermissionResult;
+  validateExternalAccess(host: string, permissions: WorkspacePermissions): PermissionResult;
+  validateSystemAccess(operation: string, permissions: WorkspacePermissions): PermissionResult;
+}
+export interface PermissionEscalationRequest {
+  agentId: string;
+  workspaceId: string;
+  requestedPermission: string;
+  justification: string;
+  timeoutMs: number;
+  requiredApproval: boolean;
+  escalationContext: {
+    operation: string;
+    filePaths?: string[];
+    impact: string;
+    reversible: boolean;
+  };
+}
+export interface PermissionInjectionContext {
+  workspaceId: string;
+  agentId: string;
+  roleTemplate?: string;
+  customPermissions?: Partial<WorkspacePermissions>;
+  inheritFromParent?: boolean;
+  permissionLevel: 'basic' | 'elevated' | 'admin';
+  sessionTimeout?: number;
+  auditLogging: boolean;
 }

@@ -2,32 +2,25 @@
  * Workspace Feedback Page
  * Displays interactive feedback content for a workspace
  */
-
 'use client';
-
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
 export default function WorkspaceFeedbackPage() {
     const params = useParams();
     const workspaceId = params.workspaceId as string;
     const [feedbackContent, setFeedbackContent] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>('');
-
     useEffect(() => {
         loadFeedback();
-        
         // Auto-refresh every 30 seconds
         const interval = setInterval(loadFeedback, 30000);
         return () => clearInterval(interval);
     }, [workspaceId]);
-
     const loadFeedback = async () => {
         try {
             // Try to load the interactive HTML feedback
             const response = await fetch(`/api/workspaces/${workspaceId}/feedback`);
-            
             if (response.ok) {
                 const htmlContent = await response.text();
                 setFeedbackContent(htmlContent);
@@ -42,7 +35,6 @@ export default function WorkspaceFeedbackPage() {
             setLoading(false);
         }
     };
-
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -53,7 +45,6 @@ export default function WorkspaceFeedbackPage() {
             </div>
         );
     }
-
     if (error) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -71,25 +62,21 @@ export default function WorkspaceFeedbackPage() {
             </div>
         );
     }
-
     return (
         <div className="min-h-screen bg-white">
-            <div 
+            <div
                 dangerouslySetInnerHTML={{ __html: feedbackContent }}
                 className="feedback-content"
             />
-            
             {/* Add some custom styling for better integration */}
             <style jsx global>{`
                 .feedback-content {
                     min-height: 100vh;
                 }
-                
                 .feedback-content body {
                     margin: 0 !important;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
                 }
-                
                 .feedback-content h1 {
                     margin-top: 0;
                 }

@@ -45,8 +45,8 @@ next-env.d.ts
 /src/storage/
 
 # Logs
+logs/
 *.log
-server.log
 
 # IDE
 .vscode/
@@ -56,3 +56,80 @@ server.log
 
 # OS
 Thumbs.db
+
+# Test artifacts and screenshots
+test-results-*.json
+test-screenshots/
+investigation-screenshots/
+scripts/test-screenshots/
+analysis/comprehensive-test-results.json
+
+# Temporary test scripts
+scripts/test-*.js
+!scripts/test-comprehensive.js
+!scripts/test-fixed-issues.js
+
+# Investigation files
+investigation-*.json
+
+# MCP configuration (local)
+.mcp.json
+
+# Analysis artifacts
+scripts/analyze-git-changes.js
+scripts/recommended-gitignore-additions.txt
+
+# Temporary fix scripts
+scripts/fix-chat-persistence-permissions.js
+
+# Cleanup and preparation scripts
+prepare-commit-*.sh
+scripts/prepare-commits.sh
+scripts/final-cleanup-summary.md
+scripts/generate-claude-commands.js
+scripts/investigate-uncommitted-changes-puppeteer.js
+scripts/manual-regenerate-docs.js
+scripts/migrate-claude-permissions.js
+scripts/regenerate-workspace-permissions.js
+scripts/trigger-workspace-regeneration.js
+scripts/verify-final-implementation.js
+
+# Puppeteer test artifacts
+scripts/puppeteer-tests/results/
+scripts/puppeteer-tests/screenshots/
+
+# Test Results & Screenshots
+*-results.json
+*test-results.json
+test-screenshots/
+*-screenshots/
+*.png
+agent-*.json
+chat-*.json
+
+# Temporary Files
+temp-*
+tmp-*
+debug-*
+test-specific-*
+ui-investigation-*
+
+# Archive Directories
+archive-*/
+backup-*/
+
+# Browser Testing
+chrome-ui-test.js
+*-ui-test.js
+install-chrome.sh
+
+# Cleanup Scripts (generated)
+*cleanup*.js
+*analysis*.js
+run-*-tests.sh
+
+# Puppeteer Screenshots & Results
+scripts/puppeteer-primitives/screenshots/
+scripts/puppeteer-primitives/*-results.json
+scripts/test-screenshots/
+scripts/archive-*/

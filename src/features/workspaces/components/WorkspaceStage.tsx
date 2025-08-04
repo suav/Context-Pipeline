@@ -1,25 +1,20 @@
 /**
  * Workspace Stage Component - Full workspace management
  */
-
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { WorkspaceDraft } from '../types';
 import { WorkspaceCard } from './WorkspaceCard';
 import { WorkspaceValidationAlert, CheckEngineBadge } from './WorkspaceValidationAlert';
-
 export function WorkspaceStage() {
     const [publishedWorkspaces, setPublishedWorkspaces] = useState<WorkspaceDraft[]>([]);
     const [activeWorkspaces, setActiveWorkspaces] = useState<WorkspaceDraft[]>([]);
     const [invalidWorkspaces, setInvalidWorkspaces] = useState<any[]>([]);
     const [validationDismissed, setValidationDismissed] = useState<Set<string>>(new Set());
-    
     useEffect(() => {
         loadWorkspaces();
         validateWorkspaces();
     }, []);
-    
     const loadWorkspaces = async () => {
         try {
             // Load published workspaces from API
@@ -27,7 +22,6 @@ export function WorkspaceStage() {
             if (response.ok) {
                 const data = await response.json();
                 const allWorkspaces = data.workspaces || [];
-                
                 // Load agent status for each workspace
                 const workspacesWithAgentStatus = await Promise.all(
                     allWorkspaces.map(async (workspace: any) => {
@@ -51,7 +45,6 @@ export function WorkspaceStage() {
                         };
                     })
                 );
-                
                 // Sort workspaces: ones with agents first, then ones without agents
                 const sortedWorkspaces = workspacesWithAgentStatus.sort((a, b) => {
                     if (a.hasActiveAgents && !b.hasActiveAgents) return -1;
@@ -59,9 +52,7 @@ export function WorkspaceStage() {
                     // If both have agents or both don't have agents, sort by agent count (descending)
                     return b.agentCount - a.agentCount;
                 });
-                
                 setPublishedWorkspaces(sortedWorkspaces);
-                
                 // Keep active workspaces as those with agents for backward compatibility
                 const active = sortedWorkspaces.filter((w: any) => w.hasActiveAgents);
                 setActiveWorkspaces(active);
@@ -81,7 +72,6 @@ export function WorkspaceStage() {
             setActiveWorkspaces([]);
         }
     };
-    
     const validateWorkspaces = async () => {
         try {
             const response = await fetch('/api/workspaces/validate');
@@ -93,7 +83,6 @@ export function WorkspaceStage() {
             console.error('Failed to validate workspaces:', error);
         }
     };
-    
     const handleMoveToDrafts = async (workspaceId: string) => {
         try {
             const response = await fetch('/api/workspaces/validate', {
@@ -104,11 +93,9 @@ export function WorkspaceStage() {
                     workspaceId
                 })
             });
-            
             if (response.ok) {
                 const result = await response.json();
                 alert(`✅ Workspace moved to drafts: ${result.draft_id}`);
-                
                 // Refresh workspaces and validation
                 await loadWorkspaces();
                 await validateWorkspaces();
@@ -121,11 +108,9 @@ export function WorkspaceStage() {
             alert('❌ Failed to move workspace to drafts');
         }
     };
-    
     const handleDismissValidation = (workspaceId: string) => {
         setValidationDismissed(prev => new Set(prev).add(workspaceId));
     };
-    
     const handleOpenIDE = async (workspaceId: string) => {
         try {
             // Get the absolute file system path for the workspace
@@ -134,10 +119,8 @@ export function WorkspaceStage() {
                 const data = await response.json();
                 const workspacePath = data.absolute_path;
                 const workspaceFile = data.workspace_file;
-                
                 // Get IDE preference
                 const selectedIDE = localStorage.getItem('preferred-ide') || 'vscode';
-                
                 // Try to open the .code-workspace file first, then fallback to directory
                 if (workspaceFile) {
                     window.open(`${selectedIDE}://file/${workspaceFile}`, '_blank');
@@ -151,12 +134,10 @@ export function WorkspaceStage() {
             console.error('Failed to open IDE:', error);
         }
     };
-    
     const handleOpenFeedback = (workspaceId: string) => {
         // Open the interactive feedback page
         window.open(`/workspace/${workspaceId}/feedback`, '_blank');
     };
-    
     return (
         <div>
             {/* Validation Alerts */}
@@ -177,17 +158,15 @@ export function WorkspaceStage() {
                     }
                 </div>
             )}
-            
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-semibold">🏗️ Workspace Management</h3>
                 {invalidWorkspaces.length > 0 && (
-                    <CheckEngineBadge 
+                    <CheckEngineBadge
                         issueCount={invalidWorkspaces.filter(w => !validationDismissed.has(w.id)).length}
                         onClick={() => validateWorkspaces()}
                     />
                 )}
             </div>
-            
             {/* Published Workspaces - Sorted by Agent Status */}
             <div className="mb-8">
                 <h4 className="font-medium text-gray-900 mb-3">
@@ -221,7 +200,6 @@ export function WorkspaceStage() {
                                 </div>
                             </div>
                         )}
-                        
                         {/* Workspaces without agents */}
                         {publishedWorkspaces.filter((w: any) => !w.hasActiveAgents).length > 0 && (
                             <div>
@@ -252,7 +230,6 @@ export function WorkspaceStage() {
                     </div>
                 )}
             </div>
-            
             {/* Active Workspaces */}
             <div>
                 <h4 className="font-medium text-gray-900 mb-3">Active Workspaces</h4>

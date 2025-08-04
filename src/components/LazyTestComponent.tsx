@@ -1,9 +1,7 @@
 /**
  * Simple test component for lazy loading
  */
-
 'use client';
-
 export default function LazyTestComponent() {
   return (
     <div className="p-4 border border-green-500 rounded">

@@ -2,13 +2,12 @@
  * Command Injector Component
  * Dropdown for selecting predefined commands with custom additions
  */
-
 'use client';
-
 import { useState, useEffect } from 'react';
 import { Command, STARTUP_COMMANDS, REPLY_COMMANDS, COMMAND_CATEGORIES } from '../data/commandLibrary';
 import { useCommandInjection } from '../hooks/useCommandInjection';
-
+import CommandClientService from '../services/CommandClientService';
+import { UserCommand } from '../services/CommandManager';
 interface CommandInjectorProps {
   mode: 'startup' | 'reply';
   workspaceContext?: {
@@ -20,27 +19,44 @@ interface CommandInjectorProps {
   onCommandSelect?: (command: string) => void;
   className?: string;
 }
-
-export function CommandInjector({ 
-  mode, 
+export function CommandInjector({
+  mode,
   workspaceContext = { has_jira: false, has_git: false, has_files: false, has_email: false },
   onCommandSelect,
   className = ''
 }: CommandInjectorProps) {
-  const [selectedCommand, setSelectedCommand] = useState<Command | null>(null);
+  const [selectedCommand, setSelectedCommand] = useState<UserCommand | null>(null);
   const [customAddition, setCustomAddition] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [availableCommands, setAvailableCommands] = useState<UserCommand[]>([]);
+  const [loading, setLoading] = useState(true);
   const { injectCommand } = useCommandInjection();
+  const commandService = CommandClientService.getInstance();
 
-  const availableCommands = mode === 'startup' ? STARTUP_COMMANDS : REPLY_COMMANDS;
-  
+  // Load commands from CommandClientService
+  useEffect(() => {
+    const loadCommands = async () => {
+      try {
+        setLoading(true);
+        const commands = await commandService.getCommandsByMode(mode);
+        setAvailableCommands(commands);
+      } catch (error) {
+        console.error('Failed to load commands:', error);
+        // Fallback to default commands
+        setAvailableCommands(mode === 'startup' ? STARTUP_COMMANDS : REPLY_COMMANDS);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCommands();
+  }, [mode, commandService]);
   // Filter commands based on workspace context
   const contextualCommands = availableCommands.filter(cmd => {
     // If no specific context, show all commands
     if (!workspaceContext.has_jira && !workspaceContext.has_git && !workspaceContext.has_files && !workspaceContext.has_email) {
       return true;
     }
-    
     // Show commands that are relevant to the current context
     const adaptations = Object.keys(cmd.context_adaptations);
     return adaptations.some(adaptation => {
@@ -53,15 +69,14 @@ export function CommandInjector({
       }
     });
   });
-
   // Group commands by category
   const commandsByCategory = COMMAND_CATEGORIES.map(category => ({
     ...category,
     commands: contextualCommands.filter(cmd => cmd.category === category.id)
   })).filter(category => category.commands.length > 0);
-
-  const buildFullCommand = (command: Command): string => {
-    let fullPrompt = command.base_prompt;
+  const buildFullCommand = (command: UserCommand): string => {
+    // Format command for Claude Code execution
+    let claudeCodeCommand = command.base_prompt;
     
     // Add context adaptations
     const contextTypes = [];
@@ -79,49 +94,56 @@ export function CommandInjector({
     }
     
     if (contextTypes.length > 0) {
-      fullPrompt += '\n\nContext-specific instructions:\n' + contextTypes.map(ctx => `• ${ctx}`).join('\n');
+      claudeCodeCommand += '\n\n## Context-Specific Instructions\n' + contextTypes.map(ctx => `- ${ctx}`).join('\n');
     }
     
-    // Add custom user addition
+    // Add custom user addition as "prompt specifics"
     if (customAddition.trim()) {
-      fullPrompt += '\n\nAdditional instructions: ' + customAddition.trim();
+      claudeCodeCommand += '\n\n## User Specifications\n' + customAddition.trim();
     }
     
-    return fullPrompt;
+    // Add workspace context note
+    claudeCodeCommand += '\n\n## Workspace Context\nYou are working in a Context Pipeline workspace. Please refer to the CLAUDE.md file in the workspace root for workspace-specific instructions, permissions, and reference points.';
+    
+    return claudeCodeCommand;
   };
-
-  const handleCommandSelect = (command: Command) => {
+  const handleCommandSelect = (command: UserCommand) => {
     setSelectedCommand(command);
     setShowDropdown(false);
   };
-
-  const handleSendCommand = () => {
+  const handleSendCommand = async () => {
     if (!selectedCommand) return;
-    
     const fullCommand = buildFullCommand(selectedCommand);
+    
+    // Track command usage
+    try {
+      const updatedCommand = {
+        ...selectedCommand,
+        usage_count: selectedCommand.usage_count + 1,
+        user_modified: true
+      };
+      await commandService.saveCommand(updatedCommand);
+    } catch (error) {
+      console.error('Failed to track command usage:', error);
+    }
     
     if (onCommandSelect) {
       onCommandSelect(fullCommand);
     } else {
       injectCommand(fullCommand, true); // Auto-send
     }
-    
     // Reset form
     setSelectedCommand(null);
     setCustomAddition('');
   };
-
   const handleInjectOnly = () => {
     if (!selectedCommand) return;
-    
     const fullCommand = buildFullCommand(selectedCommand);
     injectCommand(fullCommand, false); // Just inject, don't send
-    
     // Reset form
     setSelectedCommand(null);
     setCustomAddition('');
   };
-
   return (
     <div className={`bg-gray-900 border border-gray-700 rounded-lg p-4 ${className}`}>
       <div className="flex items-center gap-2 mb-3">
@@ -132,19 +154,18 @@ export function CommandInjector({
           Select from library and customize
         </span>
       </div>
-
       {/* Command Dropdown */}
       <div className="relative mb-3">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
           className="w-full flex items-center justify-between px-3 py-2 bg-black border border-gray-700 rounded text-left text-green-400 font-mono text-sm hover:border-green-400 transition-colors"
+          disabled={loading}
         >
           <span>
-            {selectedCommand ? `${selectedCommand.keyword} - ${selectedCommand.name}` : 'Select a command...'}
+            {loading ? 'Loading commands...' : selectedCommand ? `${selectedCommand.keyword} - ${selectedCommand.name}` : 'Select a command...'}
           </span>
           <span className="text-gray-500">{showDropdown ? '▲' : '▼'}</span>
         </button>
-
         {showDropdown && (
           <div className="absolute top-full left-0 right-0 mt-1 bg-black border border-gray-700 rounded-lg shadow-lg z-10 max-h-80 overflow-y-auto">
             {commandsByCategory.map(category => (
@@ -181,7 +202,6 @@ export function CommandInjector({
           </div>
         )}
       </div>
-
       {/* Command Preview */}
       {selectedCommand && (
         <div className="mb-3 p-3 bg-black border border-gray-700 rounded">
@@ -197,7 +217,6 @@ export function CommandInjector({
           <div className="text-gray-300 text-sm mb-2">
             {selectedCommand.base_prompt}
           </div>
-          
           {/* Context adaptations preview */}
           {Object.keys(selectedCommand.context_adaptations).some(key => workspaceContext[`has_${key}` as keyof typeof workspaceContext]) && (
             <div className="mt-2 pt-2 border-t border-gray-700">
@@ -220,7 +239,6 @@ export function CommandInjector({
           )}
         </div>
       )}
-
       {/* Custom Addition */}
       {selectedCommand && (
         <div className="mb-3">
@@ -236,7 +254,6 @@ export function CommandInjector({
           />
         </div>
       )}
-
       {/* Action Buttons */}
       {selectedCommand && (
         <div className="flex gap-2">
@@ -254,7 +271,6 @@ export function CommandInjector({
           </button>
         </div>
       )}
-
       {/* Follow-up Commands */}
       {selectedCommand && selectedCommand.follow_up_commands.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-700">
