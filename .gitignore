@@ -97,3 +97,39 @@ scripts/verify-final-implementation.js
 # Puppeteer test artifacts
 scripts/puppeteer-tests/results/
 scripts/puppeteer-tests/screenshots/
+
+# Test Results & Screenshots
+*-results.json
+*test-results.json
+test-screenshots/
+*-screenshots/
+*.png
+agent-*.json
+chat-*.json
+
+# Temporary Files
+temp-*
+tmp-*
+debug-*
+test-specific-*
+ui-investigation-*
+
+# Archive Directories
+archive-*/
+backup-*/
+
+# Browser Testing
+chrome-ui-test.js
+*-ui-test.js
+install-chrome.sh
+
+# Cleanup Scripts (generated)
+*cleanup*.js
+*analysis*.js
+run-*-tests.sh
+
+# Puppeteer Screenshots & Results
+scripts/puppeteer-primitives/screenshots/
+scripts/puppeteer-primitives/*-results.json
+scripts/test-screenshots/
+scripts/archive-*/

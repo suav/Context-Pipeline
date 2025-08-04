@@ -54,6 +54,10 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
     messageId: string;
     requiresApproval: boolean;
   } | null>(null);
+  
+  // Tool expansion state for improved display
+  const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set());
+  const [showFullContent, setShowFullContent] = useState<{[key: string]: boolean}>({});
   const terminalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // Add abort controller for proper cleanup and concurrent request handling
@@ -62,6 +66,45 @@ export function ChatInterface({ agentId, workspaceId, agentName, agentTitle, age
   const isLoadingHistoryRef = useRef(false);
   const agentMessagesCache = useRef<{[key: string]: ConversationMessage[]}>({});
   const agentHistoryLoaded = useRef<{[key: string]: boolean}>({});
+  
+  // Tool display helper functions
+  const toggleToolExpansion = (toolId: string) => {
+    const newExpanded = new Set(expandedTools);
+    if (newExpanded.has(toolId)) {
+      newExpanded.delete(toolId);
+    } else {
+      newExpanded.add(toolId);
+    }
+    setExpandedTools(newExpanded);
+  };
+  
+  const formatToolSummary = (toolUse: any, toolResult?: any) => {
+    const status = toolResult?.is_error ? '❌' : '✅';
+    const name = toolUse.name.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+    
+    // Create compact parameter summary
+    const params = toolUse.input ? Object.keys(toolUse.input).slice(0, 2).join(', ') : '';
+    const paramSummary = params ? `(${params})` : '';
+    
+    // Result preview
+    const preview = toolResult?.content_preview || 
+                   (typeof toolResult?.content === 'string' ? toolResult.content.substring(0, 50) : '') ||
+                   'No result';
+    
+    return { status, name, paramSummary, preview };
+  };
+  
+  const getContentPreview = (content: string, maxLength: number = 150) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + '...';
+  };
+  
+  const toggleFullContent = (messageId: string) => {
+    setShowFullContent(prev => ({
+      ...prev,
+      [messageId]: !prev[messageId]
+    }));
+  };
   
   // Track user scroll behavior
   const [isUserScrolling, setIsUserScrolling] = useState(false);

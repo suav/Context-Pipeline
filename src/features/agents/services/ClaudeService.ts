@@ -42,20 +42,22 @@ export class ClaudeService extends BaseAIService {
         .slice(-10) // Keep last 10 messages for context
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n\n');
-      const fullPrompt = `${systemPrompt}
-CONVERSATION HISTORY:
-${conversationContext}
-USER: ${userMessage}
-ASSISTANT:`;
+      
+      // Claude will read CLAUDE.md directly, so we only need to pass the user message
+      // and conversation history, not the system prompt
+      const prompt = conversationHistory.length > 0 
+        ? `CONVERSATION HISTORY:\n${conversationContext}\n\nUSER: ${userMessage}\n\nASSISTANT:`
+        : userMessage;
+      
       // Write prompt to temporary file to avoid command line length limits
       const tempPromptFile = path.join(workspacePath, '.claude-temp-prompt.txt');
-      await fs.writeFile(tempPromptFile, fullPrompt);
+      await fs.writeFile(tempPromptFile, prompt);
       console.log(`[Claude] Spawning Claude CLI process`);
-      // Use target subdirectory as working directory for Claude to respect permissions
-      const targetPath = path.join(workspacePath, 'target');
+      // Run Claude from workspace root so it can access CLAUDE.md and .claude/settings.json
+      // Claude will still be able to access target/ subdirectory
       
       const { process: childProcess, cleanup } = await this.spawnProcess('claude', ['--print', '--output-format', 'stream-json', '--verbose'], {
-        cwd: targetPath, // Run Claude from target directory so it can access workspace files
+        cwd: workspacePath, // Run Claude from workspace root to access permission files
         env: {
           ...process.env,
           CLAUDE_DATA_DIR: path.join(workspacePath, '.claude-agent-data'),
@@ -65,7 +67,7 @@ ASSISTANT:`;
         timeout: 300000 // 5 minutes for complex analysis
       });
       // Send prompt via stdin
-      childProcess.stdin?.write(fullPrompt);
+      childProcess.stdin?.write(prompt);
       childProcess.stdin?.end();
       return new Promise((resolve, reject) => {
         let response = '';
@@ -160,8 +162,8 @@ ASSISTANT:`;
       } else {
         // For new sessions, provide initial context
         console.log(`[Claude] Creating new session with system prompt`);
-        const initialPrompt = `${systemPrompt}\n\nUSER: ${userMessage}\n\nASSISTANT:`;
-        return this.createRealClaudeStream(workspacePath, initialPrompt);
+        // Don't include system prompt in the message - Claude will read CLAUDE.md directly
+        return this.createRealClaudeStream(workspacePath, userMessage);
       }
     } catch (error) {
       console.warn(`[Claude] Streaming failed, using fallback:`, error);
@@ -178,11 +180,10 @@ ASSISTANT:`;
       claudeArgs.push('--resume', sessionId);
     }
     
-    // Use target subdirectory as working directory for Claude to respect permissions
-    const targetPath = path.join(workspacePath, 'target');
+    // Run Claude from workspace root so it can access CLAUDE.md and .claude/settings.json
     
     const { process: childProcess, cleanup } = await this.spawnProcess('claude', claudeArgs, {
-      cwd: targetPath, // Run Claude from target directory so it can access workspace files
+      cwd: workspacePath, // Run Claude from workspace root to access permission files
       env: {
         ...process.env,
         CLAUDE_DATA_DIR: path.join(workspacePath, '.claude-agent-data'),
