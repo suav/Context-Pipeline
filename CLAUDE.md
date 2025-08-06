@@ -198,6 +198,43 @@ export async function POST(request: Request, { params }: { params: { workspaceId
   // 3. Return results
 }
 ```
+
+### Git Push Configuration
+**IMPORTANT**: To push changes to the repository, you need proper SSH key configuration:
+
+#### Required Setup:
+1. **Configure Git User Email**:
+   ```bash
+   git config user.email "rvpatarini@gmail.com"
+   ```
+
+2. **SSH Agent Setup**:
+   ```bash
+   # Start ssh-agent and add the secondary key
+   eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_secondary
+   ```
+
+3. **Verify Authentication**:
+   ```bash
+   ssh -T git@github.com
+   # Should show: "Hi suav! You've successfully authenticated..."
+   ```
+
+#### Push Process:
+```bash
+# Standard git workflow
+git add <files>
+git commit -m "commit message"
+git push origin <branch-name>
+
+# If push fails with "Repository not found", try verbose mode:
+GIT_SSH_COMMAND="ssh -v" git push origin <branch-name>
+```
+
+#### Troubleshooting:
+- **Repository not found**: Ensure SSH key has access to `suav/Context-Pipeline.git`
+- **Authentication failed**: Re-add the correct SSH key (`id_ed25519_secondary`)
+- **Wrong user**: SSH key must be associated with correct GitHub account
 ## 📋 Implementation Checklist
 ### Immediate Priorities
 - [ ] Implement permission injection on agent instantiation
