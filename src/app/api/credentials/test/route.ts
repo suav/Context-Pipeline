@@ -5,6 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCredentialById } from '../route';
+import fs from 'fs/promises';
+import path from 'path';
+
+const CREDENTIALS_FILE = path.join(process.cwd(), 'storage', 'credentials.json');
 
 /**
  * Test JIRA connection
@@ -296,6 +300,13 @@ export async function POST(request: NextRequest) {
     
     // Get the credential with decrypted fields
     const credential = await getCredentialById(credentialId);
+    
+    if (!credential) {
+      return NextResponse.json({
+        success: false,
+        message: 'Credential not found'
+      }, { status: 404 });
+    }
     
     let testResult;
     

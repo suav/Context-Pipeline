@@ -143,7 +143,7 @@ export async function POST(
             const { stdout: newCommitHash } = await execAsync('git rev-parse HEAD', { cwd: gitDir });
             deployment.gitCommitHash = newCommitHash.trim();
           } catch (cleanupError) {
-            deploymentSteps.push(`⚠️  Could not create cleanup commit: ${cleanupError.message}`);
+            deploymentSteps.push(`⚠️  Could not create cleanup commit: ${(cleanupError as Error).message}`);
           }
         } else {
           deploymentSteps.push(`✅ Working directory clean, ready for push`);
@@ -192,13 +192,13 @@ export async function POST(
                   await execAsync(`git push ${remoteName} testing`, { cwd: gitDir });
                   deploymentSteps.push(`Pushed testing branch to ${remoteName}`);
                   
-                  deployment.deploymentBranch = 'testing';
+                  // Testing branch pushed successfully
                 } catch (testingError: any) {
                   deploymentSteps.push(`Warning: Could not push to testing branch: ${testingError.message}`);
-                  deployment.deploymentBranch = currentBranch;
+                  // Continue with current branch
                 }
               } else {
-                deployment.deploymentBranch = currentBranch;
+                // Using current branch for deployment
               }
             } else {
               deploymentSteps.push('Warning: No git remote configured, skipping push');

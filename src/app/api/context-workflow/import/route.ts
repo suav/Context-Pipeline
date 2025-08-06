@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
                             console.log('🔑 Using credential for git import:', { 
                                 credentialId, 
                                 credentials,
-                                repoUrl: credentials.repoUrl 
+                                repoUrl: (credentials as any).repoUrl 
                             });
                         } else {
                             console.error('Failed to load credential:', credentialId);
