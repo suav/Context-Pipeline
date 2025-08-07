@@ -819,13 +819,57 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
                             item={item}
                             isSelected={selectedItems.has(item.id)}
                             onSelect={handleItemClick}
-                            onRemove={(itemId) => {
-                              setLibraryItems(prev => prev.filter(i => i.id !== itemId));
-                              setSelectedItems(prev => {
-                                const newSet = new Set(prev);
-                                newSet.delete(itemId);
-                                return newSet;
-                              });
+                            onRemove={async (itemId) => {
+                              try {
+                                // Call API to remove from storage
+                                const removeResponse = await fetch('/api/context-workflow/library', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    action: 'remove',
+                                    item: { id: itemId }
+                                  })
+                                });
+                                
+                                if (!removeResponse.ok) {
+                                  alert('❌ Failed to remove item from storage');
+                                  return;
+                                }
+                                
+                                // Update local state only after successful API call
+                                const updatedItems = libraryItems.filter(i => i.id !== itemId);
+                                setLibraryItems(updatedItems);
+                                
+                                // Update localStorage
+                                try {
+                                  const lightweightItems = updatedItems.map(item => ({
+                                    id: item.id,
+                                    title: item.title,
+                                    source: item.source,
+                                    type: item.type,
+                                    preview: item.preview?.substring(0, 200) + '...' || '',
+                                    tags: item.tags?.slice(0, 3) || [],
+                                    added_at: item.added_at,
+                                    size_bytes: item.size_bytes,
+                                    library_metadata: item.library_metadata
+                                  }));
+                                  localStorage.setItem('context-library', JSON.stringify(lightweightItems));
+                                } catch (quotaError) {
+                                  console.warn('⚠️ localStorage quota exceeded, relying on storage sync');
+                                }
+                                
+                                // Remove from selection if selected
+                                setSelectedItems(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(itemId);
+                                  return newSet;
+                                });
+                                
+                                console.log('✅ Removed from Library:', itemId);
+                              } catch (error) {
+                                console.error('❌ Failed to remove from library:', error);
+                                alert('❌ Failed to remove item. Please try again.');
+                              }
                             }}
                           />
                         </div>
@@ -848,13 +892,57 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
                             item={item}
                             isSelected={selectedItems.has(item.id)}
                             onSelect={handleItemClick}
-                            onRemove={(itemId) => {
-                              setLibraryItems(prev => prev.filter(i => i.id !== itemId));
-                              setSelectedItems(prev => {
-                                const newSet = new Set(prev);
-                                newSet.delete(itemId);
-                                return newSet;
-                              });
+                            onRemove={async (itemId) => {
+                              try {
+                                // Call API to remove from storage
+                                const removeResponse = await fetch('/api/context-workflow/library', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    action: 'remove',
+                                    item: { id: itemId }
+                                  })
+                                });
+                                
+                                if (!removeResponse.ok) {
+                                  alert('❌ Failed to remove item from storage');
+                                  return;
+                                }
+                                
+                                // Update local state only after successful API call
+                                const updatedItems = libraryItems.filter(i => i.id !== itemId);
+                                setLibraryItems(updatedItems);
+                                
+                                // Update localStorage
+                                try {
+                                  const lightweightItems = updatedItems.map(item => ({
+                                    id: item.id,
+                                    title: item.title,
+                                    source: item.source,
+                                    type: item.type,
+                                    preview: item.preview?.substring(0, 200) + '...' || '',
+                                    tags: item.tags?.slice(0, 3) || [],
+                                    added_at: item.added_at,
+                                    size_bytes: item.size_bytes,
+                                    library_metadata: item.library_metadata
+                                  }));
+                                  localStorage.setItem('context-library', JSON.stringify(lightweightItems));
+                                } catch (quotaError) {
+                                  console.warn('⚠️ localStorage quota exceeded, relying on storage sync');
+                                }
+                                
+                                // Remove from selection if selected
+                                setSelectedItems(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(itemId);
+                                  return newSet;
+                                });
+                                
+                                console.log('✅ Removed from Library:', itemId);
+                              } catch (error) {
+                                console.error('❌ Failed to remove from library:', error);
+                                alert('❌ Failed to remove item. Please try again.');
+                              }
                             }}
                           />
                         </div>
