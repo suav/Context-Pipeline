@@ -31,7 +31,8 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
   const [pendingWorkspaceMode, setPendingWorkspaceMode] = useState<'all-together' | 'individual' | null>(null);
   const [availableRepos, setAvailableRepos] = useState<any[]>([]);
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
-  const [isLibraryCardsCollapsed, setIsLibraryCardsCollapsed] = useState(false);
+  // View mode: 'split' | 'library-fullscreen' | 'drafts-fullscreen'
+  const [viewMode, setViewMode] = useState<'split' | 'library-fullscreen' | 'drafts-fullscreen'>('split');
   const [isApplyToWorkspacesMode, setIsApplyToWorkspacesMode] = useState(false);
   const [repoConfigurations, setRepoConfigurations] = useState<Record<string, {
     branchingStrategy: string;
@@ -623,19 +624,45 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
               <span style={{ color: 'var(--color-text-secondary)' }}>
                 Showing {filteredItems.length} of {libraryItems.length} items
               </span>
-              <button
-                onClick={() => setIsLibraryCardsCollapsed(!isLibraryCardsCollapsed)}
-                className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-surface-elevated)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-secondary)',
-                  border: '1px solid'
-                }}
-              >
-                <span>{isLibraryCardsCollapsed ? '👁️' : '👁️‍🗨️'}</span>
-                <span>{isLibraryCardsCollapsed ? 'Show Cards' : 'Hide Cards'}</span>
-              </button>
+              {/* View Mode Tabs */}
+              <div className="flex items-center gap-1 rounded border" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-elevated)' }}>
+                <button
+                  onClick={() => setViewMode('split')}
+                  className={`px-2 py-1 rounded-l text-xs transition-colors ${
+                    viewMode === 'split' ? 'font-semibold' : ''
+                  }`}
+                  style={{
+                    backgroundColor: viewMode === 'split' ? 'var(--color-primary)' : 'transparent',
+                    color: viewMode === 'split' ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)'
+                  }}
+                >
+                  📋 Split
+                </button>
+                <button
+                  onClick={() => setViewMode('library-fullscreen')}
+                  className={`px-2 py-1 text-xs transition-colors ${
+                    viewMode === 'library-fullscreen' ? 'font-semibold' : ''
+                  }`}
+                  style={{
+                    backgroundColor: viewMode === 'library-fullscreen' ? 'var(--color-primary)' : 'transparent',
+                    color: viewMode === 'library-fullscreen' ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)'
+                  }}
+                >
+                  📚 Library
+                </button>
+                <button
+                  onClick={() => setViewMode('drafts-fullscreen')}
+                  className={`px-2 py-1 rounded-r text-xs transition-colors ${
+                    viewMode === 'drafts-fullscreen' ? 'font-semibold' : ''
+                  }`}
+                  style={{
+                    backgroundColor: viewMode === 'drafts-fullscreen' ? 'var(--color-primary)' : 'transparent',
+                    color: viewMode === 'drafts-fullscreen' ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)'
+                  }}
+                >
+                  🏗️ Drafts
+                </button>
+              </div>
             </div>
             
             {/* Overlay buttons when items are selected */}
@@ -727,9 +754,11 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
           </div>
         </div>
       )}
-      {/* Library Items - Collapsible */}
-      {!isLibraryCardsCollapsed && (
-        <div className="overflow-hidden" style={{ height: '380px' }}>
+      {/* Library Items - Conditional based on view mode */}
+      {(viewMode === 'split' || viewMode === 'library-fullscreen') && (
+        <div className="overflow-hidden" style={{ 
+          height: viewMode === 'library-fullscreen' ? '900px' : '380px'
+        }}>
           {loading ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -765,36 +794,162 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
               </div>
             </div>
           ) : (
-            <div className="p-4 overflow-hidden" style={{ height: '380px' }}>
-              {/* Horizontal Scrollable Cards Container - Constrained Height */}
+            <div className="p-4 overflow-hidden" style={{ 
+              height: viewMode === 'library-fullscreen' ? '900px' : '380px'
+            }}>
+              {/* Layout Container - Changes based on view mode */}
               <div className="relative h-full">
-                <div
-                  className="overflow-x-auto overflow-y-hidden h-full"
-                  style={{
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: 'var(--color-border) var(--color-surface)',
-                  }}
-                >
-                  <div className="flex gap-4 pb-4 h-full" style={{ width: 'max-content' }}>
-                    {filteredItems.map((item, index) => (
-                      <div key={`${item.id}-${item.source}-${item.added_at || index}`} className="flex-shrink-0" style={{ width: '280px', height: '306px' }}>
-                        <LibraryCard
-                          item={item}
-                          isSelected={selectedItems.has(item.id)}
-                          onSelect={handleItemClick}
-                          onRemove={(itemId) => {
-                            setLibraryItems(prev => prev.filter(i => i.id !== itemId));
-                            setSelectedItems(prev => {
-                              const newSet = new Set(prev);
-                              newSet.delete(itemId);
-                              return newSet;
-                            });
-                          }}
-                        />
-                      </div>
-                    ))}
+                {viewMode === 'library-fullscreen' ? (
+                  /* Grid Layout for Fullscreen - 3 cards high */
+                  <div
+                    className="overflow-y-auto h-full"
+                    style={{
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: 'var(--color-border) var(--color-surface)',
+                    }}
+                  >
+                    <div className="grid gap-2 pb-4" style={{ 
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                      gridAutoRows: '210px',
+                      rowGap: '8px'
+                    }}>
+                      {filteredItems.map((item, index) => (
+                        <div key={`${item.id}-${item.source}-${item.added_at || index}`}>
+                          <LibraryCard
+                            item={item}
+                            isSelected={selectedItems.has(item.id)}
+                            onSelect={handleItemClick}
+                            onRemove={async (itemId) => {
+                              try {
+                                // Call API to remove from storage
+                                const removeResponse = await fetch('/api/context-workflow/library', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    action: 'remove',
+                                    item: { id: itemId }
+                                  })
+                                });
+                                
+                                if (!removeResponse.ok) {
+                                  alert('❌ Failed to remove item from storage');
+                                  return;
+                                }
+                                
+                                // Update local state only after successful API call
+                                const updatedItems = libraryItems.filter(i => i.id !== itemId);
+                                setLibraryItems(updatedItems);
+                                
+                                // Update localStorage
+                                try {
+                                  const lightweightItems = updatedItems.map(item => ({
+                                    id: item.id,
+                                    title: item.title,
+                                    source: item.source,
+                                    type: item.type,
+                                    preview: item.preview?.substring(0, 200) + '...' || '',
+                                    tags: item.tags?.slice(0, 3) || [],
+                                    added_at: item.added_at,
+                                    size_bytes: item.size_bytes,
+                                    library_metadata: item.library_metadata
+                                  }));
+                                  localStorage.setItem('context-library', JSON.stringify(lightweightItems));
+                                } catch (quotaError) {
+                                  console.warn('⚠️ localStorage quota exceeded, relying on storage sync');
+                                }
+                                
+                                // Remove from selection if selected
+                                setSelectedItems(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(itemId);
+                                  return newSet;
+                                });
+                                
+                                console.log('✅ Removed from Library:', itemId);
+                              } catch (error) {
+                                console.error('❌ Failed to remove from library:', error);
+                                alert('❌ Failed to remove item. Please try again.');
+                              }
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Horizontal Scroll Layout for Split View */
+                  <div
+                    className="overflow-x-auto overflow-y-hidden h-full"
+                    style={{
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: 'var(--color-border) var(--color-surface)',
+                    }}
+                  >
+                    <div className="flex gap-4 pb-4 h-full" style={{ width: 'max-content' }}>
+                      {filteredItems.map((item, index) => (
+                        <div key={`${item.id}-${item.source}-${item.added_at || index}`} className="flex-shrink-0" style={{ width: '280px', height: '306px' }}>
+                          <LibraryCard
+                            item={item}
+                            isSelected={selectedItems.has(item.id)}
+                            onSelect={handleItemClick}
+                            onRemove={async (itemId) => {
+                              try {
+                                // Call API to remove from storage
+                                const removeResponse = await fetch('/api/context-workflow/library', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    action: 'remove',
+                                    item: { id: itemId }
+                                  })
+                                });
+                                
+                                if (!removeResponse.ok) {
+                                  alert('❌ Failed to remove item from storage');
+                                  return;
+                                }
+                                
+                                // Update local state only after successful API call
+                                const updatedItems = libraryItems.filter(i => i.id !== itemId);
+                                setLibraryItems(updatedItems);
+                                
+                                // Update localStorage
+                                try {
+                                  const lightweightItems = updatedItems.map(item => ({
+                                    id: item.id,
+                                    title: item.title,
+                                    source: item.source,
+                                    type: item.type,
+                                    preview: item.preview?.substring(0, 200) + '...' || '',
+                                    tags: item.tags?.slice(0, 3) || [],
+                                    added_at: item.added_at,
+                                    size_bytes: item.size_bytes,
+                                    library_metadata: item.library_metadata
+                                  }));
+                                  localStorage.setItem('context-library', JSON.stringify(lightweightItems));
+                                } catch (quotaError) {
+                                  console.warn('⚠️ localStorage quota exceeded, relying on storage sync');
+                                }
+                                
+                                // Remove from selection if selected
+                                setSelectedItems(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(itemId);
+                                  return newSet;
+                                });
+                                
+                                console.log('✅ Removed from Library:', itemId);
+                              } catch (error) {
+                                console.error('❌ Failed to remove from library:', error);
+                                alert('❌ Failed to remove item. Please try again.');
+                              }
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               {filteredItems.length === 0 && (
                 <div className="text-center py-8">
@@ -807,39 +962,58 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
           )}
         </div>
       )}
-      {/* Collapsed State Indicator */}
-      {isLibraryCardsCollapsed && (
+      {/* Hidden State Indicator */}
+      {viewMode === 'drafts-fullscreen' && (
         <div 
-          className="p-4 border-b border-dashed cursor-pointer transition-colors"
+          className="p-2 border-b border-dashed cursor-pointer transition-colors"
           style={{ 
             borderColor: 'var(--color-border)',
             backgroundColor: 'var(--color-surface-elevated)',
             color: 'var(--color-text-muted)'
           }}
-          onClick={() => setIsLibraryCardsCollapsed(false)}
+          onClick={() => setViewMode('split')}
         >
           <div className="text-center">
-            <span className="text-sm">📚 Library cards hidden - Click to show {filteredItems.length} items</span>
+            <span className="text-sm">📚 Library hidden ({filteredItems.length} items) - Click to show split view</span>
           </div>
         </div>
       )}
       {/* Workspace Drafts Section */}
-      <div 
-        className="border-t" 
-        style={{ 
-          borderColor: 'var(--color-border)',
-          backgroundColor: isApplyToWorkspacesMode ? 'var(--color-accent-alpha)' : 'transparent'
-        }}
-      >
-        <WorkspaceDrafts 
-          onApplyContextToDrafts={handleApplyContextToDrafts}
-          selectedLibraryItems={selectedItems}
-          libraryItems={libraryItems}
-          isLibraryCollapsed={isLibraryCardsCollapsed}
-          isApplyToWorkspacesMode={isApplyToWorkspacesMode}
-          onExitApplyToWorkspacesMode={handleExitApplyToWorkspacesMode}
-        />
-      </div>
+      {(viewMode === 'split' || viewMode === 'drafts-fullscreen') && (
+        <div 
+          className="border-t" 
+          style={{ 
+            borderColor: 'var(--color-border)',
+            backgroundColor: isApplyToWorkspacesMode ? 'var(--color-accent-alpha)' : 'transparent'
+          }}
+        >
+          <WorkspaceDrafts 
+            onApplyContextToDrafts={handleApplyContextToDrafts}
+            selectedLibraryItems={selectedItems}
+            libraryItems={libraryItems}
+            viewMode={viewMode}
+            isApplyToWorkspacesMode={isApplyToWorkspacesMode}
+            onExitApplyToWorkspacesMode={handleExitApplyToWorkspacesMode}
+          />
+        </div>
+      )}
+      
+      {/* Hidden Drafts Indicator */}
+      {viewMode === 'library-fullscreen' && (
+        <div 
+          className="p-2 border-t border-dashed cursor-pointer transition-colors"
+          style={{ 
+            borderColor: 'var(--color-border)',
+            backgroundColor: 'var(--color-surface-elevated)',
+            color: 'var(--color-text-muted)'
+          }}
+          onClick={() => setViewMode('split')}
+        >
+          <div className="text-center">
+            <span className="text-sm">🏗️ Drafts hidden - Click to show split view</span>
+          </div>
+        </div>
+      )}
       {/* Import Modal */}
       {showImportModal && (
         <ImportModal

@@ -148,10 +148,7 @@ export function WorkspaceStage() {
                         .map(workspace => (
                             <WorkspaceValidationAlert
                                 key={workspace.id}
-                                workspaceId={workspace.id}
-                                workspaceName={workspace.name}
                                 issues={workspace.validation.issues}
-                                onMoveToDrafts={() => handleMoveToDrafts(workspace.id)}
                                 onDismiss={() => handleDismissValidation(workspace.id)}
                             />
                         ))

@@ -110,7 +110,7 @@ export async function GET(
     const repoName = searchParams.get('repo');
     
     // Resolve the correct git directory
-    const gitInfo = await resolveGitDirectory(workspaceId, repoName);
+    const gitInfo = await resolveGitDirectory(workspaceId, repoName ?? undefined);
     const gitDir = gitInfo.gitDir;
     
     if (!gitInfo.isGitRepo) {

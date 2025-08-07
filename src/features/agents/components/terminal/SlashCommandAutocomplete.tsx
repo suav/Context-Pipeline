@@ -321,16 +321,16 @@ Implement the requested feature or fix based on previous discussions and require
                 key={command.id}
                 data-index={index}
                 onClick={() => onSelectCommand(`/${command.keyword}`)}
-                className="px-4 py-2 cursor-pointer transition-colors border-l-4"
+                className="px-4 py-2 cursor-pointer transition-all duration-200 border-l-4"
                 style={{
-                  backgroundColor: index === selectedIndex ? '#333333' : 'transparent',
-                  borderLeftColor: index === selectedIndex ? '#00ff88' : 'transparent'
+                  backgroundColor: index === selectedIndex ? '#333333' : '#1a1a1a',
+                  borderLeftColor: index === selectedIndex ? '#00ff88' : '#1a1a1a'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#2a2a2a';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = index === selectedIndex ? '#333333' : 'transparent';
+                  e.currentTarget.style.backgroundColor = index === selectedIndex ? '#333333' : '#1a1a1a';
                 }}
               >
                 <div className="flex items-center gap-3">

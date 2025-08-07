@@ -4,6 +4,9 @@ export interface CommandLibrary {
   user_custom_commands: Record<string, Command>;
   workspace_command_overrides: Record<string, Partial<Command>>;
 }
+
+// Alias for backward compatibility
+export type CommandDefinition = Command;
 export interface Command {
   id: string;
   name: string;

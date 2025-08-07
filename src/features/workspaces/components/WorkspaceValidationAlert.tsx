@@ -1,3 +1,39 @@
+export function WorkspaceValidationAlert({
+  issues,
+  onDismiss
+}: {
+  issues: string[];
+  onDismiss?: () => void;
+}) {
+  if (issues.length === 0) return null;
+  
+  return (
+    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+      <div className="flex items-start gap-3">
+        <span className="text-yellow-600 text-lg">⚠️</span>
+        <div className="flex-1">
+          <h3 className="text-yellow-800 font-medium mb-2">
+            Workspace Validation Issues
+          </h3>
+          <ul className="text-yellow-700 text-sm space-y-1">
+            {issues.map((issue, index) => (
+              <li key={index}>• {issue}</li>
+            ))}
+          </ul>
+        </div>
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            className="text-yellow-600 hover:text-yellow-800"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function CheckEngineBadge({
   issueCount,
   onClick,

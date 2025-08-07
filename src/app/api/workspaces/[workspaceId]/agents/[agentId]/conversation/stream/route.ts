@@ -179,7 +179,6 @@ export async function POST(
                         metadata: {
                             backend: 'streaming',
                             success: true,
-                            model: sessionData?.model,
                             session_id: sessionData?.session_id,
                             tools: sessionData?.tools,
                             usage: usageData,

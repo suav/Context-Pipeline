@@ -76,7 +76,10 @@
       "Bash(./install-chrome.sh:*)",
       "mcp__puppeteer__puppeteer_fill",
       "Bash(timeout:*)",
-      "Bash(echo $DISPLAY)"
+      "Bash(echo $DISPLAY)",
+      "Bash(git remote set-url:*)",
+      "Bash(ssh:*)",
+      "Bash(GIT_SSH_COMMAND=\"ssh -v\" git push origin workspace/test-workspace-comprehensive-2025-07-11)"
     ],
     "deny": []
   }
