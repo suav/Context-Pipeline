@@ -4,7 +4,11 @@
  * Modal for managing dynamic context triggers
  */
 'use client';
-// Duplicate type removed: TriggersModalProps (see ./src/features/context-library/components/ArchiveManager.tsx)
+interface TriggersModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 export function TriggersModal({ isOpen, onClose }: TriggersModalProps) {
   if (!isOpen) return null;
   return (
