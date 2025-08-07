@@ -274,6 +274,112 @@ GIT_SSH_COMMAND="ssh -v" git push origin <branch-name>
 3. **Test Storage Operations**: Ensure all data persists correctly
 4. **Consider Agent Context**: How will agents understand your feature?
 5. **Think Git Flow**: How does this fit into developer workflows?
+
+## 🔄 Git Workflow & Push Instructions
+
+### ⚡ Quick Reference - How to Push
+```bash
+# The command that works for this repository:
+GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_secondary" git push origin [branch-name]
+```
+
+### Standard Development Workflow
+When making changes to the codebase, follow this git workflow:
+
+#### 1. **Commit Changes**
+```bash
+# Check what changes exist
+git status
+git diff
+
+# Add your changes
+git add [files]
+
+# Create descriptive commit with standard format
+git commit -m "type: Brief description
+
+Detailed explanation of changes made:
+- List key modifications
+- Explain the problem solved
+- Include any breaking changes
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+#### 2. **Push to Remote Repository**
+```bash
+# IMPORTANT: Use the correct SSH key (required for this repository)
+GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_secondary" git push origin [branch-name]
+
+# For new branches, set upstream tracking
+GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_secondary" git push -u origin [branch-name]
+
+# Alternative: Standard push (may not work without SSH key specification)
+git push origin [branch-name]
+```
+
+#### 3. **Branch Naming Conventions**
+- **Feature branches**: `feature/feature-name`
+- **Bug fixes**: `fix/issue-description`
+- **Workspace branches**: `workspace/workspace-name-date`
+- **Testing branches**: `test/test-description`
+
+#### 4. **Commit Message Standards**
+- **feat**: New feature
+- **fix**: Bug fix
+- **docs**: Documentation only changes
+- **style**: Formatting, missing semi colons, etc.
+- **refactor**: Code change that neither fixes a bug nor adds a feature
+- **test**: Adding missing tests
+- **chore**: Changes to build process or auxiliary tools
+
+### Troubleshooting Push Issues
+
+#### The Solution That Works
+**Most Important**: This repository requires the `id_ed25519_secondary` SSH key. Always use:
+```bash
+GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_secondary" git push origin [branch-name]
+```
+
+#### Common Issues and Solutions
+
+1. **"Repository not found" Error**:
+   - **Cause**: Wrong SSH key being used
+   - **Solution**: Use `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_secondary"` prefix
+
+2. **Check SSH Authentication**:
+   ```bash
+   ssh -T git@github.com
+   # Should return: "Hi suav! You've successfully authenticated..."
+   ```
+
+3. **Verify SSH Key Configuration**:
+   ```bash
+   cat ~/.ssh/config
+   # Should show id_ed25519_secondary for github.com
+   ```
+
+4. **If Branch Conflicts on Push**:
+   ```bash
+   # Stash changes, pull with rebase, then push
+   git stash
+   GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_secondary" git pull --rebase origin [branch-name]
+   GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519_secondary" git push origin [branch-name]
+   git stash pop  # Restore any stashed changes
+   ```
+
+5. **Repository Access**: SSH key must be associated with the `suav` GitHub account
+
+### Post-Push Workflow
+After successfully pushing:
+
+1. **Create Pull Request** (if working on feature branches)
+2. **Run Integration Tests** on the remote branch
+3. **Update Documentation** if new features were added
+4. **Notify Team Members** of significant changes
+
 ## 📚 Essential Documentation
 **Priority Reading**:
 1. `docs/agents/AGENT_PERMISSION_SYSTEM.md` - Critical for next phase

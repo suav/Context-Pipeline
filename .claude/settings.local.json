@@ -77,9 +77,18 @@
       "mcp__puppeteer__puppeteer_fill",
       "Bash(timeout:*)",
       "Bash(echo $DISPLAY)",
+<<<<<<< Updated upstream
       "Bash(git remote set-url:*)",
       "Bash(ssh:*)",
       "Bash(GIT_SSH_COMMAND=\"ssh -v\" git push origin workspace/test-workspace-comprehensive-2025-07-11)"
+=======
+      "Bash(git remote get-url:*)",
+      "Bash(ssh:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(GIT_SSH_COMMAND=\"ssh -i ~/.ssh/id_ed25519_secondary\" git push origin workspace/test-workspace-comprehensive-2025-07-11)",
+      "Bash(GIT_SSH_COMMAND=\"ssh -i ~/.ssh/id_ed25519_secondary\" git pull origin workspace/test-workspace-comprehensive-2025-07-11)",
+      "Bash(git stash:*)"
+>>>>>>> Stashed changes
     ],
     "deny": []
   }
