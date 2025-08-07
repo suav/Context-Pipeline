@@ -11,7 +11,7 @@ interface WorkspaceDraftsProps {
     onApplyContextToDrafts?: (selectedDraftIds: string[]) => void;
     selectedLibraryItems?: Set<string>;
     libraryItems?: any[];
-    isLibraryCollapsed?: boolean;
+    viewMode?: 'split' | 'library-fullscreen' | 'drafts-fullscreen';
     isApplyToWorkspacesMode?: boolean;
     onExitApplyToWorkspacesMode?: () => void;
 }
@@ -20,7 +20,7 @@ export function WorkspaceDrafts({
     onApplyContextToDrafts, 
     selectedLibraryItems = new Set(), 
     libraryItems = [],
-    isLibraryCollapsed = false,
+    viewMode = 'split',
     isApplyToWorkspacesMode = false,
     onExitApplyToWorkspacesMode
 }: WorkspaceDraftsProps = {}) {
@@ -28,6 +28,8 @@ export function WorkspaceDrafts({
     const [selectedDrafts, setSelectedDrafts] = useState<Set<string>>(new Set());
     const [showAgentConfig, setShowAgentConfig] = useState(false);
     const [agentConfigDraft, setAgentConfigDraft] = useState<WorkspaceDraft | null>(null);
+    const [isSyncing, setIsSyncing] = useState(false);
+    
     useEffect(() => {
         loadDrafts();
         // Listen for storage changes (from other components)
@@ -35,8 +37,8 @@ export function WorkspaceDrafts({
             loadDrafts();
         };
         window.addEventListener('storage', handleStorageChange);
-        // Also check periodically for local changes
-        const interval = setInterval(loadDrafts, 2000);
+        // Check periodically for local changes (reduced frequency)
+        const interval = setInterval(loadDrafts, 10000); // Changed from 2000 to 10000ms (10 seconds)
         return () => {
             window.removeEventListener('storage', handleStorageChange);
             clearInterval(interval);
@@ -46,15 +48,22 @@ export function WorkspaceDrafts({
         try {
             const storedDrafts = JSON.parse(localStorage.getItem('workspace-drafts') || '[]');
             setDrafts(storedDrafts);
-            // Sync to file system if there are drafts
-            if (storedDrafts.length > 0) {
+            // Sync to file system if there are drafts and not already syncing
+            if (storedDrafts.length > 0 && !isSyncing) {
                 syncDraftsToStorage(storedDrafts);
             }
         } catch (error) {
             console.error('Failed to load workspace drafts:', error);
         }
     };
+    
     const syncDraftsToStorage = async (draftsToSync: WorkspaceDraft[]) => {
+        if (isSyncing) {
+            console.log('⏳ Sync already in progress, skipping...');
+            return;
+        }
+        
+        setIsSyncing(true);
         try {
             const response = await fetch('/api/workspace-drafts', {
                 method: 'POST',
@@ -64,14 +73,28 @@ export function WorkspaceDrafts({
                 body: JSON.stringify({
                     action: 'sync',
                     drafts: draftsToSync
-                })
+                }),
+                signal: AbortSignal.timeout(10000) // 10 second timeout
             });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const result = await response.json();
             if (result.success) {
                 console.log('✅ Drafts synced to storage:', result.message);
+            } else {
+                throw new Error(result.error || 'Unknown sync error');
             }
         } catch (error) {
-            console.error('❌ Failed to sync drafts to storage:', error);
+            if (error instanceof Error && error.name === 'TimeoutError') {
+                console.error('❌ Sync timeout - server may be overloaded');
+            } else {
+                console.error('❌ Failed to sync drafts to storage:', error);
+            }
+        } finally {
+            setIsSyncing(false);
         }
     };
     const updateDraft = (draftId: string, updates: Partial<WorkspaceDraft>) => {
@@ -82,7 +105,10 @@ export function WorkspaceDrafts({
         );
         localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
         setDrafts(updatedDrafts);
-        syncDraftsToStorage(updatedDrafts);
+        // Only sync if not already syncing
+        if (!isSyncing) {
+            syncDraftsToStorage(updatedDrafts);
+        }
     };
     const addContextToDraft = (draftId: string, item: any) => {
         const draft = drafts.find(d => d.id === draftId);
@@ -122,7 +148,9 @@ export function WorkspaceDrafts({
         const updatedDrafts = [...drafts, clonedDraft];
         localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
         setDrafts(updatedDrafts);
-        syncDraftsToStorage(updatedDrafts);
+        if (!isSyncing) {
+            syncDraftsToStorage(updatedDrafts);
+        }
     };
     const archiveDraft = async (draftId: string) => {
         const draft = drafts.find(d => d.id === draftId);
@@ -146,7 +174,9 @@ export function WorkspaceDrafts({
                     const updatedDrafts = drafts.filter(draft => draft.id !== draftId);
                     localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
                     setDrafts(updatedDrafts);
-                    syncDraftsToStorage(updatedDrafts);
+                    if (!isSyncing) {
+                        syncDraftsToStorage(updatedDrafts);
+                    }
                     // Remove from selection if selected
                     setSelectedDrafts(prev => {
                         const newSet = new Set(prev);
@@ -244,7 +274,9 @@ export function WorkspaceDrafts({
             const updatedDrafts = drafts.filter(draft => !selectedDrafts.has(draft.id));
             localStorage.setItem('workspace-drafts', JSON.stringify(updatedDrafts));
             setDrafts(updatedDrafts);
-            syncDraftsToStorage(updatedDrafts);
+            if (!isSyncing) {
+                syncDraftsToStorage(updatedDrafts);
+            }
             setSelectedDrafts(new Set());
         } else {
             // If they declined deletion, offer archiving instead
@@ -399,41 +431,78 @@ export function WorkspaceDrafts({
             
             {/* Spacer for overlays */}
             <div style={{ height: '36px' }}></div>
-            {/* Drafts Container - Always horizontal scroll with full cards */}
-            <div className="overflow-hidden" style={{ height: isLibraryCollapsed ? '350px' : '220px' }}>
-                <div 
-                    className="overflow-x-auto overflow-y-hidden h-full"
-                    style={{
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: 'var(--color-border) var(--color-surface)',
-                    }}
-                >
-                    <div className="flex gap-4 pb-4 h-full" style={{ width: 'max-content' }}>
-                        {drafts.map(draft => (
-                            <div 
-                                key={draft.id} 
-                                className="flex-shrink-0" 
-                                style={{ 
-                                    width: '300px', 
-                                    height: isLibraryCollapsed ? '330px' : '200px' 
-                                }}
-                            >
-                                <WorkspaceDraftCard
-                                    draft={draft}
-                                    isSelected={selectedDrafts.has(draft.id)}
-                                    onSelect={toggleDraftSelection}
-                                    onUpdate={updateDraft}
-                                    onDelete={archiveDraft}
-                                    onPublish={publishDraft}
-                                    onClone={cloneDraft}
-                                    onAddContext={addContextToDraft}
-                                    onConfigureAgents={configureAgents}
-                                    isExpanded={isLibraryCollapsed}
-                                />
-                            </div>
-                        ))}
+            {/* Drafts Container - Layout changes based on view mode */}
+            <div className="overflow-hidden" style={{ 
+                height: viewMode === 'drafts-fullscreen' ? '600px' : 
+                       viewMode === 'split' ? '220px' : '350px'
+            }}>
+                {viewMode === 'drafts-fullscreen' ? (
+                    /* Grid Layout for Fullscreen - 2 cards high */
+                    <div 
+                        className="overflow-y-auto h-full"
+                        style={{
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'var(--color-border) var(--color-surface)',
+                        }}
+                    >
+                        <div className="grid gap-4 pb-4" style={{ 
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                            gridAutoRows: '320px'
+                        }}>
+                            {drafts.map(draft => (
+                                <div key={draft.id}>
+                                    <WorkspaceDraftCard
+                                        draft={draft}
+                                        isSelected={selectedDrafts.has(draft.id)}
+                                        onSelect={toggleDraftSelection}
+                                        onUpdate={updateDraft}
+                                        onDelete={archiveDraft}
+                                        onPublish={publishDraft}
+                                        onClone={cloneDraft}
+                                        onAddContext={addContextToDraft}
+                                        onConfigureAgents={configureAgents}
+                                        isExpanded={true}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    /* Horizontal Scroll Layout for Split/Library Views */
+                    <div 
+                        className="overflow-x-auto overflow-y-hidden h-full"
+                        style={{
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'var(--color-border) var(--color-surface)',
+                        }}
+                    >
+                        <div className="flex gap-4 pb-4 h-full" style={{ width: 'max-content' }}>
+                            {drafts.map(draft => (
+                                <div 
+                                    key={draft.id} 
+                                    className="flex-shrink-0" 
+                                    style={{ 
+                                        width: '300px', 
+                                        height: viewMode === 'split' ? '200px' : '330px'
+                                    }}
+                                >
+                                    <WorkspaceDraftCard
+                                        draft={draft}
+                                        isSelected={selectedDrafts.has(draft.id)}
+                                        onSelect={toggleDraftSelection}
+                                        onUpdate={updateDraft}
+                                        onDelete={archiveDraft}
+                                        onPublish={publishDraft}
+                                        onClone={cloneDraft}
+                                        onAddContext={addContextToDraft}
+                                        onConfigureAgents={configureAgents}
+                                        isExpanded={viewMode === 'library-fullscreen'}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Agent Configuration Modal */}
