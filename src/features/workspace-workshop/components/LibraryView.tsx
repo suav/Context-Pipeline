@@ -11,6 +11,9 @@ import { LibraryItem } from '@/features/context-library/types';
 import { WorkspaceDrafts } from '@/features/workspaces/components/WorkspaceDrafts';
 import { ImportModal } from '@/features/context-import/components/ImportModal';
 import { ArchiveManager } from '@/features/context-library/components/ArchiveManager';
+import { TemplateSelector } from '@/features/templates/components/TemplateSelector';
+import { TemplateManager } from '@/features/templates/components/TemplateManager';
+import { TemplateApplicationResult } from '@/features/templates/types';
 interface LibraryViewProps {
   onClose: () => void;
   onWorkspaceCreated?: (workspaceId: string) => void;
@@ -28,6 +31,8 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
   const [showImportModal, setShowImportModal] = useState(false);
   const [showArchiveManager, setShowArchiveManager] = useState(false);
   const [showRepoSelector, setShowRepoSelector] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [pendingWorkspaceMode, setPendingWorkspaceMode] = useState<'all-together' | 'individual' | null>(null);
   const [availableRepos, setAvailableRepos] = useState<any[]>([]);
   const [selectedRepos, setSelectedRepos] = useState<Set<string>>(new Set());
@@ -393,6 +398,31 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
     }
   };
 
+  const handleTemplateApply = (result: TemplateApplicationResult) => {
+    if (result.success) {
+      alert(`✅ Template applied successfully!\n\nWorkspace created: ${result.workspace_id}\nExecution time: ${result.execution_time_ms}ms`);
+      
+      // Clear selection after successful template application
+      setSelectedItems(new Set());
+      setShowTemplateSelector(false);
+      
+      // If we have a workspace ID and callback, notify parent
+      if (result.workspace_id && onWorkspaceCreated) {
+        onWorkspaceCreated(result.workspace_id);
+      }
+      
+      // Refresh the view to show any new drafts created by template
+      loadLibraryItems();
+      
+    } else {
+      const errorMessages = result.errors.map(e => `• ${e.message}`).join('\n');
+      const warningMessages = result.warnings.length > 0 ? 
+        '\n\nWarnings:\n' + result.warnings.map(w => `• ${w}`).join('\n') : '';
+      
+      alert(`❌ Template application failed:\n\n${errorMessages}${warningMessages}`);
+    }
+  };
+
   const handleExitApplyToWorkspacesMode = () => {
     setIsApplyToWorkspacesMode(false);
     setSelectedItems(new Set()); // Clear library selection when exiting
@@ -513,6 +543,18 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
           >
             <span>🗃️</span>
             <span>Archive</span>
+          </button>
+          <button
+            onClick={() => setShowTemplateManager(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors"
+            style={{
+              backgroundColor: 'var(--color-accent)',
+              borderColor: 'var(--color-accent)',
+              color: 'var(--color-text-inverse)',
+            }}
+          >
+            <span>📋</span>
+            <span>Manage Templates</span>
           </button>
           <button
             onClick={async () => {
@@ -703,6 +745,18 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
                     <span>For Each</span>
                   </button>
                 )}
+                <button
+                  onClick={() => setShowTemplateSelector(true)}
+                  className="flex items-center gap-1 px-2 py-1 rounded border transition-colors text-xs"
+                  style={{
+                    backgroundColor: 'var(--color-info)',
+                    borderColor: 'var(--color-info)',
+                    color: 'var(--color-text-inverse)',
+                  }}
+                >
+                  <span>📋</span>
+                  <span>Use Template</span>
+                </button>
                 <button
                   onClick={() => setIsApplyToWorkspacesMode(true)}
                   className="flex items-center gap-1 px-2 py-1 rounded border transition-colors text-xs"
@@ -1281,6 +1335,24 @@ export function LibraryView({ onClose, onWorkspaceCreated, onToggleSidebar, show
             </div>
           </div>
         </div>
+      )}
+
+      {/* Template Selector Modal */}
+      {showTemplateSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[90vh] overflow-hidden">
+            <TemplateSelector
+              selectedLibraryItems={Array.from(selectedItems)}
+              onTemplateApply={handleTemplateApply}
+              onClose={() => setShowTemplateSelector(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Template Manager Modal */}
+      {showTemplateManager && (
+        <TemplateManager onClose={() => setShowTemplateManager(false)} />
       )}
     </div>
   );

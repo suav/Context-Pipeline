@@ -539,13 +539,14 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
             />
             
             {/* Modal */}
-            <div className="relative bg-white rounded-lg shadow-2xl w-[95vw] h-[90vh] max-w-7xl flex flex-col">
+            <div className="relative rounded-lg shadow-2xl w-[95vw] h-[90vh] max-w-7xl flex flex-col" style={{ backgroundColor: 'var(--color-modal-background)' }}>
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-900">Import from Source</h2>
+                <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                    <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>Import from Source</h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 text-xl"
+                        className="text-xl hover:opacity-75"
+                        style={{ color: 'var(--color-text-muted)' }}
                     >
                         ×
                     </button>
@@ -554,10 +555,10 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
                 {/* Content */}
                 <div className="flex-1 flex overflow-hidden">
                     {/* Left Panel - Configuration */}
-                    <div className="w-80 border-r border-gray-200 p-4 overflow-y-auto">
+                    <div className="w-80 border-r p-4 overflow-y-auto" style={{ borderColor: 'var(--color-border)' }}>
                         {/* Source Selection */}
                         <div className="mb-4">
-                            <h3 className="text-sm font-medium text-gray-900 mb-3">Import Source</h3>
+                            <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>Import Source</h3>
                             <div className="grid grid-cols-1 gap-2">
                                 {SOURCE_CONFIG.map(source => (
                                     <button
@@ -570,15 +571,26 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
                                         }}
                                         className={`p-3 rounded-lg border transition-all text-left ${
                                             selectedSource === source.type
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                                ? 'border-blue-500'
+                                                : 'hover:opacity-75'
                                         }`}
+                                        style={{
+                                            backgroundColor: selectedSource === source.type 
+                                                ? 'var(--color-primary)' 
+                                                : 'var(--color-surface)',
+                                            borderColor: selectedSource === source.type 
+                                                ? 'var(--color-primary)' 
+                                                : 'var(--color-border)',
+                                            color: selectedSource === source.type 
+                                                ? 'var(--color-text-inverse)' 
+                                                : 'var(--color-text-primary)'
+                                        }}
                                     >
                                         <div className="flex items-center gap-2">
                                             <span className="text-lg">{source.icon}</span>
                                             <div className="flex-1 min-w-0">
-                                                <div className="font-medium text-gray-900 text-sm truncate">{source.name}</div>
-                                                <div className="text-xs text-gray-600 truncate">{source.description}</div>
+                                                <div className="font-medium text-sm truncate">{source.name}</div>
+                                                <div className="text-xs truncate opacity-75">{source.description}</div>
                                             </div>
                                         </div>
                                     </button>
@@ -589,7 +601,7 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
                         {/* Credential Selection */}
                         {credentialRequired && (
                             <div className="mb-4">
-                                <h3 className="text-sm font-medium text-gray-900 mb-3">
+                                <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>
                                     {selectedSource.toUpperCase()} Credentials
                                 </h3>
                                 <CredentialSelector
@@ -702,7 +714,7 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
                             ) : (
                                 <div className="space-y-3">
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-secondary)' }}>
                                             Title (optional)
                                         </label>
                                         <input
@@ -710,11 +722,16 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
                                             value={textTitle}
                                             onChange={(e) => setTextTitle(e.target.value)}
                                             placeholder="Enter a title for this content"
-                                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            className="w-full px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1"
+                                            style={{
+                                                backgroundColor: 'var(--color-surface)',
+                                                borderColor: 'var(--color-border)',
+                                                color: 'var(--color-text-primary)'
+                                            }}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                                        <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-secondary)' }}>
                                             Content
                                         </label>
                                         <textarea
@@ -722,7 +739,12 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
                                             onChange={(e) => setTextContent(e.target.value)}
                                             placeholder="Paste or type your content here..."
                                             rows={4}
-                                            className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            className="w-full px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1"
+                                            style={{
+                                                backgroundColor: 'var(--color-surface)',
+                                                borderColor: 'var(--color-border)',
+                                                color: 'var(--color-text-primary)'
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -768,17 +790,22 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
                                                         setCustomQuery(template.query);
                                                         setShowCustomForm(true);
                                                     }}
-                                                    className="w-full text-left p-2 border border-gray-200 rounded text-xs hover:bg-gray-50 transition-colors"
+                                                    className="w-full text-left p-2 border rounded text-xs hover:opacity-75 transition-colors"
+                                                    style={{
+                                                        borderColor: 'var(--color-border)',
+                                                        backgroundColor: 'var(--color-surface)',
+                                                        color: 'var(--color-text-primary)'
+                                                    }}
                                                 >
-                                                    <div className="font-medium text-gray-900 truncate">{template.name}</div>
-                                                    <div className="text-gray-600 mt-1 truncate">{template.description}</div>
+                                                    <div className="font-medium truncate">{template.name}</div>
+                                                    <div className="mt-1 truncate opacity-75">{template.description}</div>
                                                 </button>
                                             ))}
                                         </div>
 
                                         {showCustomForm && (
-                                            <div className="mt-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
-                                                <h4 className="font-medium text-gray-900 mb-2 text-sm">
+                                            <div className="mt-4 p-3 border rounded-lg" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+                                                <h4 className="font-medium mb-2 text-sm" style={{ color: 'var(--color-text-primary)' }}>
                                                     {selectedQuery ? selectedQuery.name : 'Custom Query'}
                                                 </h4>
                                                 <textarea
@@ -786,7 +813,12 @@ export function ImportModal({ isOpen, onClose, onImportComplete }: ImportModalPr
                                                     onChange={(e) => setCustomQuery(e.target.value)}
                                                     placeholder="Enter your search query..."
                                                     rows={2}
-                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 mb-2"
+                                                    className="w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 mb-2"
+                                                    style={{
+                                                        backgroundColor: 'var(--color-surface)',
+                                                        borderColor: 'var(--color-border)',
+                                                        color: 'var(--color-text-primary)'
+                                                    }}
                                                 />
                                                 <div className="flex gap-2">
                                                     <button

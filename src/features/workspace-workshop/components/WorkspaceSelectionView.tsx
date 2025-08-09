@@ -6,11 +6,13 @@
  */
 'use client';
 import { useState, useEffect } from 'react';
+import { TemplateManager } from '@/features/templates/components/TemplateManager';
 interface WorkspaceSelectionViewProps {
   onCreateWorkspace?: () => void;
 }
 export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelectionViewProps) {
   const [recentWorkspaces, setRecentWorkspaces] = useState<any[]>([]);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
   useEffect(() => {
     // Load recent workspaces from localStorage or API
     const loadRecentWorkspaces = () => {
@@ -32,7 +34,7 @@ export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelection
     onCreateWorkspace?.();
   };
   const handleBrowseTemplates = () => {
-    console.log('Browse templates');
+    setShowTemplateManager(true);
   };
   return (
     <div
@@ -149,6 +151,11 @@ export function WorkspaceSelectionView({ onCreateWorkspace }: WorkspaceSelection
           </p>
         </div>
       </div>
+      
+      {/* Template Manager Modal */}
+      {showTemplateManager && (
+        <TemplateManager onClose={() => setShowTemplateManager(false)} />
+      )}
     </div>
   );
 }
